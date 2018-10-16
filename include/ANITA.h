@@ -78,15 +78,6 @@ namespace anitaSim {
     //  */
     // void getLayerFoldFromRX(int rx, int& ilayer, int& ifold) const; ///@todo temp public for test
 
-    /** 
-     * What's the ilayer/ifold of given trigger RX?
-     * 
-     * @param rx index of the fSeaveys
-     * @param ilayer layer of ANITA 
-     * @param ifold index in phi, maybe...
-     */
-    void getLayerFoldFromTriggerRX(int rx, int& ilayer, int& ifold) const; ///@todo temp public for test
-    
     
   };
 }

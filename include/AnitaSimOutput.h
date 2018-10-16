@@ -54,7 +54,6 @@ namespace anitaSim {
 
 
     void initRootifiedAnitaDataFiles();
-    int getAnitaSimAntfromUsefulEventAnt(int UsefulEventAnt);
     
   };
 

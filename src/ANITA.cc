@@ -25,9 +25,6 @@ anitaSim::ANITA::ANITA(const Settings* settings)
 {
   initSeaveys(settings, this);
 
-
-
-
   // moved from main just before main event loop to here
   
   // fills arrays according to antenna specs
@@ -37,8 +34,8 @@ anitaSim::ANITA::ANITA(const Settings* settings)
   // Set_gain_angle(fSettings, askFreqGen.NMEDIUM_RECEIVER);
   // Set_gain_angle(fSettings, AskaryanGenerator::N_AIR); //askFreqGen.NMEDIUM_RECEIVER);  
 
-  if(fSettings->WHICH == anitaSim::Payload::Anita1Simple ||
-     fSettings->WHICH == anitaSim::Payload::Anita1){
+  if(fSettings->WHICH == Payload::Anita1Simple ||
+     fSettings->WHICH == Payload::Anita1){
     SetDiffraction(); // for the upper ring
   }
 
@@ -46,8 +43,7 @@ anitaSim::ANITA::ANITA(const Settings* settings)
   
   // sets position of balloon and related quantities
   // SetDefaultBalloonPosition();
-  // SetNoise(fSettings, this, antarctica);
-  
+  // SetNoise(fSettings, this, antarctica);  
 }
 
 
@@ -90,25 +86,6 @@ TVector3 anitaSim::ANITA::getPositionRX(Int_t rx) const {
 }
 
 
-void anitaSim::ANITA::getLayerFoldFromTriggerRX(int rx, int& ilayer, int& ifold) const {
-  int antNum = rx;  
-  ///@todo Do something smarter, this is NOT how to do things...
-  ilayer = -1;
-  ifold = -1;
-  for (int ilayerTemp=0 ;ilayerTemp < fSettings->NLAYERS; ilayerTemp++) { // loop over layers on the payload
-    for (int ifoldTemp=0;ifoldTemp<this->NRX_PHI[ilayerTemp];ifoldTemp++) { // ifold loops over phi
-      Int_t antNum2 = this->GetRxTriggerNumbering(ilayerTemp, ifoldTemp);
-      if(antNum==antNum2){
-	ilayer = ilayerTemp;
-	ifold = ifoldTemp;
-	break;
-      }
-    }
-    if(ilayer > -1){
-      break;
-    }
-  }
-}
 
 
 
@@ -139,7 +116,7 @@ void anitaSim::ANITA::initSeaveys(const Settings *settings1, const Anita *anita1
     int ilayer = -1;
     int ifold = -1;
     getLayerFoldFromTriggerRX(rx, ilayer, ifold);
-    std::cout << "Seaveys: rx = " << rx << ", ilayer = " << ilayer << ", ifold =" << ifold << ",  rxTrigger = " << this->GetRxTriggerNumbering(ilayer, ifold) << std::endl;    
+    std::cout << "Seaveys: rx = " << rx << ", ilayer = " << ilayer << ", ifold = " << ifold << ",  rxTrigger = " << this->GetRxTriggerNumbering(ilayer, ifold) << std::endl;    
     
 
     TVector3 n_eplane;
@@ -195,7 +172,7 @@ void anitaSim::ANITA::initSeaveys(const Settings *settings1, const Anita *anita1
 	///@todo Anita needs to be instantiated with these arrays filled!
 	/// currently they are done in "apply settings", this needs to change
 	seaveyPayloadPos = anita1->ANTENNA_POSITION_START[ipol][ilayer][ifold];
-	std::cout << seaveyPayloadPos.Z() << "\t" << seaveyPayloadPos.Phi()*TMath::RadToDeg() << std::endl;
+	std::cout << settings1->WHICH << "\t" << pol << "\t" << "z = " << seaveyPayloadPos.Z() << ", phi = " << seaveyPayloadPos.Phi()*TMath::RadToDeg() << " deg" << std::endl;
       }
       else {
 	if (settings1->CYLINDRICALSYMMETRY==1){ // for timing code
@@ -207,8 +184,8 @@ void anitaSim::ANITA::initSeaveys(const Settings *settings1, const Anita *anita1
 	  phi = anita1->PHI_EACHLAYER[ilayer][ifold] + anita1->PHI_OFFSET[ilayer];
 	}
 	seaveyPayloadPos = TVector3(anita1->RRX[ilayer]*cos(phi) + anita1->LAYER_HPOSITION[ilayer]*cos(anita1->LAYER_PHIPOSITION[ilayer]),
-			   anita1->RRX[ilayer]*sin(phi) + anita1->LAYER_HPOSITION[ilayer]*sin(anita1->LAYER_PHIPOSITION[ilayer]),
-			   anita1->LAYER_VPOSITION[ilayer]);
+				    anita1->RRX[ilayer]*sin(phi) + anita1->LAYER_HPOSITION[ilayer]*sin(anita1->LAYER_PHIPOSITION[ilayer]),
+				    anita1->LAYER_VPOSITION[ilayer]);
       }
      
     } 
@@ -335,9 +312,9 @@ bool anitaSim::ANITA::applyTrigger(int inu){
 	  globalTrigger->volts[ilayer][ifold][1]+=gRandom->Gaus(0., this->VNOISE_ANITALITE[ifold]);
 	} //else
       } //if adding noise
-      
+
       ct.WhichBandsPass(fSettings, this, globalTrigger.get(), this, ilayer, ifold, thresholdsAnt[antNum]);
-	  
+
   //   } //loop through the phi-fold antennas
   // }  //loop through the layers of antennas
     }

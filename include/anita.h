@@ -7,6 +7,7 @@
 #include "rx.h"
 #include <array>
 #include "TVector3.h"
+#include "PayloadGeometry.h"
 
 #ifdef ANITA_UTIL_EXISTS
 #include "FFTtools.h"
@@ -31,7 +32,7 @@ namespace anitaSim {
   class Settings;
   
   //! Contains everything about positions within payload and signals it sees for each event, in both the trigger and signal paths.
-  class Anita {
+  class Anita : public PayloadGeometry {
 
   private:
 
@@ -67,48 +68,15 @@ namespace anitaSim {
     void saveGainsPlot(const std::string& fileName);
     
     int tuffIndex; // keith edits
-    int number_all_antennas;                                    ///< this keeps count of the number of antennas for use with timing calculations, etc.
 
     static const int NBANDS_MAX=100;                            ///< max number of bands
-    static const int NPOL=2;                                    ///< number of polarizations
-    //static const int NFREQ=128;                               ///< number of frequency bins
     static const int NFREQ=128;
     //const int NFREQ=4096;
     static const int NTRIG=5;
-    static const int NANTENNAS_MAX=2000;
-    static const int NLAYERS_MAX=5;                             ///< max number of layers (in smex design, it's 4)
     static const int NTRIGGERLAYERS_MAX=3;
-    static const int NPHI_MAX=400;                              ///< max number of antennas around in phi (in smex, 16)
-    TVector3 ANTENNA_POSITION_START[NPOL][NLAYERS_MAX][NPHI_MAX]; ///< antenna positions from Kurt's measurements
-    double ANTENNA_DOWN[NLAYERS_MAX][NPHI_MAX];                 ///< down angles of antennas from Kurt's measurements
-    double SIMON_DELTA_R[NLAYERS_MAX][NPHI_MAX];                ///< measurements by Simon used in analysis ANITA-2
-    double SIMON_DELTA_PHI[NLAYERS_MAX][NPHI_MAX];              ///< measurements by Simon used in analysis ANITA-2
-
-    TVector3 antenna_positions[NPOL][NLAYERS_MAX * NPHI_MAX];     ///< these are the antenna positions in space in a coordinate system where x=north and y=west and the origin is at the center of the payload
-
-    int NRX_PHI[NLAYERS_MAX] = {0};                                   ///< number of antennas around in each layer. (radians)
-    double PHI_EACHLAYER[NLAYERS_MAX][NPHI_MAX] = {{0}};                ///< phi of the center of each antenna on each layer
-  
-    //before correcting for offset for the layer.
-    //only used if it is cylindrically symmetric (radians)
-    double PHI_OFFSET[NLAYERS_MAX] = {0};                             ///< antenna offset in phi for each layer (radians)
-    double THETA_ZENITH[NLAYERS_MAX] = {0};                           ///< how the antenna is tilted in theta (in radians with 0=up)
-    // 0=horizontal,+90=down
 
     int inu;                                                    ///< Neutrino number
     // what the payload looks like
-
-    double LAYER_VPOSITION[Anita::NLAYERS_MAX] = {0};                 ///< position of layers in z relative to vertical center of the payload
-
-    // anita proposal "says that the separation between upper and lower
-    // 2 layers of antennas is just under 4m.
-    // for anita hill, consider the positions of the "layers" of the "payload" (the stations) to be sitting on the horizontal grid defined by polar coordinates
-    
-    double LAYER_HPOSITION[Anita::NLAYERS_MAX];                 ///< distance in horizontal plane between center axis of the "payload" and each "layer".
-    double LAYER_PHIPOSITION[Anita::NLAYERS_MAX];               ///< phi corresponding to the position of each "layer" on the "payload"
-    double RRX[Anita::NLAYERS_MAX] = {0};                             ///< radius that the antenna sits from the axis of the payload (feedpoint)
-    Double_t deltaTPhaseCentre[NPOL][NLAYERS_MAX][NPHI_MAX];    ///< Relative to photogrammetry + ring offset
-
     double THERMALNOISE_FACTOR;                                 ///< factor to multiply thermal noise for error analysis
 
     double additionalDt;
@@ -374,8 +342,8 @@ namespace anitaSim {
     int AntennaWaveformtoSurf(int ilayer,int ifold) const; // find surf that generates this antenna's waveform
     static int AntennaNumbertoSurfNumber(int ilayer,int ifold); // find surf where this antenna is triggered
     static int GetAntennaNumber(int ilayer,int ifold); // given anitaSim indices ilayer, ifold, find antenna number as defined officially on anita
-    static int GetLayer(int rx);
-    static int GetIfold(int rx);
+    // static int GetLayer(int rx);
+    // static int GetIfold(int rx);
     static int GetSurfChannel(int antenna, int ibw,int ipol); // which channel on the surf this channel on this antenna corresponds to.
     static int WhichBand(int ibw,int ipol); // which band, 1-8, in order as they are on the surf
     void Banding(int j,double *freq_noise,double *powerperfreq,int NPOINTS_NOISE);
@@ -461,7 +429,6 @@ namespace anitaSim {
 
     int NTRIGGERLAYERS; // number of layers considered by the trigger.  may be different from nlayers, the number of physical layers on the payload.
     // In Anita 1 and Anita 2, the number of physical layers were 3 while the number of trigger layers were 2.
-    int PHITRIG[NLAYERS_MAX]; // number of positions in phi for each trigger layer
     int REQUIRE_CENTRE; // require centre antenna in clump to be one of those hit
     static const int NTRIGPHISECTORS=16; // number of phi sectors in the trigger
 
@@ -550,11 +517,6 @@ namespace anitaSim {
     std::vector< std::vector <int> > vdifferent_offsets;
     std::vector< std::vector <double> > vdifferent_angles;
 
-    void calculate_all_offsets(void);	// This function creates offsets for coherent sum trigger
-    void getDifferentOffsets();
-    void printDifferentOffsets();
-    void calculate_single_offset(const unsigned center_phi_sector_index, const double angle_phi, const double angle_theta, double hypothesis_offset[][3]);
-    void calculate_single_offset(const unsigned center_phi_sector_index, const unsigned index_phi, const unsigned index_theta, double hypothesis_offset[][3]);
     unsigned cwst_event_number;
     unsigned cwst_center_phi_sector;
     double cwst_rms_noise;
@@ -578,15 +540,11 @@ namespace anitaSim {
     std::vector <double> cwst_power_of_summed_wfm;
     double cwst_power;
     void fill_coherent_waveform_sum_tree(unsigned inu, unsigned center_phi_sector, const Settings* settings1, double rms_noise, double actual_rms, unsigned window_start, unsigned window_end, double deg_theta, double deg_phi, double actual_deg_theta, double actual_deg_phi, std::vector <double>& summed_wfm, std::vector <double>& power_of_summed_wfm, double power);
-    void GetPayload(const Settings*, const FlightDataManager*);
     double VNOISE_ANITALITE[NPHI_MAX]; // noise for each antenna, for the anita-lite trigger configuration.
-    double INCLINE_TOPTHREE; // cant angle of top three layers of antennas
-    double INCLINE_NADIR; // cant angle of nadir (bottom) layer of antennas
     double LIVETIME;
 
     double SIGMA_THETA; // resolution on the polar angle of the signal
 
-    double extraCableDelays[NPOL][48];
 #ifdef ANITA_UTIL_EXISTS
     RFSignal *fSignalChainResponseDigitizerTuffs[NPOL][3][16][6]; // 0:VPOL, 1:HPOL ---- 0:TOP, 1:MIDDLE, 2:BOTTOM------- 0:configA, 1:configB, 2:configC, 3:configG, 4:configO, 5:configP
     RFSignal *fSignalChainResponseTriggerTuffs[NPOL][3][16][6];  // same as for DigitizerTuffs

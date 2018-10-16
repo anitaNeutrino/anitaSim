@@ -129,20 +129,6 @@ void anitaSim::AnitaSimOutput::initRootifiedAnitaDataFiles(){
 }
 
 
-int anitaSim::AnitaSimOutput::getAnitaSimAntfromUsefulEventAnt(int UsefulEventAnt){
-
-#ifdef ANITA_UTIL_EXISTS  
-  int anitaSimAnt = UsefulEventAnt;
-  if ((fSettings->WHICH==Payload::Anita3 || fSettings->WHICH==Payload::Anita4) && UsefulEventAnt<16) {
-    anitaSimAnt = (UsefulEventAnt%2==0)*UsefulEventAnt/2 + (UsefulEventAnt%2==1)*(UsefulEventAnt/2+8);
-  }
-  return anitaSimAnt;
-#else  
-  return -1;
-#endif
-  
-}
-
 
 
 
@@ -179,7 +165,6 @@ void anitaSim::AnitaSimOutput::fillRootifiedAnitaDataTrees(){
 
   for (int iant = 0; iant < fSettings->NANTENNAS; iant++){
     //int anitaSimAnt = getanitaSimAntfromUsefulEventAnt(anita1,  AnitaGeom1,  iant);
-    int anitaSimAnt = getAnitaSimAntfromUsefulEventAnt(iant);
     int UsefulChanIndexH = geom->getChanIndexFromAntPol(iant,  AnitaPol::kHorizontal);
     int UsefulChanIndexV = geom->getChanIndexFromAntPol(iant,  AnitaPol::kVertical);
     fEvent->fNumPoints[UsefulChanIndexV] = fNumPoints;
@@ -187,23 +172,23 @@ void anitaSim::AnitaSimOutput::fillRootifiedAnitaDataTrees(){
     fEvent->chanId[UsefulChanIndexV] = UsefulChanIndexV;
     fEvent->chanId[UsefulChanIndexH] = UsefulChanIndexH;
 
-    const int offset = (fDetector->fVoltsRX.rfcm_lab_h_all[anitaSimAnt].size() - fNumPoints)/2; ///@todo find a better way to do this...
+    const int offset = (fDetector->fVoltsRX.rfcm_lab_h_all[iant].size() - fNumPoints)/2; ///@todo find a better way to do this...
     for (int j = 0; j < fNumPoints; j++) {
       // convert seconds to nanoseconds
       fEvent->fTimes[UsefulChanIndexV][j] = j * anita1->TIMESTEP * 1.0E9;
       fEvent->fTimes[UsefulChanIndexH][j] = j * anita1->TIMESTEP * 1.0E9;
 
       const double voltsToMilliVolts = 1000; // volts to millivolts
-      fEvent->fVolts[UsefulChanIndexH][j] = fDetector->fVoltsRX.rfcm_lab_h_all[anitaSimAnt][j+offset]*voltsToMilliVolts;
-      fEvent->fVolts[UsefulChanIndexV][j] = fDetector->fVoltsRX.rfcm_lab_e_all[anitaSimAnt][j+offset]*voltsToMilliVolts;
+      fEvent->fVolts[UsefulChanIndexH][j] = fDetector->fVoltsRX.rfcm_lab_h_all[iant][j+offset]*voltsToMilliVolts;
+      fEvent->fVolts[UsefulChanIndexV][j] = fDetector->fVoltsRX.rfcm_lab_e_all[iant][j+offset]*voltsToMilliVolts;
       
       fEvent->fCapacitorNum[UsefulChanIndexH][j] = j;
       fEvent->fCapacitorNum[UsefulChanIndexV][j] = j;
     }//end int j
 
     // if(headTree.GetEntries()==0){
-    //   std::cout << "in output " << iant << "\t" << anitaSimAnt << "\t"
-    // 		<< TMath::MaxElement(Anita::HALFNFOUR, fDetector->fVoltsRX.rfcm_lab_e_all[anitaSimAnt]) << "\t"
+    //   std::cout << "in output " << iant << "\t" << iant << "\t"
+    // 		<< TMath::MaxElement(Anita::HALFNFOUR, fDetector->fVoltsRX.rfcm_lab_e_all[iant]) << "\t"
     // 		<< TMath::MaxElement(fNumPoints, fEvent->fVolts[UsefulChanIndexV]) << std::endl;
     // }
 
