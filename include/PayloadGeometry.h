@@ -13,9 +13,11 @@ namespace anitaSim {
    * @brief Represent the payload geometry
    */
   class PayloadGeometry {
+  private:
 
   public:
     PayloadGeometry(const Settings* settings);
+
     /** 
      * What's the ilayer/ifold of given trigger RX?
      * 
@@ -28,9 +30,7 @@ namespace anitaSim {
     int GetRxTriggerNumbering(int ilayer, int ifold) const;// get antenna number based on which layer and position it is
     void GetPayload();
     
-
     static const int NPOL=2;                                    ///< number of polarizations
-    //static const int NFREQ=128;                               ///< number of frequency bins
     static const int NANTENNAS_MAX=2000;
     static const int NLAYERS_MAX=5;                             ///< max number of layers (in smex design, it's 4)
     static const int NPHI_MAX=400;                              ///< max number of antennas around in phi (in smex, 16)

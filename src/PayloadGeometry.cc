@@ -2,6 +2,7 @@
 #include "AnitaSimSettings.h"
 #include "Constants.h"
 #include "EnvironmentVariable.h"
+#include "Report.h"
 
 
 #ifdef ANITA_UTIL_EXISTS
@@ -12,6 +13,9 @@
 #endif
 
 anitaSim::PayloadGeometry::PayloadGeometry(const Settings* settings) : fSettings(settings){
+  INCLINE_TOPTHREE = 10.; // cant angle of top three layers of antennas
+  INCLINE_NADIR = 10.; // cant angle of nadir (bottom) layer of antennas
+  
   GetPayload();
 }
 
@@ -62,7 +66,7 @@ void anitaSim::PayloadGeometry::getLayerFoldFromTriggerRX(int rx, int& ilayer, i
 
 
 
-void anitaSim::PayloadGeometry::GetPayload(){//}const FlightDataManager* bn1){
+void anitaSim::PayloadGeometry::GetPayload(){
 
   std::string ICEMC_DATA_DIR(icemc::EnvironmentVariable::ICEMC_SRC_DIR());
   ICEMC_DATA_DIR += "/data";
@@ -825,7 +829,11 @@ void anitaSim::PayloadGeometry::GetPayload(){//}const FlightDataManager* bn1){
     else whichANITAroman+="IV";
     std::string photoFile;
 #ifdef ANITA_UTIL_EXISTS
-    photoFile += ( (std::string)getenv("ANITA_UTIL_INSTALL_DIR") +"/share/anitaCalib/anita"+whichANITAroman+"Photogrammetry.csv");
+    const char* anitaUtilInstallEnv = getenv("ANITA_UTIL_INSTALL_DIR");
+    if(!anitaUtilInstallEnv){
+      icemc::report() << icemc::severity::error << "Unable to find ANITA_UTIL_INSTALL_DIR!" << std::endl;
+    }
+    photoFile += std::string(anitaUtilInstallEnv) +"/share/anitaCalib/anita"+whichANITAroman+"Photogrammetry.csv";
 #else
     photoFile += (ICEMC_DATA_DIR+"/anita"+whichANITAroman+"Photogrammetry.csv");
 #endif
@@ -910,7 +918,7 @@ void anitaSim::PayloadGeometry::GetPayload(){//}const FlightDataManager* bn1){
       PHI_EACHLAYER[ilayer][ifold] = azCentrePhoto[ant] * icemc::constants::RADDEG - gps_offset_anita3;
       ANTENNA_DOWN[ilayer][ifold] = apertureElPhoto[ant] * icemc::constants::RADDEG;
 
-      std::cout << ANTENNA_POSITION_START[0][ilayer][ifold].Phi()*TMath::RadToDeg() << std::endl;
+      // std::cout << ANTENNA_POSITION_START[0][ilayer][ifold].Phi()*TMath::RadToDeg() << std::endl;
     }
 
     // for (int iant=0; iant<8;iant++){

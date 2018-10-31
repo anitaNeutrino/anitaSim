@@ -36,6 +36,8 @@ namespace anitaSim {
       dt = 1e-9*1./2.6;
     }
 
+    virtual bool chanceInHell(const icemc::PropagatingSignal& signal) override;
+
     virtual void addSignalToRX(const icemc::PropagatingSignal& signal, int rx) override {
       addSignalToRX(signal, rx, -1);
     }

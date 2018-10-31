@@ -60,8 +60,6 @@ anitaSim::Anita::Anita(const Settings* settings, const char* outputDir, const Fl
   // rx_minarrivaltime=0.;
 
   icemc::Tools::Zero(VNOISE_ANITALITE,16);
-  INCLINE_TOPTHREE = 10.; // cant angle of top three layers of antennas
-  INCLINE_NADIR = 10.; // cant angle of nadir (bottom) layer of antennas
   SIGMA_THETA=0.5*icemc::constants::RADDEG; // resolution on the polar angle of the signal
     
   FREQ_LOW=0.;//200.E6;
@@ -136,7 +134,7 @@ anitaSim::Anita::Anita(const Settings* settings, const char* outputDir, const Fl
     
   bwslice_min[4]= bwslice_center[0]-bwslice_width[0]/2.; //minimum of each bandwidth slice
   bwslice_max[4]=bwslice_center[3]+bwslice_width[3]/2.; //minimum of each bandwidth slice
-    
+
   bwmin=0.; // minimum width of any allowed bandwidth slice
     
   /*** Used for the Coherent Sum Trigger ***/
@@ -1629,7 +1627,6 @@ void anitaSim::Anita::RFCMs(int ilayer,int ifold,double *vmmhz) {
   for (int i=0;i<NFREQ;i++) {
     // first find the index of the amplification array
     iampl=icemc::Tools::findIndex(freq_ampl[irx],freq[i],NPOINTS_AMPL,freq_ampl[irx][0],freq_ampl[irx][NPOINTS_AMPL-1]);
-		
     vmmhz[i]=vmmhz[i]*sqrt(ampl_notdb[irx][iampl]);
 		
   }

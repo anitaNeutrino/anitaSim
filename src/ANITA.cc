@@ -14,7 +14,6 @@
 
 #include "TFile.h" ///@todo remove after done debugging
 
-
 anitaSim::ANITA::ANITA(const Settings* settings)
 // anitaSim::ANITA::ANITA(const Settings* settings, const RootOutput* ro ) 
   : FlightDataManager(settings), Anita(settings, settings->getOutputDir(), this),
@@ -48,7 +47,14 @@ anitaSim::ANITA::ANITA(const Settings* settings)
 
 
 anitaSim::ANITA::~ANITA(){
+
   
+}
+
+
+bool anitaSim::ANITA::chanceInHell(const icemc::PropagatingSignal& signal){  
+  ///@todo do something clever here...
+  return true;
 }
 
 
@@ -74,9 +80,7 @@ const Geoid::Position& anitaSim::ANITA::getPosition(double time){
     }
 
     fLastPositionTime = time;
-
   }
-
   return FlightDataManager::position();
 }
 
@@ -85,29 +89,6 @@ TVector3 anitaSim::ANITA::getPositionRX(Int_t rx) const {
   return fSeaveys.at(rx).getPosition(Seavey::Pol::V);
 }
 
-
-
-
-
-// void anitaSim::ANITA::getLayerFoldFromRX(int rx, int& ilayer, int& ifold) const {
-//   int antNum = rx;  
-//   ///@todo Do something smarter, this is NOT how to do things...
-//   ilayer = -1;
-//   ifold = -1;
-//   for (int ilayerTemp=0 ;ilayerTemp < fSettings->NLAYERS; ilayerTemp++) { // loop over layers on the payload
-//     for (int ifoldTemp=0;ifoldTemp < this->NRX_PHI[ilayerTemp];ifoldTemp++) { // ifold loops over phi
-//       Int_t antNum2 = this->GetRx(ilayerTemp, ifoldTemp);
-//       if(antNum==antNum2){
-// 	ilayer = ilayerTemp;
-// 	ifold = ifoldTemp;
-// 	break;
-//       }
-//     }
-//     if(ilayer > -1){
-//       break;
-//     }
-//   }
-// }
 
 
 void anitaSim::ANITA::initSeaveys(const Settings *settings1, const Anita *anita1) {
@@ -169,10 +150,7 @@ void anitaSim::ANITA::initSeaveys(const Settings *settings1, const Anita *anita1
 	  settings1->WHICH == Payload::Anita2 ||
 	  settings1->WHICH == Payload::Anita3 ||
 	  settings1->WHICH == Payload::Anita4 ){
-	///@todo Anita needs to be instantiated with these arrays filled!
-	/// currently they are done in "apply settings", this needs to change
 	seaveyPayloadPos = anita1->ANTENNA_POSITION_START[ipol][ilayer][ifold];
-	std::cout << settings1->WHICH << "\t" << pol << "\t" << "z = " << seaveyPayloadPos.Z() << ", phi = " << seaveyPayloadPos.Phi()*TMath::RadToDeg() << " deg" << std::endl;
       }
       else {
 	if (settings1->CYLINDRICALSYMMETRY==1){ // for timing code
