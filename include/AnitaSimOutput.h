@@ -31,8 +31,8 @@ namespace anitaSim {
   private:
     const ANITA* fDetector; ///< The ANITA detector, parent and owner of this object
     const Settings* fSettings; ///< The simulation settings
-    TString fOutputDir; ///< The output directory
-    int fRun; ///< The simulated run number (used to uniquely name output files)
+    const int fRun; ///< The simulated run number (used to uniquely name output files)
+    const TString fOutputDir; ///< The output directory
     
     UsefulAnitaEvent* fEvent;
     RawAnitaHeader* fHeader;

@@ -28,9 +28,13 @@
 
 anitaSim::AnitaSimOutput::AnitaSimOutput(const ANITA* detector, const Settings* settings, const char* outputDir, int run)
   : fDetector(detector), fSettings(settings),
-    fOutputDir(outputDir), fRun(run),
+    fRun(run), fOutputDir(TString::Format("%s/run%d/", outputDir, run)), 
     fEvent(nullptr), fHeader(nullptr), fGps(nullptr)
 {
+  TString mkdirCommand("mkdir -p ");
+  mkdirCommand += fOutputDir;
+  system(mkdirCommand.Data());
+
   initRootifiedAnitaDataFiles();
 }
 
