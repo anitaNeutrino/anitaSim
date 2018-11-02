@@ -52,8 +52,15 @@ anitaSim::ANITA::~ANITA(){
 }
 
 
-bool anitaSim::ANITA::chanceInHell(const icemc::PropagatingSignal& signal){  
-  ///@todo do something clever here...
+bool anitaSim::ANITA::chanceInHell(const icemc::PropagatingSignal& signal){
+  ///@todo do something much, much cleverer here...
+  /// it's not even clear this is anywhere near the correct value  
+  if(signal.maxEField() > 1e-3){
+    return true;
+  }
+  else {
+    return false;
+  }
   return true;
 }
 
@@ -97,7 +104,7 @@ void anitaSim::ANITA::initSeaveys(const Settings *settings1, const Anita *anita1
     int ilayer = -1;
     int ifold = -1;
     getLayerFoldFromTriggerRX(rx, ilayer, ifold);
-    std::cout << "Seaveys: rx = " << rx << ", ilayer = " << ilayer << ", ifold = " << ifold << ",  rxTrigger = " << this->GetRxTriggerNumbering(ilayer, ifold) << std::endl;    
+    // std::cout << "Seaveys: rx = " << rx << ", ilayer = " << ilayer << ", ifold = " << ifold << ",  rxTrigger = " << this->GetRxTriggerNumbering(ilayer, ifold) << std::endl;
     
 
     TVector3 n_eplane;
