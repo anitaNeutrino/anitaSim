@@ -240,6 +240,7 @@ void fillHeightArrays(double refractiveIndex){
 	i++;
       }
     }
+    refractiveIndexUsedForHeightArrays = refractiveIndex;
   }
 }
 
@@ -385,6 +386,7 @@ TCanvas* anitaSim::Seavey::plotGains() {
 
 
 TCanvas* anitaSim::Seavey::plotHeights(double refractiveIndex) {
+
   fillHeightArrays(refractiveIndex);
 
   auto c = new TCanvas();

@@ -254,10 +254,6 @@ bool anitaSim::ANITA::applyTrigger(int inu){
   
   for (int antNum=0; antNum < getNumRX(); antNum++) { // loop over layers on the payload
       
-  // for (int ilayer=0; ilayer < fSettings->NLAYERS; ilayer++) { // loop over layers on the payload
-  //   for (int ifold=0;ifold<this->NRX_PHI[ilayer];ifold++) { // ifold loops over phi
-      
-
       ChanTrigger ct(this);
 
       // int antNum = this->GetRxTriggerNumbering(ilayer, ifold);
