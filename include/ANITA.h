@@ -30,6 +30,7 @@ namespace anitaSim {
     virtual const Geoid::Position& getPosition(double time = TMath::QuietNaN()) override;
     virtual bool applyTrigger() override {return  applyTrigger(-1);}
     virtual bool applyTrigger(int inu);
+    virtual void write(const icemc::Event& event) override;
     
     virtual void getDesiredNDt(int& n, double& dt) const override {
       n = 1024;
@@ -45,7 +46,6 @@ namespace anitaSim {
 
     double GetAverageVoltageFromAntennasHit(const Settings *settings1,  int *nchannels_perrx_triggered,  const double *voltagearray,  double& volts_rx_sum) const;
 
-    UInt_t getLastEventNumber() const {return fEventNumber;}
 
   private:
 
@@ -53,7 +53,6 @@ namespace anitaSim {
     int fNumRX;
 
     std::vector<Seavey> fSeaveys; ///< The set of Seavey antennas on the payload
-    UInt_t fEventNumber = 0;
 
     ///@todo maybe move or remove these things...? Although they are used in the ROOTified ANITA style data trees...
     VoltsRX fVoltsRX;

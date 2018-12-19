@@ -54,8 +54,8 @@ anitaSim::ANITA::~ANITA(){
 
 bool anitaSim::ANITA::chanceInHell(const icemc::PropagatingSignal& signal){
   ///@todo do something much, much cleverer here...
-  /// it's not even clear this is anywhere near the correct value  
-  if(signal.maxEField() > 1e-3){
+  /// it's not even clear this is anywhere near the correct value
+  if(signal.maxEField() > 1e-5){
     return true;
   }
   else {
@@ -318,16 +318,15 @@ bool anitaSim::ANITA::applyTrigger(int inu){
        || (fSettings->TRIGTYPE==0 && count_pass>=fSettings->NFOLD)
        || (fSettings->MINBIAS==1)){
     eventPassesTrigger = true;
-    fEventNumber++;
-  }
-
-  if(eventPassesTrigger){
-    fAnitaOutput.fillRootifiedAnitaDataTrees();
   }
 
   return eventPassesTrigger;
 }
 
+
+void anitaSim::ANITA::write(const icemc::Event& event) {
+  fAnitaOutput.fillRootifiedAnitaDataTrees(event);
+}
 
 
 

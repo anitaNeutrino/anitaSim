@@ -82,7 +82,7 @@ void anitaSim::AnitaSimOutput::initRootifiedAnitaDataFiles(){
 
   icemc::RootOutput::initTree(&adu5PatTree, "adu5PatTree", "adu5PatTree", fGpsFile);
   adu5PatTree.Branch("pat",          &fGps);
-  adu5PatTree.Branch("eventNumber",  &(const_cast<ANITA*>(fDetector)->fEventNumber),  "eventNumber/I");
+  adu5PatTree.Branch("eventNumber",  &fEventNumber,  "eventNumber/I");
   // adu5PatTree.Branch("weight",       &uhen->fNeutrinoPath->weight,       "weight/D"     ); ///@todo restore weight here
   
 #ifdef ANITA3_EVENTREADER
@@ -138,7 +138,7 @@ void anitaSim::AnitaSimOutput::initRootifiedAnitaDataFiles(){
 
 
 
-void anitaSim::AnitaSimOutput::fillRootifiedAnitaDataTrees(){
+void anitaSim::AnitaSimOutput::fillRootifiedAnitaDataTrees(const icemc::Event& event){
   
 #ifdef ANITA_UTIL_EXISTS
   AnitaGeomTool* geom = AnitaGeomTool::Instance();
@@ -177,6 +177,8 @@ void anitaSim::AnitaSimOutput::fillRootifiedAnitaDataTrees(){
     fEvent->chanId[UsefulChanIndexH] = UsefulChanIndexH;
 
     const int offset = (fDetector->fVoltsRX.rfcm_lab_h_all[iant].size() - fNumPoints)/2; ///@todo find a better way to do this...
+    // const int offset = 0; //(fDetector->fVoltsRX.rfcm_lab_h_all[iant].size() - fNumPoints)/2; ///@todo find a better way to do this...    
+
     for (int j = 0; j < fNumPoints; j++) {
       // convert seconds to nanoseconds
       fEvent->fTimes[UsefulChanIndexV][j] = j * anita1->TIMESTEP * 1.0E9;
@@ -198,8 +200,9 @@ void anitaSim::AnitaSimOutput::fillRootifiedAnitaDataTrees(){
 
   }// end int iant
 
-  fEvent->eventNumber = fDetector->getLastEventNumber();
-  fHeader->eventNumber = fDetector->getLastEventNumber();
+  fEventNumber = event.loop.eventNumber;
+  fEvent->eventNumber = event.loop.eventNumber;
+  fHeader->eventNumber = event.loop.eventNumber;
   fHeader->surfSlipFlag = 0;
   fHeader->errorFlag = 0;
 
@@ -210,7 +213,7 @@ void anitaSim::AnitaSimOutput::fillRootifiedAnitaDataTrees(){
     fHeader->trigType = 1; // RF trigger
   }
 
-  fHeader->run = fRun; //clOpts.run_no;
+  fHeader->run = event.loop.run;
   // put the vpol only as a placeholder - these are only used in Anita-2 anyway
 
   fHeader->upperL1TrigPattern = fDetector->fL1trig[0][0];
@@ -239,32 +242,30 @@ void anitaSim::AnitaSimOutput::fillRootifiedAnitaDataTrees(){
   }
 
   fTruth                   = new TruthAnitaEvent();
-  fTruth->eventNumber      = fDetector->getLastEventNumber();
+  fTruth->eventNumber      = event.loop.eventNumber;
   fTruth->realTime         = bn1->getRealTime(); //realTime_flightdata;
-  fTruth->run              = fRun; //clOpts.run_no;
+  fTruth->run              = event.loop.run; //clOpts.run_no;
 
   //@todo URGENT RESTORE these parameters to the truth tree! FIX ME!  
-  // fTruth->nuMom            = uhen->pnu;
-  // fTruth->nu_pdg           = uhen->pdgcode;
+  fTruth->nuMom            = event.neutrino.energy.in(icemc::Energy::Unit::eV);
+  fTruth->nu_pdg           = event.neutrino.pdgCode();
   // fTruth->e_component      = uhen->e_component;
   // fTruth->h_component      = uhen->h_component;
   // fTruth->n_component      = uhen->n_component;
   // fTruth->e_component_k    = uhen->e_component_kvector;
   // fTruth->h_component_k    = uhen->h_component_kvector;
   // fTruth->n_component_k    = uhen->n_component_kvector;
-  // fTruth->sourceLon        = uhen->sourceLon;
-  // fTruth->sourceLat        = uhen->sourceLat;
-  // fTruth->sourceAlt        = uhen->sourceAlt;
-  // fTruth->weight           = uhen->fNeutrinoPath->weight;
+  fTruth->sourceLon        = event.interaction.position.Longitude();
+  fTruth->sourceLat        = event.interaction.position.Latitude();
+  fTruth->sourceAlt        = event.interaction.position.Altitude();
+  fTruth->weight           = event.neutrino.weight(); ///@todo does this make sense, the events have weights, not the neutrinos?
   TVector3 n_bn = bn1->position().Unit();
-  
+  TVector3 n_int_pos = event.interaction.position.Unit();
   for (int i=0;i<3;i++){
     fTruth->balloonPos[i]  = bn1->position()[i];
-    // fTruth->balloonPos[i]  = bn1->r_bn[i];    
-    // fTruth->balloonDir[i]  = bn1->n_bn[i];
-    fTruth->balloonDir[i]  = n_bn[i];    
-    // fTruth->nuPos[i]       = uhen->interaction1->posnu[i];
-    // fTruth->nuDir[i]       = uhen->interaction1->nnu[i];
+    fTruth->balloonDir[i]  = n_bn[i];
+    fTruth->nuPos[i] = event.interaction.position[i];
+    fTruth->nuDir[i] = n_int_pos[i];
   }
   // for (int i=0;i<5;i++){
   //   for (int j=0;j<3;j++){
@@ -338,11 +339,9 @@ void anitaSim::AnitaSimOutput::fillRootifiedAnitaDataTrees(){
       // fTruth->fSignalAtDigitizer[UsefulChanIndexH][j] = uhen->justSignal_dig[1][iant][j+128]*1000;
       // fTruth->fNoiseAtDigitizer[UsefulChanIndexV][j]  = uhen->justNoise_dig[0][iant][j+128]*1000;
       // fTruth->fNoiseAtDigitizer[UsefulChanIndexH][j]  = uhen->justNoise_dig[1][iant][j+128]*1000;
-		
       fTruth->fDiodeOutput[UsefulChanIndexV][j]       = anita1->timedomain_output_allantennas[0][irx][j];
       fTruth->fDiodeOutput[UsefulChanIndexH][j]       = anita1->timedomain_output_allantennas[1][irx][j];
     }//end int j
-	      
   }// end int iant
 
   truthTree.Fill();
