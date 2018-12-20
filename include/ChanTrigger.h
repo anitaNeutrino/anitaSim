@@ -447,16 +447,14 @@ namespace anitaSim {
     std::array<std::array<std::array<double, Anita::HALFNFOUR>, 5>, 2> volts_rx_forfft;
     std::vector<int> flag_e[5];                                 ///< Which bands pass trigger e
     std::vector<int> flag_h[5];                                 ///< Which bands pass trigger h
-    double bwslice_volts_pol0[5];                               ///< Sum voltage for each slice in bandwidth for the lcp polarization
-    double bwslice_volts_pol1[5];                               ///< Sum voltage for each slice in bandwidth for the rcp polarization
-    double bwslice_energy_pol0[5];                              ///< Square the sum of voltage for each slice in bandwidth for the 0th polarization
-    double bwslice_energy_pol1[5];                              ///< Square the sum of voltage for each slice in bandwidth for the 1st polarization
-    double bwslice_volts_pol0_em[5];                            ///< Component of the voltage that comes from the em shower for 0th polarization
-    double bwslice_volts_pol1_em[5];                            ///< Component of the voltage that comes from the em shower for 1st polarization
-    double bwslice_volts_pole[5];                               ///< Sum voltage for each slice in bandwidth for the e polarization
-    double bwslice_energy_pole[5];                              ///< Square the sum of voltage for each slice in bandwidth for e polarization.  The 5th element is the full band
-    double bwslice_volts_polh[5];                               ///< Sum voltage for each slice in bandwidth for the h polarization
-    double bwslice_energy_polh[5];                              ///< Square the sum of voltage for each slice in bandwidth for h polarization.  The 5th element is the full band
+    std::array<double, 5> bwslice_volts_pol0;                               ///< Sum voltage for each slice in bandwidth for the lcp polarization
+    std::array<double, 5> bwslice_volts_pol1;                               ///< Sum voltage for each slice in bandwidth for the rcp polarization
+    std::array<double, 5> bwslice_energy_pol0;                              ///< Square the sum of voltage for each slice in bandwidth for the 0th polarization
+    std::array<double, 5> bwslice_energy_pol1;                              ///< Square the sum of voltage for each slice in bandwidth for the 1st polarization
+    std::array<double, 5> bwslice_volts_pole;                               ///< Sum voltage for each slice in bandwidth for the e polarization
+    std::array<double, 5> bwslice_energy_pole;                              ///< Square the sum of voltage for each slice in bandwidth for e polarization.  The 5th element is the full band
+    std::array<double, 5> bwslice_volts_polh;                               ///< Sum voltage for each slice in bandwidth for the h polarization
+    std::array<double, 5> bwslice_energy_polh;                              ///< Square the sum of voltage for each slice in bandwidth for h polarization.  The 5th element is the full band
     double volts_rx_rfcm_lab[2][Anita::HALFNFOUR];              ///< For digitizer path, time domain voltage vs. time after rx, rfcm's and lab
     double volts_rx_rfcm_lab_all[2][48][Anita::HALFNFOUR];      ///< For digitizer path, time domain voltage vs. time after rx, rfcm's and lab
     double volts_rx_rfcm[2][Anita::HALFNFOUR];                  ///< For digitizer path, time domain voltage vs. time after rx, rfcm's

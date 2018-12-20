@@ -156,21 +156,21 @@ void anitaSim::ChanTrigger::WhichBandsPassTrigger1(const Settings *settings1, co
   // add noise, then find lcp, rcp components
   for (int ibw=0;ibw<anita1->NBANDS+1;ibw++) {
 	
-    //     cout << "ibw, bwslice_volts_pole are " << ibw << " " << bwslice_volts_pole[ibw] << "\n";
+    //     cout << "ibw, bwslice_volts_pole are " << ibw << " " << bwslice_volts_pole.at(ibw) << "\n";
 	
     if (settings1->SIGNAL_FLUCT) {// add noise fluctuations if requested
-      bwslice_volts_pole[ibw] += gRandom->Gaus(0.,anita1->bwslice_vnoise[ilayer][ibw]);
-      bwslice_volts_polh[ibw] += gRandom->Gaus(0.,anita1->bwslice_vnoise[ilayer][ibw]);
+      bwslice_volts_pole.at(ibw) += gRandom->Gaus(0.,anita1->bwslice_vnoise[ilayer][ibw]);
+      bwslice_volts_polh.at(ibw) += gRandom->Gaus(0.,anita1->bwslice_vnoise[ilayer][ibw]);
     }
 	
     // Convert e-plane and h-plane components into lcp,rcp
-    ConvertEHtoLREfield(bwslice_volts_pole[ibw],bwslice_volts_polh[ibw],bwslice_volts_pol0[ibw],bwslice_volts_pol1[ibw]);
+    ConvertEHtoLREfield(bwslice_volts_pole.at(ibw),bwslice_volts_polh.at(ibw),bwslice_volts_pol0.at(ibw),bwslice_volts_pol1.at(ibw));
 	
     // do the same for energy
-    ConvertEHtoLREnergy(bwslice_energy_pole[ibw],bwslice_energy_polh[ibw],bwslice_energy_pol0[ibw],bwslice_energy_pol1[ibw]);
+    ConvertEHtoLREnergy(bwslice_energy_pole.at(ibw),bwslice_energy_polh.at(ibw),bwslice_energy_pol0.at(ibw),bwslice_energy_pol1.at(ibw));
 	
-    globaltrig1->volts[0][ilayer][ifold]+=bwslice_volts_pol0[ibw];
-    globaltrig1->volts[1][ilayer][ifold]+=bwslice_volts_pol1[ibw];
+    globaltrig1->volts[0][ilayer][ifold]+=bwslice_volts_pol0.at(ibw);
+    globaltrig1->volts[1][ilayer][ifold]+=bwslice_volts_pol1.at(ibw);
   }
       
   for (int ibw=0;ibw<anita1->NBANDS+1;ibw++) { // subbands+full band
@@ -187,12 +187,12 @@ void anitaSim::ChanTrigger::WhichBandsPassTrigger1(const Settings *settings1, co
 	  
 	  
       if (settings1->LCPRCP )  {// if we're considering lcp, rcp
-	volts_thischannel=bwslice_volts_pol0[ibw];
-	energy_thischannel=bwslice_energy_pol0[ibw];
+	volts_thischannel=bwslice_volts_pol0.at(ibw);
+	energy_thischannel=bwslice_energy_pol0.at(ibw);
       }
       else {// if we're considering v and h pol
-	volts_thischannel=bwslice_volts_pole[ibw];
-	energy_thischannel=bwslice_energy_pole[ibw];
+	volts_thischannel=bwslice_volts_pole.at(ibw);
+	energy_thischannel=bwslice_energy_pole.at(ibw);
 
       }
 	  
@@ -272,12 +272,12 @@ void anitaSim::ChanTrigger::WhichBandsPassTrigger1(const Settings *settings1, co
       else {
 	    
 	if (settings1->LCPRCP) {  // if we're considering lcp, rcp
-	  volts_thischannel=bwslice_volts_pol1[ibw];
-	  energy_thischannel=bwslice_energy_pol1[ibw];
+	  volts_thischannel=bwslice_volts_pol1.at(ibw);
+	  energy_thischannel=bwslice_energy_pol1.at(ibw);
 	}
 	else { // if we're considering just e and h
-	  volts_thischannel=bwslice_volts_polh[ibw];
-	  energy_thischannel=bwslice_energy_polh[ibw];
+	  volts_thischannel=bwslice_volts_polh.at(ibw);
+	  energy_thischannel=bwslice_energy_polh.at(ibw);
 	}
 	    
 	energythresh_thischannel=thresholds[1][ibw];
@@ -739,16 +739,14 @@ void anitaSim::ChanTrigger::InitializeEachBand(Anita *anita1)
     }
   }
 
-  icemc::Tools::Zero(bwslice_volts_pol0,5);
-  icemc::Tools::Zero(bwslice_volts_pol1,5);
-  icemc::Tools::Zero(bwslice_energy_pol0,5);
-  icemc::Tools::Zero(bwslice_energy_pol1,5);
-  icemc::Tools::Zero(bwslice_volts_pol0_em,5);
-  icemc::Tools::Zero(bwslice_volts_pol1_em,5);
-  icemc::Tools::Zero(bwslice_energy_pole,5);
-  icemc::Tools::Zero(bwslice_energy_polh,5);
-  icemc::Tools::Zero(bwslice_volts_polh,5);
-  icemc::Tools::Zero(bwslice_volts_pole,5);
+  bwslice_volts_pol0.fill(0);
+  bwslice_volts_pol1.fill(0);
+  bwslice_energy_pol0.fill(0);
+  bwslice_energy_pol1.fill(0);
+  bwslice_energy_pole.fill(0);
+  bwslice_energy_polh.fill(0);
+  bwslice_volts_polh.fill(0);
+  bwslice_volts_pole.fill(0);
 }
 
 
@@ -1287,10 +1285,10 @@ void anitaSim::ChanTrigger::addToChannelSums(const Settings *settings1,Anita *an
     anita1->INTEGRATIONTIME; // multiply by frequency bin and divide by 50 ohms
     
     
-  bwslice_volts_pole[ibw]+=term_e;
-  bwslice_energy_pole[ibw]+=energyterm_e;
-  bwslice_volts_polh[ibw]+=term_h;
-  bwslice_energy_polh[ibw]+=energyterm_h;
+  bwslice_volts_pole.at(ibw)+=term_e;
+  bwslice_energy_pole.at(ibw)+=energyterm_e;
+  bwslice_volts_polh.at(ibw)+=term_h;
+  bwslice_energy_polh.at(ibw)+=energyterm_h;
     
 }
 
