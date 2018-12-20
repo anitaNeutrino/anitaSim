@@ -207,7 +207,7 @@ void anitaSim::ChanTrigger::WhichBandsPassTrigger1(const Settings *settings1, co
       //meanp_thischannel=bn1->meanp[isurf][ichan];
       //energy_thischannel+=meanp_thischannel*INTEGRATION_TIME;
 	  
-      voltagethresh_thischannel=anita1->bwslice_thresholds[ibw];
+      voltagethresh_thischannel=anita1->bwslice_thresholds.at(ibw);
 	  
 	  
       if (settings1->ZEROSIGNAL) {
@@ -285,7 +285,7 @@ void anitaSim::ChanTrigger::WhichBandsPassTrigger1(const Settings *settings1, co
 	    
 	//energy_thischannel+=meanp_thischannel*INTEGRATION_TIME;
 	    
-	voltagethresh_thischannel=anita1->bwslice_thresholds[ibw];
+	voltagethresh_thischannel=anita1->bwslice_thresholds.at(ibw);
 	    
 	    
 	if (settings1->ZEROSIGNAL) {
@@ -760,6 +760,21 @@ void anitaSim::ChanTrigger::readInSeavey(const Settings* settings1, const Seavey
   for(auto pol : {Seavey::Pol::V, Seavey::Pol::H}){
     const icemc::FTPair& signal = s->get(pol);
 
+    static bool firstTime = true;
+    bool message = false;
+    if(ant==6 && pol == Seavey::Pol::H){
+      static int n=0;
+      const char* th = (n%10) == 1 ? "st" : (n%10) == 2 ? "nd" : (n%10)==3 ? "rd" : "th";
+      std::cout  <<  n << th << "  time" << std::endl;
+
+      if(n==22){
+	signal.dump("testReadInSeavey.root");
+	firstTime = false;
+	message = true;
+      }
+      n++;
+    }
+
     int polInd = static_cast<int>(pol);
     {
       const TGraph& gr = signal.getTimeDomain();
@@ -770,9 +785,11 @@ void anitaSim::ChanTrigger::readInSeavey(const Settings* settings1, const Seavey
       const int n2 = volts_rx_forfft.at(polInd).at(band).size();
       const int offset = (n2 - n1)/2;
       int i=-offset;
-      // for(auto& vt : volts_rx_forfft[polInd][band]){
       for(auto& vt : volts_rx_forfft.at(polInd).at(band)){
 	vt = i >= 0 && i < gr.GetN() ? gr.GetY()[i] : 0;
+	if(message){
+	  std::cout << i << "\t" << vt << std::endl;
+	}
 	i++;
       }
     }
@@ -787,7 +804,11 @@ void anitaSim::ChanTrigger::readInSeavey(const Settings* settings1, const Seavey
     }
   }
 
+  // double max0 = *std::max_element(volts_rx_forfft.at(0).at(band).begin(), volts_rx_forfft.at(0).at(band).end());
+  // double max1 = *std::max_element(volts_rx_forfft.at(1).at(band).begin(), volts_rx_forfft.at(1).at(band).end());  
+  // std::cout << "max " << max0 << "\t" << max1 << std::endl;
 
+  
 #ifdef ANITA_UTIL_EXISTS
   if (settings1->SIGNAL_FLUCT && (settings1->NOISEFROMFLIGHTDIGITIZER || settings1->NOISEFROMFLIGHTTRIGGER) ){
     getNoiseFromFlight(anita1, ant, settings1->SIGNAL_FLUCT > 0);

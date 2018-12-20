@@ -490,7 +490,8 @@ namespace anitaSim {
     int antennatosurf[32];
 
     double maxthreshold;
-    double bwslice_thresholds[5]; // thresholds for each band -- this is just an initialization- this is set in the input file
+    // double bwslice_thresholds[5]; // thresholds for each band -- this is just an initialization- this is set in the input file
+    std::array<double, 5> bwslice_thresholds;  // thresholds for each band -- this is just an initialization- this is set in the input file
     int bwslice_allowed[5]; // these bands are allowed to contribute to the trigger sum -- this is set in the input file
     int bwslice_required[5]; // these bands are required to be among the channels that pass -- this is set in the input file
     int pol_allowed[NPOL];// which polarisations are allowed to have channels that fire (V,H)

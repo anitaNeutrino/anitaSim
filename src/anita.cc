@@ -101,7 +101,7 @@ anitaSim::Anita::Anita(const Settings* settings, const char* outputDir, const Fl
   antennatosurf[31]=8; // layer 3
       
   maxthreshold=0.;
-  icemc::Tools::Zero(bwslice_thresholds,5); // thresholds for each band -- this is just an initialization- this is set in the input file
+  bwslice_thresholds.fill(0); // thresholds for each band -- this is just an initialization- this is set in the input file
   for (int i=0;i<5;i++) {
     bwslice_allowed[i]=1; // these bands are allowed to contribute to the trigger sum -- this is set in the input file
   }
