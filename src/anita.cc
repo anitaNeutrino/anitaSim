@@ -1298,7 +1298,7 @@ void anitaSim::Anita::getPulserData(){
     if (i!=3) {
       cpulser->cd(iplot+1);
 				
-      gpulser_eachband=new TGraph(NFOUR/4,f_pulser,v_pulser);
+      gpulser_eachband=new TGraph(NFOUR/4,f_pulser.data(),v_pulser.data());
 				
       gpulser_eachband->Draw("al");
     }
@@ -1313,7 +1313,7 @@ void anitaSim::Anita::getPulserData(){
 			
     if (i!=3) {
       cnoise->cd(iplot+1);
-      gnoise_eachband=new TGraph(NFOUR/4,f_pulser,v_noise);
+      gnoise_eachband=new TGraph(NFOUR/4,f_pulser.data(),v_noise.data());
 				
       gnoise_eachband->Draw("al");
     }
@@ -2493,7 +2493,7 @@ void anitaSim::Anita::FromTimeDomainToIcemcArray(double *vsignalarray, double vh
   // find the frequency domain
   icemc::FTPair::realft(vsignalarray,1,NFOUR/2);
 
-  GetPhasesFromFFT(vsignalarray, v_phases);
+  GetPhasesFromFFT(vsignalarray, v_phases.data());
   
   //convert the V pol time waveform into frequency amplitudes
   GetArrayFromFFT(vsignalarray, vhz);
@@ -3166,8 +3166,8 @@ void anitaSim::Anita::readTriggerEfficiencyScanPulser(const Settings *settings1)
     
     bool useDelayGenerator = false;
 
-    double maxDelays =  (icemc::Tools::dMax(trigEffScanRingDelay, 3) + icemc::Tools::dMax(trigEffScanPhiDelay,5) );
-    maxDelays       -=  (TMath::MinElement(3, trigEffScanRingDelay) + TMath::MinElement(5, trigEffScanPhiDelay) );
+    double maxDelays =  (icemc::Tools::max(trigEffScanRingDelay) + icemc::Tools::max(trigEffScanPhiDelay) );
+    maxDelays       -=  (icemc::Tools::min(trigEffScanRingDelay) + icemc::Tools::min(trigEffScanPhiDelay) );
     
     if (maxDelays!=0) useDelayGenerator=true;
     

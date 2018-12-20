@@ -191,12 +191,12 @@ namespace anitaSim {
 
     TH1F *hsignals[5];                                                                                          ///< s/n (max diode output/mean diode output) for vertical polarization in each band
 
-    double f_pulser[NFOUR/4];
-    double f_phases[NFOUR/4];
-    double f_noise[NFOUR/4];
-    double v_pulser[NFOUR/4];
-    double v_phases[NFOUR/4];
-    double v_noise[NFOUR/4];
+    std::array<double, NFOUR/4> f_pulser;
+    std::array<double, NFOUR/4> f_phases;
+    std::array<double, NFOUR/4> f_noise;
+    std::array<double, NFOUR/4> v_pulser;
+    std::array<double, NFOUR/4> v_phases;
+    std::array<double, NFOUR/4> v_noise;
 
 
 
@@ -515,16 +515,16 @@ namespace anitaSim {
 
     // Trigger efficiency scan parameters
     Int_t trigEffScanPhi;                      // central phi sector of trigger efficiency scan
-    Double_t trigEffScanAtt[5];                // attenuations to apply to central and adjecent antennas
-    Double_t trigEffScanPhiDelay[5];           // delays between phi sectors
-    Double_t trigEffScanRingDelay[3];          // delays between rings
-    Int_t    trigEffScanApplyRingDelay[5];     // to which phi sectors apply ring delays 
-    Int_t    trigEffScanRingsUsed[3];          // to which rings apply scan
-    Double_t trigEffScanPulseAtAmpa[HALFNFOUR];
-    Double_t trigEffScanPulseAtAmpaUpsampled[NFOUR];
-    Double_t trigEffScanAmplitudeAtAmpa[NFREQ];
-    Double_t trigEffScanPulseAtSurf[250][HALFNFOUR];
-    int TUFFstatus[3];
+    std::array<Double_t, 5> trigEffScanAtt;                // attenuations to apply to central and adjecent antennas
+    std::array<Double_t, 5> trigEffScanPhiDelay;           // delays between phi sectors
+    std::array<Double_t, 3> trigEffScanRingDelay;          // delays between rings
+    std::array<Int_t   , 5> trigEffScanApplyRingDelay;     // to which phi sectors apply ring delays 
+    std::array<Int_t   , 3> trigEffScanRingsUsed;          // to which rings apply scan
+    std::array<Double_t, HALFNFOUR> trigEffScanPulseAtAmpa;
+    std::array<Double_t, NFOUR> trigEffScanPulseAtAmpaUpsampled;
+    std::array<Double_t, NFREQ> trigEffScanAmplitudeAtAmpa;
+    std::array<std::array<Double_t, HALFNFOUR>, 250> trigEffScanPulseAtSurf;
+    std::array<int, 3> TUFFstatus;
     int ntuffs;
 
   };

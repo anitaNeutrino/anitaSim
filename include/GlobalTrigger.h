@@ -30,7 +30,7 @@ namespace anitaSim {
 
     // this is used for Anita 3
     //  const double L1_COINCIDENCE[3]={8.E-9,8.E-9,8.E-9}; // L1 coincidence window, in seconds  
-    double L1_COINCIDENCE_ANITA3[3]; // L1 coincidence window, in seconds  
+    std::array<double, 3> L1_COINCIDENCE_ANITA3; // L1 coincidence window, in seconds  
     // in this scenario B->M is the same as M->B for example
     //  const double L3_COINCIDENCE=22.5E-9; // L3 is now among neighboring phi sectors  
     double LASTTIMETOTESTL1_ANITA3; // can't test L1 after this point because the l1_coincidence windows go past the end of the waveform.
@@ -45,7 +45,7 @@ namespace anitaSim {
 
 
     // In LR scenario A, a bottom antenna initiates the trigger, then require coincidences with hits in other layers
-    double L1_COINCIDENCE_LR_SCA[2]; // L1 coincidence window, in seconds  
+    std::array<double, 2> L1_COINCIDENCE_LR_SCA; // L1 coincidence window, in seconds  
     // which layers we're considering LCP, RCP polarizations instead of V,H in scenario A
     double WHICHLAYERSLCPRCP[Anita::NTRIGGERLAYERS_MAX];
 
@@ -54,7 +54,7 @@ namespace anitaSim {
     double L1_COINCIDENCE_ANITA4LR_SCB; // L1 coincidence window, in seconds  
     double LASTTIMETOTESTL1_ANITA4LR_SCB;
 
-    double L2_COINCIDENCE_ANITA4LR_SCB[3]; // L2 coincidence window, in seconds  
+    std::array<double, 3> L2_COINCIDENCE_ANITA4LR_SCB; // L2 coincidence window, in seconds  
     double LASTTIMETOTESTL2_ANITA4LR_SCB;
 
     double L3_COINCIDENCE_ANITA4LR_SCB; // L3 coincidence window, in seconds  

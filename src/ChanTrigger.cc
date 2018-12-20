@@ -1093,8 +1093,8 @@ void anitaSim::ChanTrigger::TriggerPath(const Settings *settings1, Anita *anita1
 
 void anitaSim::ChanTrigger::DigitizerPath(const Settings *settings1, Anita *anita1, int ant)//}, FlightDataManager *bn1)
 {
-  double vhz_rx_rfcm_e[Anita::NFREQ]; // V/Hz after rx, rfcm
-  double vhz_rx_rfcm_h[Anita::NFREQ];
+  std::array<double, Anita::NFREQ> vhz_rx_rfcm_e; // V/Hz after rx, rfcm
+  std::array<double, Anita::NFREQ> vhz_rx_rfcm_h;
 
   int fNumPoints = anita1->HALFNFOUR;
   
@@ -1130,14 +1130,14 @@ void anitaSim::ChanTrigger::DigitizerPath(const Settings *settings1, Anita *anit
       
     // apply rfcm's
     if (settings1->TRIGGERSCHEME==1 || settings1->TRIGGERSCHEME==2 || settings1->TRIGGERSCHEME == 3 || settings1->TRIGGERSCHEME == 4 || settings1->TRIGGERSCHEME == 5) {
-      anita1->RFCMs(1,1,vhz_rx_rfcm_e);
-      anita1->RFCMs(1,1,vhz_rx_rfcm_h);
+      anita1->RFCMs(1,1,vhz_rx_rfcm_e.data());
+      anita1->RFCMs(1,1,vhz_rx_rfcm_h.data());
     }
 
     double scale;
     double sumpower=0.;
     if (settings1->PULSER) { // if we are using the pulser spectrum instead of simulating neutrinos
-      scale=icemc::Tools::dMax(vhz_rx_rfcm_e,Anita::NFREQ)/icemc::Tools::dMax(anita1->v_pulser,anita1->NFOUR/4);
+      scale=icemc::Tools::max(vhz_rx_rfcm_e)/icemc::Tools::max(anita1->v_pulser);
       sumpower=0.;
       int ifour;// index for fourier transform
       for (int i=0;i<Anita::NFREQ;i++) {
@@ -1153,8 +1153,8 @@ void anitaSim::ChanTrigger::DigitizerPath(const Settings *settings1, Anita *anit
     }
 
     // change their length from Anita::NFREQ to HALFNFOUR
-    anita1->MakeArrayforFFT(vhz_rx_rfcm_e,volts_rx_rfcm[0], 90., true);
-    anita1->MakeArrayforFFT(vhz_rx_rfcm_h,volts_rx_rfcm[1], 90., true);
+    anita1->MakeArrayforFFT(vhz_rx_rfcm_e.data(),volts_rx_rfcm[0], 90., true);
+    anita1->MakeArrayforFFT(vhz_rx_rfcm_h.data(),volts_rx_rfcm[1], 90., true);
 
     // now the last two are in the frequency domain
     // convert to the time domain

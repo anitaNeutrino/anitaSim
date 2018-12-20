@@ -47,7 +47,7 @@ anitaSim::GlobalTrigger::GlobalTrigger(const Settings *settings1,Anita *anita1)
 
   // in this scenario B->M is the same as M->B for example
   // this needs to be generalized- using this same thing for all scenarios which isn't right
-  LASTTIMETOTESTL1_ANITA3=((double)anita1->NFOUR/2)*anita1->TIMESTEP-icemc::Tools::dMax(L1_COINCIDENCE_ANITA3,3); // can't test L1 after this point because the l1_coincidence windows go past the end of the waveform.
+  LASTTIMETOTESTL1_ANITA3=((double)anita1->NFOUR/2)*anita1->TIMESTEP-icemc::Tools::max(L1_COINCIDENCE_ANITA3); // can't test L1 after this point because the l1_coincidence windows go past the end of the waveform.
 
 
 
@@ -58,7 +58,7 @@ anitaSim::GlobalTrigger::GlobalTrigger(const Settings *settings1,Anita *anita1)
   L1_COINCIDENCE_LR_SCA[0]=16.E-9;
   L1_COINCIDENCE_LR_SCA[1]=16.E-9;
 
-  LASTTIMETOTESTL1_ANITA4LR_SCA=icemc::Tools::dMax(L1_COINCIDENCE_LR_SCA,2);
+  LASTTIMETOTESTL1_ANITA4LR_SCA=icemc::Tools::max(L1_COINCIDENCE_LR_SCA);
   LASTTIMETOTESTL1_ANITA4LR_SCA=((double)anita1->NFOUR/2)*anita1->TIMESTEP-LASTTIMETOTESTL1_ANITA4LR_SCA; // can't test L1 after this point because the l1_coincidence windows go past the end of the waveform.
 
   L1_COINCIDENCE_MOREGENERAL[0][0]=16.E-9;
@@ -91,7 +91,7 @@ anitaSim::GlobalTrigger::GlobalTrigger(const Settings *settings1,Anita *anita1)
   L2_COINCIDENCE_ANITA4LR_SCB[1]=4.e-9;
   L2_COINCIDENCE_ANITA4LR_SCB[2]=8.e-9;
   LASTTIMETOTESTL1_ANITA4LR_SCB=((double)anita1->NFOUR/2)*anita1->TIMESTEP-L1_COINCIDENCE_ANITA4LR_SCB; // can't test L1 after this point because the l1_coincidence windows go past the end of the waveform.;
-  LASTTIMETOTESTL2_ANITA4LR_SCB=((double)anita1->NFOUR/2)*anita1->TIMESTEP-icemc::Tools::dMax(L2_COINCIDENCE_ANITA4LR_SCB,3); // can't test L1 after this point because the l1_coincidence windows go past the end of the waveform.;
+  LASTTIMETOTESTL2_ANITA4LR_SCB=((double)anita1->NFOUR/2)*anita1->TIMESTEP-icemc::Tools::max(L2_COINCIDENCE_ANITA4LR_SCB); // can't test L1 after this point because the l1_coincidence windows go past the end of the waveform.;
   L3_COINCIDENCE_ANITA4LR_SCB=12.e-9;
 				   
   DELAYS[0]=0.; // delay top
