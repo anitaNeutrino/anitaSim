@@ -398,7 +398,7 @@ void anitaSim::ChanTrigger::WhichBandsPassTrigger2(const Settings *settings1, An
   // (4 layers with 8,8,16,8 phi sector to 3 layers with 16 phi sectors each.
   // In the nadir layer, 8 of the 16 slots are empty on the trigger layer.)
   int whichlayer,whichphisector;
-  globaltrig1->GetAnitaLayerPhiSector(settings1,ilayer,ifold,whichlayer,whichphisector); 
+  globaltrig1->GetAnitaLayerPhiSector(ilayer,ifold,whichlayer,whichphisector); 
     
   for (int iband=0;iband<5;iband++) {
     if (anita1->bwslice_allowed[iband]!=1) continue; 
@@ -593,7 +593,7 @@ void anitaSim::ChanTrigger::DiodeConvolution(const Settings *settings1, Anita *a
   // (4 layers with 8,8,16,8 phi sector to 3 layers with 16 phi sectors each.
   // In the nadir layer, 8 of the 16 slots are empty on the trigger layer.)
   int whichlayer,whichphisector;
-  globaltrig1->GetAnitaLayerPhiSector(settings1,ilayer,ifold,whichlayer,whichphisector); 
+  globaltrig1->GetAnitaLayerPhiSector(ilayer,ifold,whichlayer,whichphisector); 
 
 
   

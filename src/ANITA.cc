@@ -286,7 +286,7 @@ bool anitaSim::ANITA::applyTrigger(int inu){
   int count_pass = 0;
   // globalTrigger->PassesTrigger(fSettings, this, discones_passing, 2, fL3trig, fL2trig, fL1trig, fSettings->antennaclump, loctrig, loctrig_nadironly, inu, thispasses);
   const int triggerMode = 2;
-  globalTrigger->PassesTrigger(fSettings, this, triggerMode, fTriggerState);  
+  globalTrigger->PassesTrigger(this, triggerMode, fTriggerState);
 
   ///////////////////////////////////////
   //       Require that it passes      //
