@@ -226,20 +226,13 @@ bool anitaSim::ANITA::applyTrigger(int inu){
   auto globalTrigger = std::make_shared<GlobalTrigger>(fSettings, dynamic_cast<Anita*>(this));
 
   int discones_passing = 0;  // number of discones that pass
-  
-
-  constexpr int nAnt = 48;
-  std::vector<double> justNoise_trig[NPOL][nAnt];
-  std::vector<double> justSignal_trig[NPOL][nAnt];
-  std::vector<double> justNoise_dig[NPOL][nAnt];
-  std::vector<double> justSignal_dig[NPOL][nAnt];
 
   for(int pol=0;  pol < NPOL; pol++){
     for(int ant=0; ant < nAnt; ant++){
-      justNoise_trig[pol][ant].resize(Anita::HALFNFOUR);
-      justSignal_trig[pol][ant].resize(Anita::HALFNFOUR);
-      justNoise_dig[pol][ant].resize(Anita::HALFNFOUR);
-      justSignal_dig[pol][ant].resize(Anita::HALFNFOUR);
+      justNoise_trig[pol][ant].resize(Anita::HALFNFOUR, 0);
+      justSignal_trig[pol][ant].resize(Anita::HALFNFOUR, 0);
+      justNoise_dig[pol][ant].resize(Anita::HALFNFOUR, 0);
+      justSignal_dig[pol][ant].resize(Anita::HALFNFOUR, 0);
     }
   }
 

@@ -62,6 +62,12 @@ namespace anitaSim {
     //For each trigger layer,  which antennas pass L1.  16 bit,  16 bit and 8 bit and layers 1,  2 and nadirs
     int fL1trig[Anita::NPOL][Anita::NTRIGGERLAYERS_MAX] = {{0}};
 
+    static const int nAnt = 48; ///@todo I hate this.
+    std::vector<double> justNoise_trig[Anita::NPOL][nAnt];
+    std::vector<double> justSignal_trig[Anita::NPOL][nAnt];
+    std::vector<double> justNoise_dig[Anita::NPOL][nAnt];
+    std::vector<double> justSignal_dig[Anita::NPOL][nAnt];
+    
     friend class AnitaSimOutput; ///@todo Can I do this and respect privacy with getters?
     AnitaSimOutput fAnitaOutput; ///< Handles converting the MC output into the same format as real ANITA data
 
