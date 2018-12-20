@@ -96,8 +96,9 @@ anitaSim::GlobalTrigger::GlobalTrigger(const Settings *settings1,Anita *anita1){
   DELAYS[1]=4.e-9; // delay middle    
   DELAYS[2]=4.e-9; // delay bottom   
 
-  icemc::Tools::Zero(triggerbits,Anita::NTRIG);
-    
+  triggerbits.fill(0);
+  // icemc::Tools::Zero(triggerbits,Anita::NTRIG);
+
   phiTrigMask[0]=anita1->phiTrigMask; // set the phi mask to the input value which comes from the balloon class
   phiTrigMask[1]=anita1->phiTrigMaskH; // set the phi mask to the input value which comes from the balloon class
   l1TrigMask[0]=anita1->l1TrigMask; // set the phi mask to the input value which comes from the balloon class
@@ -1097,9 +1098,10 @@ void anitaSim::GlobalTrigger::PassesTriggerSummedPower(const Settings *settings1
 	  
 	  
 	//	Subtract the minoffset from the others, "normalizing" them so that the lowest value is zero
+	auto round = [](double number){return (number > 0.0) ? floor(number + 0.5) : ceil(number - 0.5);};
 	for (unsigned index_antenna = 0; index_antenna < 3; ++index_antenna) {
 	  offset[index_antenna] -= minoffset;
-	  offset_steps[index_antenna] = int(icemc::Tools::round(offset[index_antenna] / anita1->TIMESTEP));
+	  offset_steps[index_antenna] = int(round(offset[index_antenna] / anita1->TIMESTEP));
 	}
 	  
 	//	Check to make sure that all of the values will be in bounds
@@ -1530,9 +1532,7 @@ void anitaSim::GlobalTrigger::L3Trigger(const Settings *settings1,Anita *anita1,
 				     int *thispasses) {
   
   int whichphipass[Anita::NPOL][Anita::NPHI_MAX]={{0}};
-   
-  for (int i=0;i<Anita::NTRIG;i++)
-    triggerbits[i]=0;
+  triggerbits.fill(0);
     
   // shouldn't get here for anita3 or anita4 anymore.
   //assumes the number of trigger phi sectors are the same in each layer
@@ -1561,12 +1561,10 @@ void anitaSim::GlobalTrigger::L3Trigger(const Settings *settings1,Anita *anita1,
 	  whichphipass[ipolar][i]=1;
 	    
 	  if(loctrig[ipolar][0][i]>0 && loctrig[ipolar][1][i]>0) {
-	    if (!(triggerbits[0] & (1<<i)))
-	      triggerbits[0] += (1<<i);
+	    if (!(triggerbits.at(0) & (1<<i)))
+	      triggerbits.at(0) += (1<<i);
 
 	  }
-	    
- 
 	}
       }
     }
@@ -1591,11 +1589,10 @@ void anitaSim::GlobalTrigger::L3Trigger(const Settings *settings1,Anita *anita1,
 	  //how many of each trigger condition
 					
 	  if(loctrig[ipolar][1][i]>0 && loctrig[ipolar][2][i]>0) {
-	    triggerbits[1] += (1<<i);
-						
+	    triggerbits.at(1) += (1<<i);						
 	  }
 	  if(loctrig[ipolar][0][i]>0 && loctrig[ipolar][2][i]>0) {
-	    triggerbits[2]+=(1<<i);
+	    triggerbits.at(2)+=(1<<i);
 						
 	  }
 	  // 	if (loctrig_nadironly[i]>0)

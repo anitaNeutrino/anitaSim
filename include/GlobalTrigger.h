@@ -95,14 +95,28 @@ namespace anitaSim{
     std::array< std::array< std::array< std::array<std::vector<int>,5>, 2>, 16>, 3>  arrayofhits; 
 
 
-    int triggerbits[Anita::NTRIG]; // keeps track of which trigger scenarios pass
+    std::array<int, Anita::NTRIG> triggerbits;
     // for the nadir studies
     
     // this is L2 and L3 triggers
-    void PassesTrigger(const Settings *settings1,Anita *anita1,int discones_passing,int mode,int *l3trig,int l2trig[Anita::NPOL][Anita::NTRIGGERLAYERS_MAX],int l1trig[Anita::NPOL][Anita::NTRIGGERLAYERS_MAX],int antennaclump,int loctrig[Anita::NPOL][Anita::NLAYERS_MAX][Anita::NPHI_MAX],int loctrig_nadironly[Anita::NPOL][Anita::NPHI_MAX],int inu,
-		       int *thispasses);
-    void PassesTrigger(const Settings *settings1,Anita *anita1,int discones_passing,int mode,int *l3trig,int l2trig[Anita::NPOL][Anita::NTRIGGERLAYERS_MAX],int l1trig[Anita::NPOL][Anita::NTRIGGERLAYERS_MAX],int antennaclump,int loctrig[Anita::NPOL][Anita::NLAYERS_MAX][Anita::NPHI_MAX],int loctrig_nadironly[Anita::NPOL][Anita::NPHI_MAX],int inu,double this_threshold,
-		       int *thispasses);
+    void PassesTrigger(const Settings *settings1,Anita *anita1,int discones_passing,int mode,
+		       int *l3trig,
+		       int l2trig[Anita::NPOL][Anita::NTRIGGERLAYERS_MAX],
+		       int l1trig[Anita::NPOL][Anita::NTRIGGERLAYERS_MAX],
+		       int antennaclump,
+		       int loctrig[Anita::NPOL][Anita::NLAYERS_MAX][Anita::NPHI_MAX],
+		       int loctrig_nadironly[Anita::NPOL][Anita::NPHI_MAX],
+		       int inu, int *thispasses);
+
+    
+    void PassesTrigger(const Settings *settings1,Anita *anita1,int discones_passing,int mode,
+		       int *l3trig,
+		       int l2trig[Anita::NPOL][Anita::NTRIGGERLAYERS_MAX],
+		       int l1trig[Anita::NPOL][Anita::NTRIGGERLAYERS_MAX],
+		       int antennaclump,
+		       int loctrig[Anita::NPOL][Anita::NLAYERS_MAX][Anita::NPHI_MAX],
+		       int loctrig_nadironly[Anita::NPOL][Anita::NPHI_MAX],
+		       int inu,double this_threshold,int *thispasses);
 
   
     void PassesTriggerBasic(const Settings *settings1,Anita *anita1,int discones_passing,int mode,int *l3trig,int l2trig[Anita::NPOL][Anita::NTRIGGERLAYERS_MAX],int l1trig[Anita::NPOL][Anita::NTRIGGERLAYERS_MAX],int antennaclump,int loctrig[Anita::NPOL][Anita::NLAYERS_MAX][Anita::NPHI_MAX],int loctrig_nadironly[Anita::NPOL][Anita::NPHI_MAX], int *thispasses, int inu);
