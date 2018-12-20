@@ -7,7 +7,7 @@
 #include "ANITA.h"
 #include "RayTracer.h"
 #include "SurfaceScreen.h"
-
+#include "Tools.h"
 
 #include "TFile.h"
 
@@ -66,7 +66,6 @@ void anitaSim::AnitaSimOutput::initRootifiedAnitaDataFiles(){
 
   icemc::RootOutput::initTree(&eventTree, "eventTree", "eventTree", fEventFile);
   eventTree.Branch("event",             &fEvent           );
-  // eventTree.Branch("run",               fRun,   "run/I"   );
   eventTree.Branch("run",               fRun);//,   "run/I"   );  
   // eventTree.Branch("weight",            &uhen->fNeutrinoPath->weight,   "weight/D"); ///@todo restore weight here 
 
@@ -138,7 +137,7 @@ void anitaSim::AnitaSimOutput::initRootifiedAnitaDataFiles(){
 
 
 
-void anitaSim::AnitaSimOutput::fillRootifiedAnitaDataTrees(const icemc::Event& event){
+void anitaSim::AnitaSimOutput::fillRootifiedAnitaDataTrees(const icemc::Event& icemcEvent){
   
 #ifdef ANITA_UTIL_EXISTS
   AnitaGeomTool* geom = AnitaGeomTool::Instance();
@@ -200,9 +199,9 @@ void anitaSim::AnitaSimOutput::fillRootifiedAnitaDataTrees(const icemc::Event& e
 
   }// end int iant
 
-  fEventNumber = event.loop.eventNumber;
-  fEvent->eventNumber = event.loop.eventNumber;
-  fHeader->eventNumber = event.loop.eventNumber;
+  fEventNumber = icemcEvent.loop.eventNumber;
+  fEvent->eventNumber = icemcEvent.loop.eventNumber;
+  fHeader->eventNumber = icemcEvent.loop.eventNumber;
   fHeader->surfSlipFlag = 0;
   fHeader->errorFlag = 0;
 
@@ -213,7 +212,7 @@ void anitaSim::AnitaSimOutput::fillRootifiedAnitaDataTrees(const icemc::Event& e
     fHeader->trigType = 1; // RF trigger
   }
 
-  fHeader->run = event.loop.run;
+  fHeader->run = icemcEvent.loop.run;
   // put the vpol only as a placeholder - these are only used in Anita-2 anyway
 
   fHeader->upperL1TrigPattern = fDetector->fL1trig[0][0];
@@ -242,29 +241,29 @@ void anitaSim::AnitaSimOutput::fillRootifiedAnitaDataTrees(const icemc::Event& e
   }
 
   fTruth                   = new TruthAnitaEvent();
-  fTruth->eventNumber      = event.loop.eventNumber;
+  fTruth->eventNumber      = icemcEvent.loop.eventNumber;
   fTruth->realTime         = bn1->getRealTime(); //realTime_flightdata;
-  fTruth->run              = event.loop.run; //clOpts.run_no;
+  fTruth->run              = icemcEvent.loop.run; //clOpts.run_no;
 
   //@todo URGENT RESTORE these parameters to the truth tree! FIX ME!  
-  fTruth->nuMom            = event.neutrino.energy.in(icemc::Energy::Unit::eV);
-  fTruth->nu_pdg           = event.neutrino.pdgCode();
-  // fTruth->e_component      = uhen->e_component;
-  // fTruth->h_component      = uhen->h_component;
-  // fTruth->n_component      = uhen->n_component;
-  // fTruth->e_component_k    = uhen->e_component_kvector;
-  // fTruth->h_component_k    = uhen->h_component_kvector;
-  // fTruth->n_component_k    = uhen->n_component_kvector;
-  fTruth->sourceLon        = event.interaction.position.Longitude();
-  fTruth->sourceLat        = event.interaction.position.Latitude();
-  fTruth->sourceAlt        = event.interaction.position.Altitude();
-  fTruth->weight           = event.neutrino.weight(); ///@todo does this make sense, the events have weights, not the neutrinos?
+  fTruth->nuMom            = icemcEvent.neutrino.energy.in(icemc::Energy::Unit::eV);
+  fTruth->nu_pdg           = icemcEvent.neutrino.pdgCode();
+  // fTruth->e_component      = fDetector->e_component;
+  // fTruth->h_component      = fDetector->h_component;
+  // fTruth->n_component      = fDetector->n_component;
+  // fTruth->e_component_k    = fDetector->e_component_kvector;
+  // fTruth->h_component_k    = fDetector->h_component_kvector;
+  // fTruth->n_component_k    = fDetector->n_component_kvector;
+  fTruth->sourceLon        = icemcEvent.interaction.position.Longitude();
+  fTruth->sourceLat        = icemcEvent.interaction.position.Latitude();
+  fTruth->sourceAlt        = icemcEvent.interaction.position.Altitude();
+  fTruth->weight           = icemcEvent.neutrino.weight(); ///@todo does this make sense, the events have weights, not the neutrinos?
   TVector3 n_bn = bn1->position().Unit();
-  TVector3 n_int_pos = event.interaction.position.Unit();
+  TVector3 n_int_pos = icemcEvent.interaction.position.Unit();
   for (int i=0;i<3;i++){
     fTruth->balloonPos[i]  = bn1->position()[i];
     fTruth->balloonDir[i]  = n_bn[i];
-    fTruth->nuPos[i] = event.interaction.position[i];
+    fTruth->nuPos[i] = icemcEvent.interaction.position[i];
     fTruth->nuDir[i] = n_int_pos[i];
   }
   // for (int i=0;i<5;i++){
@@ -301,23 +300,20 @@ void anitaSim::AnitaSimOutput::fillRootifiedAnitaDataTrees(const icemc::Event& e
     int UsefulChanIndexH = geom->getChanIndexFromAntPol(iant,  AnitaPol::kHorizontal);
     int UsefulChanIndexV = geom->getChanIndexFromAntPol(iant,  AnitaPol::kVertical);
 
-    // @todo URGENT RESTORE THESE PARAMETERS!    
-    // fTruth->SNRAtTrigger[UsefulChanIndexV] = Tools::calculateSNR(uhen->justSignal_trig[0][iant], uhen->justNoise_trig[0][iant]);
-    // fTruth->SNRAtTrigger[UsefulChanIndexH] = Tools::calculateSNR(uhen->justSignal_trig[1][iant], uhen->justNoise_trig[1][iant]);
+    fTruth->SNRAtTrigger[UsefulChanIndexV] = icemc::Tools::calculateSNR(fDetector->fJustSignalTrig[0][iant], fDetector->fJustNoiseTrig[0][iant]);
+    fTruth->SNRAtTrigger[UsefulChanIndexH] = icemc::Tools::calculateSNR(fDetector->fJustSignalTrig[1][iant], fDetector->fJustNoiseTrig[1][iant]);
 	      
     if (fTruth->SNRAtTrigger[UsefulChanIndexV]>fTruth->maxSNRAtTriggerV) fTruth->maxSNRAtTriggerV=fTruth->SNRAtTrigger[UsefulChanIndexV];
     if (fTruth->SNRAtTrigger[UsefulChanIndexH]>fTruth->maxSNRAtTriggerH) fTruth->maxSNRAtTriggerH=fTruth->SNRAtTrigger[UsefulChanIndexH];
 
-    // @todo URGENT RESTORE THESE PARAMETERS!    
-    // fTruth->SNRAtDigitizer[UsefulChanIndexV] = Tools::calculateSNR(uhen->justSignal_dig[0][iant], uhen->justNoise_dig[0][iant]);
-    // fTruth->SNRAtDigitizer[UsefulChanIndexH] = Tools::calculateSNR(uhen->justSignal_dig[1][iant], uhen->justNoise_dig[1][iant]);
-	      
+    fTruth->SNRAtDigitizer[UsefulChanIndexV] = icemc::Tools::calculateSNR(fDetector->fJustSignalDig[0][iant], fDetector->fJustNoiseDig[0][iant]);
+    fTruth->SNRAtDigitizer[UsefulChanIndexH] = icemc::Tools::calculateSNR(fDetector->fJustSignalDig[1][iant], fDetector->fJustNoiseDig[1][iant]);
+
     if (fTruth->SNRAtDigitizer[UsefulChanIndexV]>fTruth->maxSNRAtDigitizerV) fTruth->maxSNRAtDigitizerV=fTruth->SNRAtDigitizer[UsefulChanIndexV];
     if (fTruth->SNRAtDigitizer[UsefulChanIndexH]>fTruth->maxSNRAtDigitizerH) fTruth->maxSNRAtDigitizerH=fTruth->SNRAtDigitizer[UsefulChanIndexH];
 
-    // @todo URGENT RESTORE THESE PARAMETERS!	      
-    // fTruth->thresholds[UsefulChanIndexV] = uhen->thresholdsAnt[iant][0][4];
-    // fTruth->thresholds[UsefulChanIndexH] = uhen->thresholdsAnt[iant][1][4];
+    fTruth->thresholds[UsefulChanIndexV] = fDetector->fThresholdsAnt[iant][0][4];
+    fTruth->thresholds[UsefulChanIndexH] = fDetector->fThresholdsAnt[iant][1][4];
     int irx = iant;
     if (iant<16){
       if (iant%2) irx = iant/2;
@@ -328,17 +324,16 @@ void anitaSim::AnitaSimOutput::fillRootifiedAnitaDataTrees(const icemc::Event& e
       fTruth->fTimes[UsefulChanIndexV][j]             = j * anita1->TIMESTEP * 1.0E9;
       fTruth->fTimes[UsefulChanIndexH][j]             = j * anita1->TIMESTEP * 1.0E9;
 
-      // @todo URGENT RESTORE THESE PARAMETERS!
-
       ///@todo replace this 128 with offset as in event->fVolts filling loop
-      // fTruth->fSignalAtTrigger[UsefulChanIndexV][j]   = uhen->justSignal_trig[0][iant][j+128]*1000;
-      // fTruth->fSignalAtTrigger[UsefulChanIndexH][j]   = uhen->justSignal_trig[1][iant][j+128]*1000;
-      // fTruth->fNoiseAtTrigger[UsefulChanIndexV][j]    = uhen->justNoise_trig[0][iant][j+128]*1000;
-      // fTruth->fNoiseAtTrigger[UsefulChanIndexH][j]    = uhen->justNoise_trig[1][iant][j+128]*1000;
-      // fTruth->fSignalAtDigitizer[UsefulChanIndexV][j] = uhen->justSignal_dig[0][iant][j+128]*1000;
-      // fTruth->fSignalAtDigitizer[UsefulChanIndexH][j] = uhen->justSignal_dig[1][iant][j+128]*1000;
-      // fTruth->fNoiseAtDigitizer[UsefulChanIndexV][j]  = uhen->justNoise_dig[0][iant][j+128]*1000;
-      // fTruth->fNoiseAtDigitizer[UsefulChanIndexH][j]  = uhen->justNoise_dig[1][iant][j+128]*1000;
+      const int offset = 128;
+      fTruth->fSignalAtTrigger[UsefulChanIndexV][j]   = fDetector->fJustSignalTrig[0][iant][j+offset]*1000;
+      fTruth->fSignalAtTrigger[UsefulChanIndexH][j]   = fDetector->fJustSignalTrig[1][iant][j+offset]*1000;
+      fTruth->fNoiseAtTrigger[UsefulChanIndexV][j]    = fDetector->fJustNoiseTrig[0][iant][j+offset]*1000;
+      fTruth->fNoiseAtTrigger[UsefulChanIndexH][j]    = fDetector->fJustNoiseTrig[1][iant][j+offset]*1000;
+      fTruth->fSignalAtDigitizer[UsefulChanIndexV][j] = fDetector->fJustSignalDig[0][iant][j+offset]*1000;
+      fTruth->fSignalAtDigitizer[UsefulChanIndexH][j] = fDetector->fJustSignalDig[1][iant][j+offset]*1000;
+      fTruth->fNoiseAtDigitizer[UsefulChanIndexV][j]  = fDetector->fJustNoiseDig[0][iant][j+offset]*1000;
+      fTruth->fNoiseAtDigitizer[UsefulChanIndexH][j]  = fDetector->fJustNoiseDig[1][iant][j+offset]*1000;
       fTruth->fDiodeOutput[UsefulChanIndexV][j]       = anita1->timedomain_output_allantennas[0][irx][j];
       fTruth->fDiodeOutput[UsefulChanIndexH][j]       = anita1->timedomain_output_allantennas[1][irx][j];
     }//end int j

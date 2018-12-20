@@ -24,15 +24,6 @@ anitaSim::ANITA::ANITA(const Settings* settings)
 {
   initSeaveys(settings, this);
 
-  // moved from main just before main event loop to here
-  
-  // fills arrays according to antenna specs
-  // GetBeamWidths(fSettings); // this is used if GAINS set to 0
-  // Antenna measured gain vs. frequency
-  // ReadGains(); // this is used if GAINS set to 1
-  // Set_gain_angle(fSettings, askFreqGen.NMEDIUM_RECEIVER);
-  // Set_gain_angle(fSettings, AskaryanGenerator::N_AIR); //askFreqGen.NMEDIUM_RECEIVER);  
-
   if(fSettings->WHICH == Payload::Anita1Simple ||
      fSettings->WHICH == Payload::Anita1){
     SetDiffraction(); // for the upper ring
@@ -229,10 +220,10 @@ bool anitaSim::ANITA::applyTrigger(int inu){
 
   for(int pol=0;  pol < NPOL; pol++){
     for(int ant=0; ant < nAnt; ant++){
-      justNoise_trig[pol][ant].resize(Anita::HALFNFOUR, 0);
-      justSignal_trig[pol][ant].resize(Anita::HALFNFOUR, 0);
-      justNoise_dig[pol][ant].resize(Anita::HALFNFOUR, 0);
-      justSignal_dig[pol][ant].resize(Anita::HALFNFOUR, 0);
+      fJustNoiseTrig[pol][ant].resize(Anita::HALFNFOUR, 0);
+      fJustSignalTrig[pol][ant].resize(Anita::HALFNFOUR, 0);
+      fJustNoiseDig[pol][ant].resize(Anita::HALFNFOUR, 0);
+      fJustSignalDig[pol][ant].resize(Anita::HALFNFOUR, 0);
     }
   }
 
@@ -243,7 +234,6 @@ bool anitaSim::ANITA::applyTrigger(int inu){
 
   int loctrig[Anita::NPOL][Anita::NLAYERS_MAX][Anita::NPHI_MAX]; //counting how many pass trigger requirement
   int loctrig_nadironly[Anita::NPOL][Anita::NPHI_MAX]; //counting how many pass trigger requirement
-  double thresholdsAnt[48][2][5] = {{{0}}};
   
   for (int antNum=0; antNum < getNumRX(); antNum++) { // loop over layers on the payload
       
@@ -265,8 +255,8 @@ bool anitaSim::ANITA::applyTrigger(int inu){
       ct.TimeShiftAndSignalFluct(fSettings, this, antNum,
 				 fVoltsRX.rfcm_lab_e_all.at(antNum).data(),
 				 fVoltsRX.rfcm_lab_h_all.at(antNum).data());
-      ct.saveTriggerWaveforms(&justSignal_trig[0][antNum][0], &justSignal_trig[1][antNum][0], &justNoise_trig[0][antNum][0], &justNoise_trig[1][antNum][0]);
-      ct.saveDigitizerWaveforms(&justSignal_dig[0][antNum][0], &justSignal_dig[1][antNum][0], &justNoise_dig[0][antNum][0], &justNoise_dig[1][antNum][0]);
+      ct.saveTriggerWaveforms(&fJustSignalTrig[0][antNum][0], &fJustSignalTrig[1][antNum][0], &fJustNoiseTrig[0][antNum][0], &fJustNoiseTrig[1][antNum][0]);
+      ct.saveDigitizerWaveforms(&fJustSignalDig[0][antNum][0], &fJustSignalDig[1][antNum][0], &fJustNoiseDig[0][antNum][0], &fJustNoiseDig[1][antNum][0]);
 
       if (fSettings->SCALEDOWNLCPRX1){
 	globalTrigger->volts[0][ilayer][0] = globalTrigger->volts[0][ilayer][0]/sqrt(2.);
@@ -287,7 +277,7 @@ bool anitaSim::ANITA::applyTrigger(int inu){
 	} //else
       } //if adding noise
 
-      ct.WhichBandsPass(fSettings, this, globalTrigger.get(), this, ilayer, ifold, thresholdsAnt[antNum]);
+      ct.WhichBandsPass(fSettings, this, globalTrigger.get(), this, ilayer, ifold, fThresholdsAnt[antNum]);
 
   //   } //loop through the phi-fold antennas
   // }  //loop through the layers of antennas
