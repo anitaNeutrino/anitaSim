@@ -59,7 +59,7 @@ anitaSim::Anita::Anita(const Settings* settings, const char* outputDir, const Fl
   NCH_PASS=4;
   // rx_minarrivaltime=0.;
 
-  icemc::Tools::Zero(VNOISE_ANITALITE,16);
+  VNOISE_ANITALITE.fill(0);
   SIGMA_THETA=0.5*icemc::constants::RADDEG; // resolution on the polar angle of the signal
     
   FREQ_LOW=0.;//200.E6;
@@ -102,9 +102,8 @@ anitaSim::Anita::Anita(const Settings* settings, const char* outputDir, const Fl
       
   maxthreshold=0.;
   bwslice_thresholds.fill(0); // thresholds for each band -- this is just an initialization- this is set in the input file
-  for (int i=0;i<5;i++) {
-    bwslice_allowed[i]=1; // these bands are allowed to contribute to the trigger sum -- this is set in the input file
-  }
+  bwslice_allowed.fill(1); // these bands are allowed to contribute to the trigger sum -- this is set in the input file
+
   bwslice_required[0]=0;
   bwslice_required[1]=0;
   bwslice_required[2]=0;
@@ -318,7 +317,7 @@ void anitaSim::Anita::Initialize(const Settings *settings1, std::ofstream &foutp
   // exit(1);
   initializeFixedPowerThresholds(foutput);
 
-  additionalDt=0;
+  double additionalDt=0;
   /// TEMP HACK FOR ANITA-4 !!!!
   if  (settings1->WHICH==Payload::Anita4){
     powerthreshold[4] /= TMath::Sqrt(2.);
@@ -589,8 +588,6 @@ void anitaSim::Anita::readVariableThresholds(const Settings *settings1){
     realTime_tr_min=realTime_turfrate; // realTime of first event in the file
     turfratechain->GetEvent(turfratechain->GetEntries()-1);
     realTime_tr_max=realTime_turfrate; // realTime of last event in file
-
-    
   }
   else if (settings1->WHICH==Payload::Anita3 || settings1->WHICH==Payload::Anita4){ // ANITA-3 and 4
     
@@ -2508,7 +2505,10 @@ void anitaSim::Anita::FromTimeDomainToIcemcArray(double *vsignalarray, double vh
 
 void anitaSim::Anita::MakeArrayforFFT(double *vsignalarray_e,double *vsignal_e_forfft, double phasedelay, bool useconstantdelay, bool debug) const {
 
-  icemc::Tools::Zero(vsignal_e_forfft,NFOUR/2);
+  /// killing Tools here... even though this is an annoying interface
+  /// it's the last use of Tools::Zero which  isn't now an std::array
+  memset(vsignal_e_forfft, 0, sizeof(double)*NFOUR/2);
+  // icemc::Tools::Zero(vsignal_e_forfft,NFOUR/2);
 
   double previous_value_e_even=0.;
   double previous_value_e_odd=0.;

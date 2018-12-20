@@ -604,6 +604,9 @@ double anitaSim::Seavey::getOffAxisResponse(Pol pol,  AngleDir dir, double freqH
 
 void anitaSim::Seavey::addSignal(const icemc::PropagatingSignal& s) {
 
+  // const double startEnergy = s.energy();
+  // std::cout << "Seavey::addSignal energy = " << s.energy() << std::endl;
+
   ///@todo Put the factor of 0.5 for "voltage dividing" elsewhere, like in an actual splitter class downstream of the Seavey...
 
   double e_component_kvector = 0;
@@ -650,8 +653,6 @@ void anitaSim::Seavey::addSignal(const icemc::PropagatingSignal& s) {
   std::vector<std::complex<double> >& vPolFreqs = thisVPol.changeFreqDomain();
   std::vector<std::complex<double> >& hPolFreqs = thisHPol.changeFreqDomain();
 
-  double freqHz = 0;
-
   /**
    * In anita.cc, they loop over 0,1 for get_gain_angle(hitangle_e)
    * then they loop over 2, 3 for get_gain_angle(hitangle_h)		 
@@ -662,13 +663,13 @@ void anitaSim::Seavey::addSignal(const icemc::PropagatingSignal& s) {
   /**
    * @todo So this is what I think anita.cc was doing			
    * I'm not sure it's right, but if it's wrong, it's the wrong off-axis
-   * response of the cross-pol, so probably a small effect		
+   * response of the cross-pol, so probably a small effect
    */
 
   bool temp = fDebug;
   fDebug = false;
-
-  for(auto& c : vPolFreqs){    
+  double freqHz = 0;
+  for(auto& c : vPolFreqs){
 
     if(freqAllowedByPassBands(freqHz)){
     
@@ -700,10 +701,9 @@ void anitaSim::Seavey::addSignal(const icemc::PropagatingSignal& s) {
   }
 
   fDebug = temp;
-
   
   freqHz = 0; // freqHz is incremented in the loop, so reset
-  for(auto& c : hPolFreqs){  
+  for(auto& c : hPolFreqs){
 
     if(freqAllowedByPassBands(freqHz)){
 
@@ -742,6 +742,27 @@ void anitaSim::Seavey::addSignal(const icemc::PropagatingSignal& s) {
    */
   fHPol = thisHPol;
   fVPol = thisVPol;
+
+  // if(startEnergy > 0){
+  //   TGraph gr = fVPol.makePowerSpectrumGraph();
+  //   double integral = 0;
+  //   for(int i=0; i < gr.GetN(); i++){
+  //     integral += gr.GetY()[i];
+  //   }
+  //   if(integral > 0){
+  //     std::cout << startEnergy/integral << "\t" << startEnergy << "\t" << integral << std::endl;
+  //   }
+  // }
+
+  // {
+  //   TGraph gr = fVPol.makePowerSpectrumGraph();
+  //   double integral = 0;
+  //   for(int i=0; i < gr.GetN(); i++){
+  //     integral += gr.GetY()[i];
+  //   }
+  //   std::cout << integral << std::endl;
+  // }  
+  
 
   fDebug = temp;
   if(fDebug){

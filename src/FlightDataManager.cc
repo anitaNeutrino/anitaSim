@@ -82,11 +82,11 @@ double anitaSim::FlightDataManager::getRoll() const {
 
 anitaSim::FlightDataManager::FlightDataManager(anitaSim::FlightPath path, const Settings* settings) : fSettings(settings), WHICHPATH(path)
 {
-  InitializeBalloon(nullptr);
+  InitializeBalloon(settings);
 }
 
 anitaSim::FlightDataManager::FlightDataManager(const Settings* settings)
-  : WHICHPATH(settings ? static_cast<anitaSim::FlightPath>(settings->WHICHPATH) : FlightPath::FixedPosition){
+  : fSettings(settings), WHICHPATH(settings ? static_cast<anitaSim::FlightPath>(settings->WHICHPATH) : FlightPath::FixedPosition){
 
   if(!settings){
     icemc::report() << icemc::severity::warning << __PRETTY_FUNCTION__ << " was given nullptr for const Settings*. "
@@ -363,6 +363,14 @@ void anitaSim::FlightDataManager::InitializeBalloon(const Settings* settings) {
 
     std::cout << "Loaded chain " << whichPath() << " with first good entry " << firstGoodEntry << " at " << fFirstRealTime << " and last good entry " << lastGoodEntry << " at " << fLastRealTime << std::endl;
   }
+
+  // if requested by config file, we should overwrite the first and last times discovered from the flight data...
+  if(fSettings->PAYLOAD_USE_SPECIFIC_TIME > 0){
+    fFirstRealTime = fSettings->PAYLOAD_USE_SPECIFIC_TIME - fSettings->PAYLOAD_USE_SPECIFIC_TIME_DELTA;
+    fLastRealTime = fSettings->PAYLOAD_USE_SPECIFIC_TIME + fSettings->PAYLOAD_USE_SPECIFIC_TIME_DELTA;      
+    icemc::report() << icemc::severity::info << "Requested specific payload time " << fSettings->PAYLOAD_USE_SPECIFIC_TIME << " with delta " << fSettings->PAYLOAD_USE_SPECIFIC_TIME_DELTA << std::endl;
+  }
+  
   
   // REDUCEBALLOONPOSITIONS=100;
 }
@@ -406,7 +414,12 @@ int getTuffIndex(int Curr_time) {
 // void anitaSim::FlightDataManager::PickBalloonPosition(const Antarctica *antarctica1, const Settings *settings1, int inu, Anita *anita1, double randomNumber) {
 // void anitaSim::FlightDataManager::PickBalloonPosition(const Settings *settings1, int inu, Anita *anita1, double randomNumber) {
 // void anitaSim::FlightDataManager::PickBalloonPosition(double eventTime, const Settings* settings1 ,Anita *anita1) {
-void anitaSim::FlightDataManager::getBalloonPosition(double eventTime, Anita *anita1) {  
+void anitaSim::FlightDataManager::getBalloonPosition(double eventTime, Anita *anita1) {
+
+  if(eventTime < fFirstRealTime || eventTime > fLastRealTime){
+    icemc::report() << icemc::severity::warning << "Trying to pick ANITA position from time outside bounds, requested time = "
+		    << eventTime << ", but settings say to pick within " << fFirstRealTime << " and " << fLastRealTime << std::endl;
+  }
 
 
   pitch=0.;

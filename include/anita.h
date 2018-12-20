@@ -35,14 +35,10 @@ namespace anitaSim {
   class Anita : public PayloadGeometry {
 
   private:
-
     double GaintoHeight(double gain,double freq,double nmedium_receiver);
     TGraph *gshort[4];
     void setTrigRequirement(int WHICH);
-
   public:
-
-
     ///@todo find a way to remove the balloon from this constructor!
     Anita(const Settings* settings, const char* outputdir, const FlightDataManager* bn1); // constructor
     virtual ~Anita();
@@ -55,31 +51,25 @@ namespace anitaSim {
 
     // takes arrays that span NFREQ and turn them into arrays that span HALFNFOUR
     void MakeArrayforFFT(double *vsignalarray_e,double *vsignal_e_forfft, double phasedelay, bool useconstantdelay, bool debug=false) const;
-
     void GetArrayFromFFT(double *tmp_fftvhz, double *vhz_rx) const;
  
     int Match(int ilayer,int ifold,int rx_minarrivaltime);
     int getLabAttn(int NPOINTS_LAB, double *freqlab, double *labattn);
-
     void labAttn(double *vhz);
     void SetNoise(const Settings *settings1, FlightDataManager *bn1, const icemc::Antarctica *antarctica);
     void calculate_antenna_positions(const Settings *settings1,double pitch, double roll, double phi_spin,TVector3 n_north,TVector3 n_east);
-
     void saveGainsPlot(const std::string& fileName);
     
     int tuffIndex; // keith edits
 
     static const int NBANDS_MAX=100;                            ///< max number of bands
     static const int NFREQ=128;
-    //const int NFREQ=4096;
     static const int NTRIG=5;
     static const int NTRIGGERLAYERS_MAX=3;
 
     int inu;                                                    ///< Neutrino number
     // what the payload looks like
     double THERMALNOISE_FACTOR;                                 ///< factor to multiply thermal noise for error analysis
-
-    double additionalDt;
 
     TFile *fnoise;
     TTree *tdiode;
@@ -150,81 +140,37 @@ namespace anitaSim {
     double time_trig[HALFNFOUR];
     double weight_inanita; // weight of the event
     int arrayofhits_inanita[3][16][2][HALFNFOUR];
-    
-    //std::array< std::array< std::array< std::array<std::vector<int>,5>, 2>, 16>, 3>  arrayofhits_inanita;
-
-
-
     // same as arrayofhits_inanita but it's time reversed
     int arrayofhits_forgaryanderic[3][16][2][HALFNFOUR];
-    //std::array< std::array< std::array< std::array<std::vector<int>,5>, 2>, 16>, 3>  arrayofhits_inanita;
-
     int l1trig_anita3and4_inanita[NPOL][16][HALFNFOUR];
-
-
-
     int l1trig_anita4lr_inanita[3][16][HALFNFOUR];
-
     int l1trig_anita4lr_forgaryanderic[3][16][HALFNFOUR];
-
-
     int l2trig_anita4lr_inanita[16][3][HALFNFOUR];
-
     int l2trig_anita4lr_forgaryanderic[16][HALFNFOUR];                                                           ///< when it passes 2/3
-
     int l3type0trig_anita4lr_inanita[16][HALFNFOUR];
     int l3trig_anita4lr_inanita[16][HALFNFOUR];
-
     int l3type0trig_anita4lr_forgaryanderic[16][HALFNFOUR];
     int l3type1trig_anita4lr_forgaryanderic[16][HALFNFOUR];
-
-
-
-
     double timedomain_output_corrected_forplotting[2][6][HALFNFOUR];                                            ///< this is just for writing out to the following tree
-
-
     double timedomain_output_allantennas[2][48][HALFNFOUR];                                                     ///< this is across all antennas, just the full band
-
-
-
     int flag_e_inanita[5][HALFNFOUR];
     int flag_h_inanita[5][HALFNFOUR];
     double dangle_inanita,emfrac_inanita,hadfrac_inanita;
     double ston[5];                                                                                             ///< signal to noise;
-
     int iminbin[5];                                                                                             ///< this is the minimum bin to start
     int imaxbin[5];
     int maxbin_fortotal[5];                                                                                     ///< when it sums the noise and signal together it shortens the waveform
-
     double peak_v_banding_rfcm[2][5];                                                                           ///< peak V in e/h polarization after rfcm's and banding
     double peak_rx_signalonly[2];                                                                               ///< peak voltage in e/h polarization received by the antenna
     double peak_rx_rfcm[2];                                                                                     ///< peak voltage in e/h polarization received by the antenna
-
     double peak_rx_rfcm_signalonly[2];                                                                          ///< peak voltage in e/h polarization received by the antenna
-
     double peak_rx_rfcm_lab[2];                                                                                 ///< peaks of the previous arrays
-    //I think this is the numerator of the vertical axis on Matt's plot
-
-
-
-
     int channels_passing[2][5];                                                                                 ///< channels passing.  This is reset for every antenna for every event
     int l1_passing; // l1 passing
     int l1_passing_allantennas[48]; // l1 passing
-    
-    // int irx;
-    void BoxAverageComplex(double *array,const int n,int navg);
-    void BoxAverage(double *array,const int n,int navg);
-    // int GetRx(int ilayer, int ifold) const;                                                                           ///< get antenna number based on which layer and position it is
-    int GetRxTriggerNumbering(int ilayer, int ifold) const;                                                           ///< get antenna number based on which layer and position it is
-
 
     double avgfreq_rfcm[NFREQ];
     double avgfreq_rfcm_lab[NFREQ];
-
-
-
     double vmmhz_banding[NFREQ];                                                                                ///< V/m/MHz after banding
     double vmmhz_banding_rfcm[NFREQ];                                                                           ///< V/m/MHz after banding and rfcms
 
@@ -321,6 +267,9 @@ namespace anitaSim {
 
     void getDiodeModel();
     void setDiodeRMS(const Settings *settings1, TString outputdir);
+    void BoxAverageComplex(double *array,const int n,int navg);
+    void BoxAverage(double *array,const int n,int navg);
+    int GetRxTriggerNumbering(int ilayer, int ifold) const;                                                           ///< get antenna number based on which layer and position it is
   
     TF1 fdiode;
     double maxt_diode;
@@ -331,13 +280,6 @@ namespace anitaSim {
 
     void myconvlv(double *timedomain_forconvl,const int NFOUR,double *fdiode,double &maxdiodeconvl,double &onediodeconvl,double *power_noise,double *diodeconv);
 
-    // void GetArrivalTimes(const TVector3& rf_direction,Balloon *bn1,const Settings *settings1);
-    // void GetArrivalTimesBoresights(const TVector3 rf_direction[NLAYERS_MAX][NPHI_MAX]);
-
-    // void GetArrivalTimesBoresights(const TVector3 rf_direction[NLAYERS_MAX][NPHI_MAX],Balloon *bn1, const Settings *settings1);
-
-    // int rx_minarrivaltime;
-    // double arrival_times[2][NLAYERS_MAX*NPHI_MAX];
     static int SurfChanneltoBand(int isurf);
     int AntennaWaveformtoSurf(int ilayer,int ifold) const; // find surf that generates this antenna's waveform
     static int AntennaNumbertoSurfNumber(int ilayer,int ifold); // find surf where this antenna is triggered
@@ -454,7 +396,6 @@ namespace anitaSim {
     double gain[2][NFREQ];   // for coarse antenna models:  gain vert pol,h pol
 
     int GetBeamWidths(const Settings *settings1); // for getting beam widths using coarse models (horn specs or simple model for EeVA)
-    // void Set_gain_angle(const Settings *settings1,double nmedium_receiver);
     double Get_gain_angle(int gain_type, int k, double hitangle) const;
     void ReadGains();
     void AntennaGain(const Settings *settings1,double hitangle_e,double hitangle_h,double e_component,double h_component,int k,double &vsignalarray_e,double &vsignalarray_h, bool debug = false) const;
@@ -490,9 +431,8 @@ namespace anitaSim {
     int antennatosurf[32];
 
     double maxthreshold;
-    // double bwslice_thresholds[5]; // thresholds for each band -- this is just an initialization- this is set in the input file
     std::array<double, 5> bwslice_thresholds;  // thresholds for each band -- this is just an initialization- this is set in the input file
-    int bwslice_allowed[5]; // these bands are allowed to contribute to the trigger sum -- this is set in the input file
+    std::array<double,5> bwslice_allowed; // these bands are allowed to contribute to the trigger sum -- this is set in the input file
     int bwslice_required[5]; // these bands are required to be among the channels that pass -- this is set in the input file
     int pol_allowed[NPOL];// which polarisations are allowed to have channels that fire (V,H)
     int pol_required[NPOL];// which polarisations are required to have channels that fire (V,H)
@@ -534,14 +474,11 @@ namespace anitaSim {
     double cwst_timesteps[HALFNFOUR];
     RX cwst_RXs[48];
     RX cwst_aligned_wfms[9];
-    //vector <double>* cwst_whole_wfms[NUM_COHERENT_ANTENNAS];
-    //vector <double>* cwst_wfms[NUM_COHERENT_ANTENNAS];
-    //vector <double>* cwst_aligned_wfms[NUM_COHERENT_ANTENNAS];
     std::vector <double> cwst_summed_wfm;
     std::vector <double> cwst_power_of_summed_wfm;
     double cwst_power;
     void fill_coherent_waveform_sum_tree(unsigned inu, unsigned center_phi_sector, const Settings* settings1, double rms_noise, double actual_rms, unsigned window_start, unsigned window_end, double deg_theta, double deg_phi, double actual_deg_theta, double actual_deg_phi, std::vector <double>& summed_wfm, std::vector <double>& power_of_summed_wfm, double power);
-    double VNOISE_ANITALITE[NPHI_MAX]; // noise for each antenna, for the anita-lite trigger configuration.
+    std::array<double, NPHI_MAX> VNOISE_ANITALITE; // noise for each antenna, for the anita-lite trigger configuration.
     double LIVETIME;
 
     double SIGMA_THETA; // resolution on the polar angle of the signal

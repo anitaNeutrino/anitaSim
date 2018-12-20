@@ -409,7 +409,11 @@ void anitaSim::ChanTrigger::WhichBandsPassTrigger2(const Settings *settings1, An
       
       // Convert Horiz and Vert polarization
       // To Left and Right circular polarization
-      ConvertHVtoLRTimedomain(anita1->NFOUR, v_banding_rfcm_forfft[0][iband], v_banding_rfcm_forfft[1][iband], vm_banding_rfcm_forfft[0][iband], vm_banding_rfcm_forfft[1][iband]);
+      ConvertHVtoLRTimedomain(anita1->NFOUR,
+			      v_banding_rfcm_forfft[0][iband].data(),
+			      v_banding_rfcm_forfft[1][iband].data(),
+			      vm_banding_rfcm_forfft[0][iband].data(),
+			      vm_banding_rfcm_forfft[1][iband].data());
       
     } else {
   
@@ -600,7 +604,11 @@ void anitaSim::ChanTrigger::DiodeConvolution(const Settings *settings1, Anita *a
     
     // myconvl
     // this performs the convolution with the diode response
-    anita1->myconvlv(vm_banding_rfcm_forfft[ipol][iband],anita1->NFOUR,anita1->fdiode_real[iband],mindiodeconvl[iband],onediodeconvl[iband],psignal[iband],timedomain_output[iband]);
+    anita1->myconvlv(vm_banding_rfcm_forfft[ipol][iband].data(),
+		     anita1->NFOUR,
+		     anita1->fdiode_real[iband],
+		     mindiodeconvl[iband],onediodeconvl[iband],
+		     psignal[iband],timedomain_output[iband]);
     // loop from the ibinshift left + some delay + 10 ns
     
 
@@ -820,136 +828,136 @@ void anitaSim::ChanTrigger::readInSeavey(const Settings* settings1, const Seavey
 }
 
 
-void anitaSim::ChanTrigger::ApplyAntennaGain(const Settings *settings1, Anita *anita1, const icemc::SurfaceScreen *panel1, int ant, TVector3 &n_eplane, TVector3 &n_hplane, TVector3 &n_normal) {
+// void anitaSim::ChanTrigger::ApplyAntennaGain(const Settings *settings1, Anita *anita1, const icemc::SurfaceScreen *panel1, int ant, TVector3 &n_eplane, TVector3 &n_hplane, TVector3 &n_normal) {
 
-  e_component=0;
-  h_component=0;
-  n_component=0;
-  e_component_kvector=0;
-  h_component_kvector=0;
-  n_component_kvector=0;
-  hitangle_e=0;
-  hitangle_h=0;
+//   e_component=0;
+//   h_component=0;
+//   n_component=0;
+//   e_component_kvector=0;
+//   h_component_kvector=0;
+//   n_component_kvector=0;
+//   hitangle_e=0;
+//   hitangle_h=0;
   
-  /**
-   * static const int NFOUR = 1024; // Number of fourier points
-   * static const int HALFNFOUR = 512; // Half of the number of fourier points
-   * static const int NFREQ =  128;
-   */
+//   /**
+//    * static const int NFOUR = 1024; // Number of fourier points
+//    * static const int HALFNFOUR = 512; // Half of the number of fourier points
+//    * static const int NFREQ =  128;
+//    */
     
-  double tmp_vhz[2][anita1->NFREQ];
-  double tmp_volts[2][anita1->NFOUR/2];
+//   double tmp_vhz[2][anita1->NFREQ];
+//   double tmp_volts[2][anita1->NFOUR/2];
     
   
-  for (int iband=0;iband<5;iband++) { // loop over bands
+//   for (int iband=0;iband<5;iband++) { // loop over bands
 
-    for(auto pol : {Seavey::Pol::V, Seavey::Pol::H}){
-      int polInd = static_cast<int>(pol);
-      icemc::Tools::Zero(volts_rx_forfft[polInd][iband].data(), anita1->NFOUR/2);
-      icemc::Tools::Zero(vhz_rx[polInd][iband],          anita1->NFREQ);
-      icemc::Tools::Zero(tmp_vhz[polInd],                anita1->NFREQ);
-      icemc::Tools::Zero(tmp_volts[polInd],              anita1->NFOUR/2);
-    }
+//     for(auto pol : {Seavey::Pol::V, Seavey::Pol::H}){
+//       int polInd = static_cast<int>(pol);
+//       volts_rx_forfft.at(polInd).at(iband).fill(0);
+//       icemc::Tools::Zero(vhz_rx[polInd][iband],          anita1->NFREQ);
+//       icemc::Tools::Zero(tmp_vhz[polInd],                anita1->NFREQ);
+//       icemc::Tools::Zero(tmp_volts[polInd],              anita1->NFOUR/2);
+//     }
 
-    if (anita1->bwslice_allowed[iband]!=1) {
-      continue;
-    }
+//     if (anita1->bwslice_allowed[iband]!=1) {
+//       continue;
+//     }
 
-    anita1->iminbin[iband]=0.;
-    anita1->imaxbin[iband]=anita1->NFOUR/2;
+//     anita1->iminbin[iband]=0.;
+//     anita1->imaxbin[iband]=anita1->NFOUR/2;
 
-    if(panel1){
+//     if(panel1){
 
-      for (int jpt=0; jpt<panel1->GetNvalidPoints(); jpt++){
+//       for (int jpt=0; jpt<panel1->GetNvalidPoints(); jpt++){
 
-	Seavey::GetEcompHcompkvector(n_eplane,  n_hplane,  n_normal,  panel1->GetVec2bln(jpt), e_component_kvector,  h_component_kvector,  n_component_kvector);
-	// Seavey::GetEcompHcompEvector(settings1,  n_eplane,  n_hplane,  panel1->GetPol(jpt),  e_component,  h_component,  n_component);
-	Seavey::GetEcompHcompEvector(n_eplane,  n_hplane,  panel1->GetPol(jpt),  e_component,  h_component,  n_component);
-	Seavey::GetHitAngles(e_component_kvector, h_component_kvector, n_component_kvector, hitangle_e, hitangle_h);
+// 	Seavey::GetEcompHcompkvector(n_eplane,  n_hplane,  n_normal,  panel1->GetVec2bln(jpt), e_component_kvector,  h_component_kvector,  n_component_kvector);
+// 	// Seavey::GetEcompHcompEvector(settings1,  n_eplane,  n_hplane,  panel1->GetPol(jpt),  e_component,  h_component,  n_component);
+// 	Seavey::GetEcompHcompEvector(n_eplane,  n_hplane,  panel1->GetPol(jpt),  e_component,  h_component,  n_component);
+// 	Seavey::GetHitAngles(e_component_kvector, h_component_kvector, n_component_kvector, hitangle_e, hitangle_h);
 
-	for (int k=0;k<Anita::NFREQ;k++) {
-	  if (anita1->freq[k]>=settings1->FREQ_LOW_SEAVEYS && anita1->freq[k]<=settings1->FREQ_HIGH_SEAVEYS){
+// 	for (int k=0;k<Anita::NFREQ;k++) {
+// 	  if (anita1->freq[k]>=settings1->FREQ_LOW_SEAVEYS && anita1->freq[k]<=settings1->FREQ_HIGH_SEAVEYS){
 
-	    //Copy frequency amplitude to screen point
-	    tmp_vhz[0][k] = tmp_vhz[1][k] = panel1->GetVmmhz_freq(jpt*Anita::NFREQ + k)/sqrt(2)/(anita1->TIMESTEP*1.E6);
+// 	    //Copy frequency amplitude to screen point
+// 	    tmp_vhz[0][k] = tmp_vhz[1][k] = panel1->GetVmmhz_freq(jpt*Anita::NFREQ + k)/sqrt(2)/(anita1->TIMESTEP*1.E6);
 
-	    anita1->AntennaGain(settings1, hitangle_e, hitangle_h, e_component, h_component, k, tmp_vhz[0][k], tmp_vhz[1][k]);
+// 	    anita1->AntennaGain(settings1, hitangle_e, hitangle_h, e_component, h_component, k, tmp_vhz[0][k], tmp_vhz[1][k]);
 
-	    if (settings1->TUFFSON==2){
-	      tmp_vhz[0][k] = applyButterworthFilter(anita1->freq[k], tmp_vhz[0][k], anita1->TUFFstatus);
-	      tmp_vhz[1][k] = applyButterworthFilter(anita1->freq[k], tmp_vhz[1][k], anita1->TUFFstatus);
-	    }
-	  }
-	  else {
-	    tmp_vhz[0][k] = 0;
-	    tmp_vhz[1][k] = 0;
-	  }
-	}
+// 	    if (settings1->TUFFSON==2){
+// 	      tmp_vhz[0][k] = applyButterworthFilter(anita1->freq[k], tmp_vhz[0][k], anita1->TUFFstatus);
+// 	      tmp_vhz[1][k] = applyButterworthFilter(anita1->freq[k], tmp_vhz[1][k], anita1->TUFFstatus);
+// 	    }
+// 	  }
+// 	  else {
+// 	    tmp_vhz[0][k] = 0;
+// 	    tmp_vhz[1][k] = 0;
+// 	  }
+// 	}
 	
-	anita1->MakeArrayforFFT(tmp_vhz[0], tmp_volts[0], 90., true);
-	anita1->MakeArrayforFFT(tmp_vhz[1], tmp_volts[1], 90., true);
+// 	anita1->MakeArrayforFFT(tmp_vhz[0], tmp_volts[0], 90., true);
+// 	anita1->MakeArrayforFFT(tmp_vhz[1], tmp_volts[1], 90., true);
 
-	// now v_banding_rfcm_h_forfft is in the time domain
-	// and now it is really in units of V
-	icemc::FTPair::realft(tmp_volts[0],-1,anita1->NFOUR/2);
-	icemc::FTPair::realft(tmp_volts[1],-1,anita1->NFOUR/2);
+// 	// now v_banding_rfcm_h_forfft is in the time domain
+// 	// and now it is really in units of V
+// 	icemc::FTPair::realft(tmp_volts[0],-1,anita1->NFOUR/2);
+// 	icemc::FTPair::realft(tmp_volts[1],-1,anita1->NFOUR/2);
 
-	// put it in normal time ording -T to T
-	// instead of 0 to T, -T to 0
-	icemc::Tools::NormalTimeOrdering(anita1->NFOUR/2,tmp_volts[0]);
-	icemc::Tools::NormalTimeOrdering(anita1->NFOUR/2,tmp_volts[1]);
+// 	// put it in normal time ording -T to T
+// 	// instead of 0 to T, -T to 0
+// 	icemc::Tools::NormalTimeOrdering(anita1->NFOUR/2,tmp_volts[0]);
+// 	icemc::Tools::NormalTimeOrdering(anita1->NFOUR/2,tmp_volts[1]);
 
-	int numBinShift = int(panel1->GetDelay(jpt) / anita1->TIMESTEP);
-	if(fabs(numBinShift) >= anita1->HALFNFOUR){
-	  //cout<<"skipping"<<"\n";
-	  //don't bother adding it to the total since it's shifted out of range
-	}
-	else{
-	  if( panel1->GetDelay(jpt)>0 ){
-	    icemc::Tools::ShiftLeft(tmp_volts[0], anita1->NFOUR/2, numBinShift );
-	    icemc::Tools::ShiftLeft(tmp_volts[1], anita1->NFOUR/2, numBinShift );
-	  }
-	  else if( panel1->GetDelay(jpt)<0 ){
-	    icemc::Tools::ShiftRight(tmp_volts[0], anita1->NFOUR/2, -1*numBinShift );
-	    icemc::Tools::ShiftRight(tmp_volts[1], anita1->NFOUR/2, -1*numBinShift );
-	  }
+// 	int numBinShift = int(panel1->GetDelay(jpt) / anita1->TIMESTEP);
+// 	if(fabs(numBinShift) >= anita1->HALFNFOUR){
+// 	  //cout<<"skipping"<<"\n";
+// 	  //don't bother adding it to the total since it's shifted out of range
+// 	}
+// 	else{
+// 	  if( panel1->GetDelay(jpt)>0 ){
+// 	    icemc::Tools::ShiftLeft(tmp_volts[0], anita1->NFOUR/2, numBinShift );
+// 	    icemc::Tools::ShiftLeft(tmp_volts[1], anita1->NFOUR/2, numBinShift );
+// 	  }
+// 	  else if( panel1->GetDelay(jpt)<0 ){
+// 	    icemc::Tools::ShiftRight(tmp_volts[0], anita1->NFOUR/2, -1*numBinShift );
+// 	    icemc::Tools::ShiftRight(tmp_volts[1], anita1->NFOUR/2, -1*numBinShift );
+// 	  }
 
-	  for (int k=0;k<anita1->NFOUR/2;k++) {
-	    volts_rx_forfft[0][iband][k] += tmp_volts[0][k];// * panel1->GetWeight(jpt) / panel1->GetWeightNorm();
-	    volts_rx_forfft[1][iband][k] += tmp_volts[1][k];// * panel1->GetWeight(jpt) / panel1->GetWeightNorm();
-	  }
-	}
-      } // end loop over screen points
+// 	  for (int k=0;k<anita1->NFOUR/2;k++) {
+// 	    volts_rx_forfft[0][iband][k] += tmp_volts[0][k];// * panel1->GetWeight(jpt) / panel1->GetWeightNorm();
+// 	    volts_rx_forfft[1][iband][k] += tmp_volts[1][k];// * panel1->GetWeight(jpt) / panel1->GetWeightNorm();
+// 	  }
+// 	}
+//       } // end loop over screen points
       
-	// Now need to convert time domain to frequency domain
-      for (int k=0; k<anita1->NFOUR/2;k++){
-	tmp_volts[0][k]=volts_rx_forfft[0][iband][k];
-	tmp_volts[1][k]=volts_rx_forfft[1][iband][k];
-      }
+// 	// Now need to convert time domain to frequency domain
+//       for (int k=0; k<anita1->NFOUR/2;k++){
+// 	tmp_volts[0][k]=volts_rx_forfft[0][iband][k];
+// 	tmp_volts[1][k]=volts_rx_forfft[1][iband][k];
+//       }
 
-      // find back the frequency domain
-      icemc::FTPair::realft(tmp_volts[0],1,anita1->NFOUR/2);
-      icemc::FTPair::realft(tmp_volts[1],1,anita1->NFOUR/2);
+//       // find back the frequency domain
+//       icemc::FTPair::realft(tmp_volts[0],1,anita1->NFOUR/2);
+//       icemc::FTPair::realft(tmp_volts[1],1,anita1->NFOUR/2);
 
-      // Convert FFT arrays into standard icemc frequency amplitudes array
-      anita1->GetArrayFromFFT(tmp_volts[0], vhz_rx[0][iband]);
-      anita1->GetArrayFromFFT(tmp_volts[1], vhz_rx[1][iband]);
+//       // Convert FFT arrays into standard icemc frequency amplitudes array
+//       anita1->GetArrayFromFFT(tmp_volts[0], vhz_rx[0][iband]);
+//       anita1->GetArrayFromFFT(tmp_volts[1], vhz_rx[1][iband]);
 
-    }
-  } // end loop over bands
+//     }
+//   } // end loop over bands
 
-#ifdef ANITA_UTIL_EXISTS
-  if (settings1->SIGNAL_FLUCT && (settings1->NOISEFROMFLIGHTDIGITIZER || settings1->NOISEFROMFLIGHTTRIGGER) ){
-    getNoiseFromFlight(anita1, ant, settings1->SIGNAL_FLUCT > 0);
-  }
-  if (settings1->ADDCW){
-    memset(cw_digPath, 0, sizeof(cw_digPath));
-    calculateCW(anita1, 250E6, 0, 0.000005);
-  }
+// #ifdef ANITA_UTIL_EXISTS
+//   if (settings1->SIGNAL_FLUCT && (settings1->NOISEFROMFLIGHTDIGITIZER || settings1->NOISEFROMFLIGHTTRIGGER) ){
+//     getNoiseFromFlight(anita1, ant, settings1->SIGNAL_FLUCT > 0);
+//   }
+//   if (settings1->ADDCW){
+//     memset(cw_digPath, 0, sizeof(cw_digPath));
+//     calculateCW(anita1, 250E6, 0, 0.000005);
+//   }
   
-#endif
+// #endif
   
-}
+// }
 
 void anitaSim::ChanTrigger::TriggerPath(const Settings *settings1, Anita *anita1, int ant, FlightDataManager *bn1){
 
@@ -961,8 +969,8 @@ void anitaSim::ChanTrigger::TriggerPath(const Settings *settings1, Anita *anita1
     anita1->iminbin[iband]=0.;
     anita1->imaxbin[iband]=anita1->NFOUR/2;
 
-    icemc::Tools::Zero(v_banding_rfcm_forfft[0][iband],anita1->NFOUR/2);
-    icemc::Tools::Zero(v_banding_rfcm_forfft[1][iband],anita1->NFOUR/2);
+    v_banding_rfcm_forfft[0][iband].fill(0);
+    v_banding_rfcm_forfft[1][iband].fill(0);
 
     for (int ifreq=0; ifreq<anita1->NFOUR/2; ifreq++){
       v_banding_rfcm[0][iband][ifreq]=vhz_rx[0][iband][ifreq];
@@ -974,10 +982,10 @@ void anitaSim::ChanTrigger::TriggerPath(const Settings *settings1, Anita *anita1
     // And then convert to time domain
     if (!settings1->APPLYIMPULSERESPONSETRIGGER){
       
-      anita1->Banding(iband,anita1->freq,v_banding_rfcm[0][iband],Anita::NFREQ); 
-      anita1->Banding(iband,anita1->freq,v_banding_rfcm[1][iband],Anita::NFREQ);
-      anita1->RFCMs(1,1,v_banding_rfcm[0][iband]);
-      anita1->RFCMs(1,1,v_banding_rfcm[1][iband]);
+      anita1->Banding(iband,anita1->freq,v_banding_rfcm[0][iband].data(),Anita::NFREQ);
+      anita1->Banding(iband,anita1->freq,v_banding_rfcm[1][iband].data(),Anita::NFREQ);
+      anita1->RFCMs(1,1,v_banding_rfcm[0][iband].data());
+      anita1->RFCMs(1,1,v_banding_rfcm[1][iband].data());
 
       for (int ifreq=0;ifreq<Anita::NFREQ;ifreq++) {
 	if (anita1->freq[ifreq]>=settings1->FREQ_LOW_SEAVEYS && anita1->freq[ifreq]<=settings1->FREQ_HIGH_SEAVEYS){
@@ -986,8 +994,8 @@ void anitaSim::ChanTrigger::TriggerPath(const Settings *settings1, Anita *anita1
       } // end loop over nfreq
       
       
-      anita1->MakeArrayforFFT(v_banding_rfcm[0][iband],v_banding_rfcm_forfft[0][iband], 90., true);
-      anita1->MakeArrayforFFT(v_banding_rfcm[1][iband],v_banding_rfcm_forfft[1][iband], 90., true);
+      anita1->MakeArrayforFFT(v_banding_rfcm[0][iband].data(),v_banding_rfcm_forfft[0][iband].data(), 90., true);
+      anita1->MakeArrayforFFT(v_banding_rfcm[1][iband].data(),v_banding_rfcm_forfft[1][iband].data(), 90., true);
       
       // for some reason I'm averaging over 10 neighboring bins
       // to get rid of the zero bins
@@ -1016,13 +1024,13 @@ void anitaSim::ChanTrigger::TriggerPath(const Settings *settings1, Anita *anita1
 
       // now v_banding_rfcm_h_forfft is in the time domain
       // and now it is really in units of V
-      icemc::FTPair::realft(v_banding_rfcm_forfft[0][iband],-1,anita1->NFOUR/2);
-      icemc::FTPair::realft(v_banding_rfcm_forfft[1][iband],-1,anita1->NFOUR/2);
+      icemc::FTPair::realft(v_banding_rfcm_forfft[0][iband].data(),-1,anita1->NFOUR/2);
+      icemc::FTPair::realft(v_banding_rfcm_forfft[1][iband].data(),-1,anita1->NFOUR/2);
       
       // put it in normal time ording -T to T
       // instead of 0 to T, -T to 0
-      icemc::Tools::NormalTimeOrdering(anita1->NFOUR/2,v_banding_rfcm_forfft[0][iband]);
-      icemc::Tools::NormalTimeOrdering(anita1->NFOUR/2,v_banding_rfcm_forfft[1][iband]);
+      icemc::Tools::NormalTimeOrdering(anita1->NFOUR/2,v_banding_rfcm_forfft[0][iband].data());
+      icemc::Tools::NormalTimeOrdering(anita1->NFOUR/2,v_banding_rfcm_forfft[1][iband].data());
 
       for (int itime=0; itime<anita1->NFOUR/2; itime++){
 	justSig_trigPath[0][itime] = v_banding_rfcm_forfft[0][iband][itime];
@@ -1039,14 +1047,19 @@ void anitaSim::ChanTrigger::TriggerPath(const Settings *settings1, Anita *anita1
       
 #ifdef ANITA_UTIL_EXISTS
       // if applying the impulse response
-      applyImpulseResponseTrigger(settings1, anita1, ant, v_banding_rfcm_forfft[0][iband], v_banding_rfcm[0][iband], 0);
-      applyImpulseResponseTrigger(settings1, anita1, ant, v_banding_rfcm_forfft[1][iband], v_banding_rfcm[1][iband], 1);
+      applyImpulseResponseTrigger(settings1, anita1, ant,
+				  v_banding_rfcm_forfft[0][iband].data(),
+				  v_banding_rfcm[0][iband].data(),
+				  0);
+      applyImpulseResponseTrigger(settings1, anita1, ant,
+				  v_banding_rfcm_forfft[1][iband].data(),
+				  v_banding_rfcm[1][iband].data(), 1);
 #endif
     }
 
     if (settings1->ZEROSIGNAL) {
-      icemc::Tools::Zero(v_banding_rfcm_forfft[0][iband],anita1->NFOUR/2);
-      icemc::Tools::Zero(v_banding_rfcm_forfft[1][iband],anita1->NFOUR/2);
+      v_banding_rfcm_forfft[0][iband].fill(0);
+      v_banding_rfcm_forfft[1][iband].fill(0);      
     }
 
     for (int i=0;i<anita1->NFOUR/4;i++) {
@@ -1060,14 +1073,14 @@ void anitaSim::ChanTrigger::TriggerPath(const Settings *settings1, Anita *anita1
     anita1->integral_vmmhz_foranita=integral_vmmhz;
   
     // Find the p2p value before adding noise
-    anita1->peak_v_banding_rfcm[0][iband]=FindPeak(v_banding_rfcm_forfft[0][iband],anita1->NFOUR/2);
-    anita1->peak_v_banding_rfcm[1][iband]=FindPeak(v_banding_rfcm_forfft[1][iband],anita1->NFOUR/2);
+    anita1->peak_v_banding_rfcm[0][iband]=FindPeak(v_banding_rfcm_forfft[0][iband].data(),anita1->NFOUR/2);
+    anita1->peak_v_banding_rfcm[1][iband]=FindPeak(v_banding_rfcm_forfft[1][iband].data(),anita1->NFOUR/2);
 
     // Find the p2p value before adding noise
     for (int iband=0;iband<5;iband++) {
       if (anita1->bwslice_allowed[iband]!=1) continue;
       for (int ipol=0; ipol<2; ipol++) {
-        anita1->peak_v_banding_rfcm[ipol][iband]=FindPeak(v_banding_rfcm_forfft[ipol][iband],anita1->NFOUR/2);
+        anita1->peak_v_banding_rfcm[ipol][iband]=FindPeak(v_banding_rfcm_forfft[ipol][iband].data(),anita1->NFOUR/2);
       }
     }
   } // end loop over bands

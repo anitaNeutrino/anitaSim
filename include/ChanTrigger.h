@@ -83,24 +83,24 @@ namespace anitaSim {
     void InitializeEachBand(Anita *anita1);
   public:
     
-    //! Apply the antenna gain
-    /**
-     *
-     * Loop through all points in the screen, and apply the antenna gain to each point
-     * All the waveforms are then summed with screen point weights and delay
-     * volts_rx_forfft = time domain waveforms after antenna gain
-     * vhz_rx          = amplitude in Fourier domain after antenna gain
-     * 
-     * @param  settings1 :: Settings - the simulation settings
-     * @param  anita1 :: Anita - anita object
-     * @param  bn1 :: FlightDataManager - balloon object
-     * @param  panel1 :: Screen - screen object
-     * @param  ant :: int- antenna number
-     * @param  n_eplane :: TVector3 
-     * @param  n_hplane :: TVector3 
-     * @param  n_normal :: Vector
-     */  
-    void ApplyAntennaGain(const Settings *settings1, Anita *anita1, const icemc::SurfaceScreen *panel1, int ant, TVector3 &n_eplane, TVector3 &n_hplane, TVector3 &n_normal);
+    // //! Apply the antenna gain
+    // /**
+    //  *
+    //  * Loop through all points in the screen, and apply the antenna gain to each point
+    //  * All the waveforms are then summed with screen point weights and delay
+    //  * volts_rx_forfft = time domain waveforms after antenna gain
+    //  * vhz_rx          = amplitude in Fourier domain after antenna gain
+    //  * 
+    //  * @param  settings1 :: Settings - the simulation settings
+    //  * @param  anita1 :: Anita - anita object
+    //  * @param  bn1 :: FlightDataManager - balloon object
+    //  * @param  panel1 :: Screen - screen object
+    //  * @param  ant :: int- antenna number
+    //  * @param  n_eplane :: TVector3 
+    //  * @param  n_hplane :: TVector3 
+    //  * @param  n_normal :: Vector
+    //  */  
+    // void ApplyAntennaGain(const Settings *settings1, Anita *anita1, const icemc::SurfaceScreen *panel1, int ant, TVector3 &n_eplane, TVector3 &n_hplane, TVector3 &n_normal);
 
     //! Apply trigger path
     /**
@@ -474,11 +474,21 @@ namespace anitaSim {
     std::vector<double> vthreshold_eachband[2];                 ///< Threshold in each band		     
     std::vector<double> vnoise_eachband[2];                     ///< Noise in each band			     
     std::vector<int>    vpasses_eachband[2];                    ///< Whether the signal passes or not each band
+
     
-    double v_banding_rfcm[2][5][Anita::NFREQ];                  ///< This is Volts/m as a function of frequency after rfcm's and banding
-    double v_banding_rfcm_forfft[2][5][HALFNFOUR];              ///< Starts out as V/s vs. freq after banding, rfcm, after fft it is V vs. t
-    double vm_banding_rfcm_forfft[2][5][HALFNFOUR];             ///< Starts out as V/s vs. freq after banding, rfcm, after fft it is V vs. t
-    double v_banding_rfcm_forfft_temp[2][5][HALFNFOUR];         ///< Use for the averaging over 10 neighboring bins
+    typedef std::array<std::array<std::array<double, Anita::NFREQ>, 5>, 2> PolBandFreqArray;
+    PolBandFreqArray v_banding_rfcm;///< This is Volts/m as a function of frequency after rfcm's and banding
+
+    typedef std::array<std::array<std::array<double, Anita::HALFNFOUR>, 5>, 2> PolBandHalfNFourArray ;
+    PolBandHalfNFourArray v_banding_rfcm_forfft;              ///< Starts out as V/s vs. freq after banding, rfcm, after fft it is V vs. t
+    PolBandHalfNFourArray vm_banding_rfcm_forfft;             ///< Starts out as V/s vs. freq after banding, rfcm, after fft it is V vs. t
+    PolBandHalfNFourArray v_banding_rfcm_forfft_temp;         ///< Use for the averaging over 10 neighboring bins
+
+    // double v_banding_rfcm[2][5][Anita::NFREQ];                  ///< This is Volts/m as a function of frequency after rfcm's and banding
+    // double v_banding_rfcm_forfft[2][5][HALFNFOUR];              ///< Starts out as V/s vs. freq after banding, rfcm, after fft it is V vs. t
+    // double vm_banding_rfcm_forfft[2][5][HALFNFOUR];             ///< Starts out as V/s vs. freq after banding, rfcm, after fft it is V vs. t
+    // double v_banding_rfcm_forfft_temp[2][5][HALFNFOUR];         ///< Use for the averaging over 10 neighboring bins
+    
     double integral_vmmhz;                                      ///< Electric field integral    
     int unwarned;                                               ///< Whether we have warned the user about resetting thresholds when they are beyond the measured bounds
   }; //class ChanTrigger
