@@ -2357,7 +2357,8 @@ void anitaSim::Anita::convert_power_spectrum_to_voltage_spectrum_for_fft(int len
     current_phase = phase[k];
       
     // Uncomment the following line of code to allow the the noise generated to have a Rician/Rayleigh distribution, which should increase the number of weighted neutrinos that pass *slightly*.
-    icemc::Tools::get_random_rician(0., 0., sqrt(2. / M_PI) * domain[k], current_amplitude, current_phase);
+    // icemc::Tools::get_random_rician(0., 0., sqrt(2. / M_PI) * domain[k], current_amplitude, current_phase);
+    fRician.pickRician(0., 0., sqrt(2. / M_PI) * domain[k], current_amplitude, current_phase);
     // The above function uses 0. as the mean of the rician distribution, and uses sqrt(2. / M_PI) * domain[k] as the standard deviation for the distribution, as discussed in Goodman's "Statistical Optics", equation 2.9-13 on page 49
       
     spectrum[2 * k] = sqrt(current_amplitude) * cos(phase[k]) / (( (double) NFOUR / 2) / 2);

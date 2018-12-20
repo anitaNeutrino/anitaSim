@@ -8,6 +8,7 @@
 #include <array>
 #include "TVector3.h"
 #include "PayloadGeometry.h"
+#include "RicianRNG.h"
 
 #ifdef ANITA_UTIL_EXISTS
 #include "FFTtools.h"
@@ -523,9 +524,12 @@ namespace anitaSim {
     std::array<Double_t, HALFNFOUR> trigEffScanPulseAtAmpa;
     std::array<Double_t, NFOUR> trigEffScanPulseAtAmpaUpsampled;
     std::array<Double_t, NFREQ> trigEffScanAmplitudeAtAmpa;
+
     std::array<std::array<Double_t, HALFNFOUR>, 250> trigEffScanPulseAtSurf;
     std::array<int, 3> TUFFstatus;
     int ntuffs;
+
+    icemc::RicianRNG fRician;
 
   };
 }
