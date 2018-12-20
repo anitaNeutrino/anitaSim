@@ -94,9 +94,9 @@ void anitaSim::ChanTrigger::ConvertHVtoLRTimedomain(const int nfour,double *vvol
 }
 
 
-void anitaSim::ChanTrigger::WhichBandsPass(const Settings *settings1, Anita *anita1, GlobalTrigger *globaltrig1, FlightDataManager *bn1, int ilayer, int ifold, double thresholds[2][5]){
+void anitaSim::ChanTrigger::WhichBandsPass(Anita *anita1, GlobalTrigger *globaltrig1, FlightDataManager *bn1, int ilayer, int ifold, double thresholds[2][5]){
 
-  if (settings1->USETIMEDEPENDENTTHRESHOLDS==1 && settings1->WHICH==anitaSim::Payload::Anita3) {
+  if (fSettings->USETIMEDEPENDENTTHRESHOLDS==1 && fSettings->WHICH==anitaSim::Payload::Anita3) {
     for(int i=0;i<4;i++) {
       thresholds[0][i] = thresholds[1][i] = anita1->powerthreshold[i];
     }
@@ -119,7 +119,7 @@ void anitaSim::ChanTrigger::WhichBandsPass(const Settings *settings1, Anita *ani
     //    cout << thresholds[0][4] << " " <<  thresholds[0][4] << " \n";
   }
   else {
-    GetThresholds(settings1,anita1,ilayer,thresholds); // get the right thresholds for this layer
+    GetThresholds(anita1,ilayer,thresholds); // get the right thresholds for this layer
   }
   globaltrig1->volts[0][ilayer][ifold]=0.;
   globaltrig1->volts[1][ilayer][ifold]=0.;
@@ -128,13 +128,13 @@ void anitaSim::ChanTrigger::WhichBandsPass(const Settings *settings1, Anita *ani
     
   // This is the old way used for ANITA 1 where we integrate in frequency
   // to get an estimate of the signal strength
-  if (settings1->TRIGGERSCHEME <= 1){
-    WhichBandsPassTrigger1(settings1, anita1, globaltrig1, bn1, ilayer, ifold, thresholds);
+  if (fSettings->TRIGGERSCHEME <= 1){
+    WhichBandsPassTrigger1(anita1, globaltrig1, bn1, ilayer, ifold, thresholds);
   }
-  else  if (settings1->TRIGGERSCHEME >= 2){
+  else  if (fSettings->TRIGGERSCHEME >= 2){
     // this scheme is used for ANITA 2 on.
     //cout << "i'm here.\n";
-    WhichBandsPassTrigger2(settings1, anita1, globaltrig1, bn1, ilayer, ifold, thresholds);
+    WhichBandsPassTrigger2(anita1, globaltrig1, bn1, ilayer, ifold, thresholds);
   }
 } // end which bands pass
 
@@ -147,7 +147,7 @@ void anitaSim::ChanTrigger::WhichBandsPass(const Settings *settings1, Anita *ani
  *
  *
  */
-void anitaSim::ChanTrigger::WhichBandsPassTrigger1(const Settings *settings1, const Anita *anita1, GlobalTrigger *globaltrig1, FlightDataManager *bn1, int ilayer, int ifold, double thresholds[2][5]){
+void anitaSim::ChanTrigger::WhichBandsPassTrigger1(const Anita *anita1, GlobalTrigger *globaltrig1, FlightDataManager *bn1, int ilayer, int ifold, double thresholds[2][5]){
 
   double volts_thischannel;
   double energy_thischannel;
@@ -158,7 +158,7 @@ void anitaSim::ChanTrigger::WhichBandsPassTrigger1(const Settings *settings1, co
 	
     //     cout << "ibw, bwslice_volts_pole are " << ibw << " " << bwslice_volts_pole.at(ibw) << "\n";
 	
-    if (settings1->SIGNAL_FLUCT) {// add noise fluctuations if requested
+    if (fSettings->SIGNAL_FLUCT) {// add noise fluctuations if requested
       bwslice_volts_pole.at(ibw) += gRandom->Gaus(0.,anita1->bwslice_vnoise[ilayer][ibw]);
       bwslice_volts_polh.at(ibw) += gRandom->Gaus(0.,anita1->bwslice_vnoise[ilayer][ibw]);
     }
@@ -177,7 +177,7 @@ void anitaSim::ChanTrigger::WhichBandsPassTrigger1(const Settings *settings1, co
 	
     // first lcp or v pol (here called pole)
     // if we're implementing masking and the channel has been masked
-    if (settings1->CHMASKING && !anitaSim::ChanTrigger::IsItUnmasked(bn1->surfTrigBandMask,ibw,ilayer,ifold,0)) {
+    if (fSettings->CHMASKING && !anitaSim::ChanTrigger::IsItUnmasked(bn1->surfTrigBandMask,ibw,ilayer,ifold,0)) {
 	  
       globaltrig1->channels_passing[ilayer][ifold][0][ibw]=0;// channel does not pass
       globaltrig1->vchannels_passing[ilayer][ifold][0][ibw]=0;// channel does not pass
@@ -186,7 +186,7 @@ void anitaSim::ChanTrigger::WhichBandsPassTrigger1(const Settings *settings1, co
     else {
 	  
 	  
-      if (settings1->LCPRCP )  {// if we're considering lcp, rcp
+      if (fSettings->LCPRCP )  {// if we're considering lcp, rcp
 	volts_thischannel=bwslice_volts_pol0.at(ibw);
 	energy_thischannel=bwslice_energy_pol0.at(ibw);
       }
@@ -210,12 +210,12 @@ void anitaSim::ChanTrigger::WhichBandsPassTrigger1(const Settings *settings1, co
       voltagethresh_thischannel=anita1->bwslice_thresholds.at(ibw);
 	  
 	  
-      if (settings1->ZEROSIGNAL) {
+      if (fSettings->ZEROSIGNAL) {
 	volts_thischannel=0.;
 	energy_thischannel=0.;
       }
 	  
-      if (settings1->TRIGGERSCHEME==0) {
+      if (fSettings->TRIGGERSCHEME==0) {
 	signal_eachband[0][ibw]=(double)fabs(volts_thischannel);
 	threshold_eachband[0][ibw]=voltagethresh_thischannel;
 	noise_eachband[0][ibw]=anita1->bwslice_vnoise[ilayer][ibw];
@@ -226,7 +226,7 @@ void anitaSim::ChanTrigger::WhichBandsPassTrigger1(const Settings *settings1, co
 	    
 	    
       }
-      if (settings1->TRIGGERSCHEME==1) {
+      if (fSettings->TRIGGERSCHEME==1) {
 	signal_eachband[0][ibw]=energy_thischannel;
 	threshold_eachband[0][ibw]=energythresh_thischannel;
 	noise_eachband[0][ibw]=anita1->bwslice_enoise[ibw];
@@ -260,8 +260,8 @@ void anitaSim::ChanTrigger::WhichBandsPassTrigger1(const Settings *settings1, co
 	
     // now rcp or h pol (here called polh)
     // if we're implementing masking and the channel has been masked
-    if (!settings1->JUSTVPOL) { // if we're considering just vpol then there's not a second polarization to consider
-      if (settings1->CHMASKING && !anitaSim::ChanTrigger::IsItUnmasked(bn1->surfTrigBandMask,ibw,ilayer,ifold,1)) {
+    if (!fSettings->JUSTVPOL) { // if we're considering just vpol then there's not a second polarization to consider
+      if (fSettings->CHMASKING && !anitaSim::ChanTrigger::IsItUnmasked(bn1->surfTrigBandMask,ibw,ilayer,ifold,1)) {
 	globaltrig1->channels_passing[ilayer][ifold][1][ibw]=0;// channel does not pass
 	globaltrig1->vchannels_passing[ilayer][ifold][1][ibw]=0;// channel does not pass
 	    
@@ -271,7 +271,7 @@ void anitaSim::ChanTrigger::WhichBandsPassTrigger1(const Settings *settings1, co
       }
       else {
 	    
-	if (settings1->LCPRCP) {  // if we're considering lcp, rcp
+	if (fSettings->LCPRCP) {  // if we're considering lcp, rcp
 	  volts_thischannel=bwslice_volts_pol1.at(ibw);
 	  energy_thischannel=bwslice_energy_pol1.at(ibw);
 	}
@@ -288,18 +288,18 @@ void anitaSim::ChanTrigger::WhichBandsPassTrigger1(const Settings *settings1, co
 	voltagethresh_thischannel=anita1->bwslice_thresholds.at(ibw);
 	    
 	    
-	if (settings1->ZEROSIGNAL) {
+	if (fSettings->ZEROSIGNAL) {
 	  volts_thischannel=0.;
 	  energy_thischannel=0.;
 	}
 	    
 	    
-	if (settings1->TRIGGERSCHEME==0) {
+	if (fSettings->TRIGGERSCHEME==0) {
 	  signal_eachband[1][ibw]=(double)fabs(volts_thischannel);
 	  threshold_eachband[1][ibw]=voltagethresh_thischannel;
 	  noise_eachband[1][ibw]=anita1->bwslice_vnoise[ilayer][ibw];
 	}
-	if (settings1->TRIGGERSCHEME==1) {
+	if (fSettings->TRIGGERSCHEME==1) {
 	  signal_eachband[1][ibw]=energy_thischannel;
 	  threshold_eachband[1][ibw]=energythresh_thischannel;
 	  noise_eachband[1][ibw]=anita1->bwslice_enoise[ibw];
@@ -331,7 +331,7 @@ void anitaSim::ChanTrigger::WhichBandsPassTrigger1(const Settings *settings1, co
  *
  *
  */
-void anitaSim::ChanTrigger::WhichBandsPassTrigger2(const Settings *settings1, Anita *anita1, GlobalTrigger *globaltrig1, FlightDataManager *bn1, int ilayer, int ifold, double thresholds[2][5]){
+void anitaSim::ChanTrigger::WhichBandsPassTrigger2(Anita *anita1, GlobalTrigger *globaltrig1, FlightDataManager *bn1, int ilayer, int ifold, double thresholds[2][5]){
   
   double psignal[2][5][Anita::NFOUR];
   
@@ -343,7 +343,7 @@ void anitaSim::ChanTrigger::WhichBandsPassTrigger2(const Settings *settings1, An
   int iant=anita1->GetRxTriggerNumbering(ilayer, ifold);
   int ipol=0;
 
-  if (settings1->NOISEFROMFLIGHTTRIGGER){
+  if (fSettings->NOISEFROMFLIGHTTRIGGER){
     anita1->bwslice_rmsdiode[4] = anita1->bwslice_dioderms_fullband_allchan[ipol][iant][anita1->tuffIndex];
   }
   
@@ -358,7 +358,7 @@ void anitaSim::ChanTrigger::WhichBandsPassTrigger2(const Settings *settings1, An
   for (int iband=0;iband<5;iband++) { // Only loop over allowed bands
     if (anita1->bwslice_allowed[iband]!=1) continue; 
   
-    if (settings1->TRIGGERSCHEME == 2 || settings1->TRIGGERSCHEME == 3 || settings1->TRIGGERSCHEME == 4 || settings1->TRIGGERSCHEME == 5){
+    if (fSettings->TRIGGERSCHEME == 2 || fSettings->TRIGGERSCHEME == 3 || fSettings->TRIGGERSCHEME == 4 || fSettings->TRIGGERSCHEME == 5){
       for (int itime=0;itime<anita1->NFOUR/2-(int)(anita1->maxt_diode/anita1->TIMESTEP);itime++) {
   	anita1->maxbin_fortotal[iband]=anita1->NFOUR/2-(int)(anita1->maxt_diode/anita1->TIMESTEP);
   	
@@ -369,7 +369,7 @@ void anitaSim::ChanTrigger::WhichBandsPassTrigger2(const Settings *settings1, An
   	anita1->total_vpol_inanita[iband][itime] = anita1->timedomainnoise_rfcm_banding[0][iband][itime]+anita1->signal_vpol_inanita[iband][itime];
 
   	integrateenergy[iband]+=anita1->timedomainnoise_rfcm_banding[0][iband][itime]*anita1->timedomainnoise_rfcm_banding[0][iband][itime]*anita1->TIMESTEP;
-   	if ( settings1->SIGNAL_FLUCT && (!settings1->NOISEFROMFLIGHTTRIGGER) ) {
+   	if ( fSettings->SIGNAL_FLUCT && (!fSettings->NOISEFROMFLIGHTTRIGGER) ) {
   	  // this reverses the noise is time, and starts with bin anita1->NFOUR/2-(int)(anita1->maxt_diode/anita1->TIMESTEP)
 	  justNoise_trigPath[0][itime] = anita1->timedomainnoise_rfcm_banding[0][iband][itimenoisebin];
 	  justNoise_trigPath[1][itime] = anita1->timedomainnoise_rfcm_banding[1][iband][itimenoisebin];
@@ -383,7 +383,7 @@ void anitaSim::ChanTrigger::WhichBandsPassTrigger2(const Settings *settings1, An
   	v_banding_rfcm_forfft[1][iband][itime]=0.;
       }
     }
-    else if ( settings1->SIGNAL_FLUCT && (!settings1->NOISEFROMFLIGHTTRIGGER) ) {
+    else if ( fSettings->SIGNAL_FLUCT && (!fSettings->NOISEFROMFLIGHTTRIGGER) ) {
       for (unsigned int itime = 0; itime < anita1->HALFNFOUR; ++itime){
   	// this is just a straight sum
   	anita1->total_vpol_inanita[iband][itime]=anita1->timedomainnoise_rfcm_banding[0][iband][itime]+anita1->signal_vpol_inanita[iband][itime];
@@ -403,8 +403,8 @@ void anitaSim::ChanTrigger::WhichBandsPassTrigger2(const Settings *settings1, An
   for (int iband=0;iband<5;iband++) {
     if (anita1->bwslice_allowed[iband]!=1) continue; 
 
-    if (settings1->LCPRCP 
-	// &&	!(settings1->WHICH==10 && !globaltrig1->WHICHLAYERSLCPRCP[whichlayer])
+    if (fSettings->LCPRCP 
+	// &&	!(fSettings->WHICH==10 && !globaltrig1->WHICHLAYERSLCPRCP[whichlayer])
 	) {
       
       // Convert Horiz and Vert polarization
@@ -439,8 +439,8 @@ void anitaSim::ChanTrigger::WhichBandsPassTrigger2(const Settings *settings1, An
     anita1->total_diodeinput_2_allantennas[anita1->GetRxTriggerNumbering(ilayer,ifold)][itime]=anita1->total_diodeinput_2_inanita[4][itime];
   }
   
-  DiodeConvolution(settings1, anita1, globaltrig1, ilayer, ifold, mindiodeconvl[0], onediodeconvl[0], psignal[0], timedomain_output[0], ibinshift, 0, thresholds);
-  DiodeConvolution(settings1, anita1, globaltrig1, ilayer, ifold, mindiodeconvl[1], onediodeconvl[1], psignal[1], timedomain_output[1], ibinshift, 1, thresholds);
+  DiodeConvolution(anita1, globaltrig1, ilayer, ifold, mindiodeconvl[0], onediodeconvl[0], psignal[0], timedomain_output[0], ibinshift, 0, thresholds);
+  DiodeConvolution(anita1, globaltrig1, ilayer, ifold, mindiodeconvl[1], onediodeconvl[1], psignal[1], timedomain_output[1], ibinshift, 1, thresholds);
 
   // fill channels_passing
   //  } // end if the signal is big enough the be considered
@@ -502,7 +502,7 @@ void anitaSim::ChanTrigger::WhichBandsPassTrigger2(const Settings *settings1, An
     if (anita1->bwslice_allowed[iband]!=1) continue; 
     // this is for the e polarization
     // if we're implementing masking and the channel has been masked
-    if (settings1->CHMASKING && !anitaSim::ChanTrigger::IsItUnmasked(bn1->surfTrigBandMask,iband,ilayer,ifold,0)) {
+    if (fSettings->CHMASKING && !anitaSim::ChanTrigger::IsItUnmasked(bn1->surfTrigBandMask,iband,ilayer,ifold,0)) {
       if (globaltrig1->channels_passing[ilayer][ifold][0][iband])
 	///@warning
 	// globaltrig1->nchannels_perrx_triggered[anita1->GetRx(ilayer,ifold)]--;
@@ -511,7 +511,7 @@ void anitaSim::ChanTrigger::WhichBandsPassTrigger2(const Settings *settings1, An
     }
 	
     // if we're implementing masking and the channel has been masked
-    if (settings1->CHMASKING && !anitaSim::ChanTrigger::IsItUnmasked(bn1->surfTrigBandMask,iband,ilayer,ifold,1)) {
+    if (fSettings->CHMASKING && !anitaSim::ChanTrigger::IsItUnmasked(bn1->surfTrigBandMask,iband,ilayer,ifold,1)) {
       if (globaltrig1->channels_passing[ilayer][ifold][1][iband])
 	///@warning 
 	// globaltrig1->nchannels_perrx_triggered[anita1->GetRx(ilayer,ifold)]--;
@@ -534,12 +534,12 @@ void anitaSim::ChanTrigger::WhichBandsPassTrigger2(const Settings *settings1, An
       
   // anita1->irx=anita1->GetRx(ilayer,ifold);
       
-  // if (Anita::GetLayer(anita1->rx_minarrivaltime)==ilayer && Anita::GetIfold(anita1->rx_minarrivaltime)==ifold && anita1->tsignals->GetEntries()<settings1->HIST_MAX_ENTRIES && !settings1->ONLYFINAL && settings1->HIST==1) {
+  // if (Anita::GetLayer(anita1->rx_minarrivaltime)==ilayer && Anita::GetIfold(anita1->rx_minarrivaltime)==ifold && anita1->tsignals->GetEntries()<fSettings->HIST_MAX_ENTRIES && !fSettings->ONLYFINAL && fSettings->HIST==1) {
   //   anita1->tsignals->Fill();
   // }
       
       
-  if (settings1->TRIGGERSCHEME == 3 || settings1->TRIGGERSCHEME == 4 || settings1->TRIGGERSCHEME == 5){
+  if (fSettings->TRIGGERSCHEME == 3 || fSettings->TRIGGERSCHEME == 4 || fSettings->TRIGGERSCHEME == 5){
     // If TRIGGERSCHEME == 3, allow all bands to pass here. This allows the coherent waveform sum trigger scheme to be used.
     for (unsigned int ichannel = 0; ichannel < 5; ichannel++){
       globaltrig1->channels_passing[ilayer][ifold][0][ichannel] = 1;
@@ -585,7 +585,7 @@ void anitaSim::ChanTrigger::WhichBandsPassTrigger2(const Settings *settings1, An
 
 
 
-void anitaSim::ChanTrigger::DiodeConvolution(const Settings *settings1, Anita *anita1, GlobalTrigger *globaltrig1, int ilayer, int ifold, double mindiodeconvl[5], double onediodeconvl[5], double psignal[5][Anita::NFOUR],  double timedomain_output[5][Anita::NFOUR], int ibinshift, int ipol, double thresholds[2][5]){
+void anitaSim::ChanTrigger::DiodeConvolution(Anita *anita1, GlobalTrigger *globaltrig1, int ilayer, int ifold, double mindiodeconvl[5], double onediodeconvl[5], double psignal[5][Anita::NFOUR],  double timedomain_output[5][Anita::NFOUR], int ibinshift, int ipol, double thresholds[2][5]){
 
   int tempChansPassing[5]={0,0,0,0,0};
 
@@ -644,11 +644,11 @@ void anitaSim::ChanTrigger::DiodeConvolution(const Settings *settings1, Anita *a
     // now shift right to account for arrival times
     // this is done inside the impulse response function normally
     // but if we don't use it, we need to apply it manually here
-    // if (!settings1->APPLYIMPULSERESPONSETRIGGER){
+    // if (!fSettings->APPLYIMPULSERESPONSETRIGGER){
     //   Tools::ShiftRight(timedomain_output[iband],anita1->NFOUR,(int)(anita1->arrival_times[ipol][anita1->GetRx(ilayer,ifold)]/anita1->TIMESTEP));
     // }
 	
-    if (settings1->TRIGGERSCHEME == 2 || settings1->TRIGGERSCHEME == 3 || settings1->TRIGGERSCHEME == 4 || settings1->TRIGGERSCHEME == 5){
+    if (fSettings->TRIGGERSCHEME == 2 || fSettings->TRIGGERSCHEME == 3 || fSettings->TRIGGERSCHEME == 4 || fSettings->TRIGGERSCHEME == 5){
       //      if (anita1->inu==1570)
       //cout << "shifting left.\n";
       icemc::Tools::ShiftLeft(timedomain_output[iband],anita1->NFOUR,ibinshift);
@@ -760,7 +760,7 @@ void anitaSim::ChanTrigger::InitializeEachBand(Anita *anita1)
 
 
 
-void anitaSim::ChanTrigger::readInSeavey(const Settings* settings1, const Seavey* s, int ant, Anita* anita1){
+void anitaSim::ChanTrigger::readInSeavey(const Seavey* s, int ant, Anita* anita1){
 
   const int band = 4;
   for(auto pol : {Seavey::Pol::V, Seavey::Pol::H}){
@@ -816,10 +816,10 @@ void anitaSim::ChanTrigger::readInSeavey(const Settings* settings1, const Seavey
 
   
 #ifdef ANITA_UTIL_EXISTS
-  if (settings1->SIGNAL_FLUCT && (settings1->NOISEFROMFLIGHTDIGITIZER || settings1->NOISEFROMFLIGHTTRIGGER) ){
-    getNoiseFromFlight(anita1, ant, settings1->SIGNAL_FLUCT > 0);
+  if (fSettings->SIGNAL_FLUCT && (fSettings->NOISEFROMFLIGHTDIGITIZER || fSettings->NOISEFROMFLIGHTTRIGGER) ){
+    getNoiseFromFlight(anita1, ant, fSettings->SIGNAL_FLUCT > 0);
   }
-  if (settings1->ADDCW){
+  if (fSettings->ADDCW){
     memset(cw_digPath, 0, sizeof(cw_digPath));
     calculateCW(anita1, 250E6, 0, 0.000005);
   }
@@ -828,7 +828,7 @@ void anitaSim::ChanTrigger::readInSeavey(const Settings* settings1, const Seavey
 }
 
 
-// void anitaSim::ChanTrigger::ApplyAntennaGain(const Settings *settings1, Anita *anita1, const icemc::SurfaceScreen *panel1, int ant, TVector3 &n_eplane, TVector3 &n_hplane, TVector3 &n_normal) {
+// void anitaSim::ChanTrigger::ApplyAntennaGain(Anita *anita1, const icemc::SurfaceScreen *panel1, int ant, TVector3 &n_eplane, TVector3 &n_hplane, TVector3 &n_normal) {
 
 //   e_component=0;
 //   h_component=0;
@@ -871,19 +871,19 @@ void anitaSim::ChanTrigger::readInSeavey(const Settings* settings1, const Seavey
 //       for (int jpt=0; jpt<panel1->GetNvalidPoints(); jpt++){
 
 // 	Seavey::GetEcompHcompkvector(n_eplane,  n_hplane,  n_normal,  panel1->GetVec2bln(jpt), e_component_kvector,  h_component_kvector,  n_component_kvector);
-// 	// Seavey::GetEcompHcompEvector(settings1,  n_eplane,  n_hplane,  panel1->GetPol(jpt),  e_component,  h_component,  n_component);
+// 	// Seavey::GetEcompHcompEvector(  n_eplane,  n_hplane,  panel1->GetPol(jpt),  e_component,  h_component,  n_component);
 // 	Seavey::GetEcompHcompEvector(n_eplane,  n_hplane,  panel1->GetPol(jpt),  e_component,  h_component,  n_component);
 // 	Seavey::GetHitAngles(e_component_kvector, h_component_kvector, n_component_kvector, hitangle_e, hitangle_h);
 
 // 	for (int k=0;k<Anita::NFREQ;k++) {
-// 	  if (anita1->freq[k]>=settings1->FREQ_LOW_SEAVEYS && anita1->freq[k]<=settings1->FREQ_HIGH_SEAVEYS){
+// 	  if (anita1->freq[k]>=fSettings->FREQ_LOW_SEAVEYS && anita1->freq[k]<=fSettings->FREQ_HIGH_SEAVEYS){
 
 // 	    //Copy frequency amplitude to screen point
 // 	    tmp_vhz[0][k] = tmp_vhz[1][k] = panel1->GetVmmhz_freq(jpt*Anita::NFREQ + k)/sqrt(2)/(anita1->TIMESTEP*1.E6);
 
-// 	    anita1->AntennaGain(settings1, hitangle_e, hitangle_h, e_component, h_component, k, tmp_vhz[0][k], tmp_vhz[1][k]);
+// 	    anita1->AntennaGain( hitangle_e, hitangle_h, e_component, h_component, k, tmp_vhz[0][k], tmp_vhz[1][k]);
 
-// 	    if (settings1->TUFFSON==2){
+// 	    if (fSettings->TUFFSON==2){
 // 	      tmp_vhz[0][k] = applyButterworthFilter(anita1->freq[k], tmp_vhz[0][k], anita1->TUFFstatus);
 // 	      tmp_vhz[1][k] = applyButterworthFilter(anita1->freq[k], tmp_vhz[1][k], anita1->TUFFstatus);
 // 	    }
@@ -947,10 +947,10 @@ void anitaSim::ChanTrigger::readInSeavey(const Settings* settings1, const Seavey
 //   } // end loop over bands
 
 // #ifdef ANITA_UTIL_EXISTS
-//   if (settings1->SIGNAL_FLUCT && (settings1->NOISEFROMFLIGHTDIGITIZER || settings1->NOISEFROMFLIGHTTRIGGER) ){
-//     getNoiseFromFlight(anita1, ant, settings1->SIGNAL_FLUCT > 0);
+//   if (fSettings->SIGNAL_FLUCT && (fSettings->NOISEFROMFLIGHTDIGITIZER || fSettings->NOISEFROMFLIGHTTRIGGER) ){
+//     getNoiseFromFlight(anita1, ant, fSettings->SIGNAL_FLUCT > 0);
 //   }
-//   if (settings1->ADDCW){
+//   if (fSettings->ADDCW){
 //     memset(cw_digPath, 0, sizeof(cw_digPath));
 //     calculateCW(anita1, 250E6, 0, 0.000005);
 //   }
@@ -959,7 +959,7 @@ void anitaSim::ChanTrigger::readInSeavey(const Settings* settings1, const Seavey
   
 // }
 
-void anitaSim::ChanTrigger::TriggerPath(const Settings *settings1, Anita *anita1, int ant, FlightDataManager *bn1){
+void anitaSim::ChanTrigger::TriggerPath(Anita *anita1, int ant, FlightDataManager *bn1){
 
   double integrate_energy_freq[5]={0.,0.,0.,0.,0.};
 
@@ -980,7 +980,7 @@ void anitaSim::ChanTrigger::TriggerPath(const Settings *settings1, Anita *anita1
     // If not applying the trigger impulse response
     // Apply banding and RFCM
     // And then convert to time domain
-    if (!settings1->APPLYIMPULSERESPONSETRIGGER){
+    if (!fSettings->APPLYIMPULSERESPONSETRIGGER){
       
       anita1->Banding(iband,anita1->freq,v_banding_rfcm[0][iband].data(),Anita::NFREQ);
       anita1->Banding(iband,anita1->freq,v_banding_rfcm[1][iband].data(),Anita::NFREQ);
@@ -988,8 +988,8 @@ void anitaSim::ChanTrigger::TriggerPath(const Settings *settings1, Anita *anita1
       anita1->RFCMs(1,1,v_banding_rfcm[1][iband].data());
 
       for (int ifreq=0;ifreq<Anita::NFREQ;ifreq++) {
-	if (anita1->freq[ifreq]>=settings1->FREQ_LOW_SEAVEYS && anita1->freq[ifreq]<=settings1->FREQ_HIGH_SEAVEYS){
-	  addToChannelSums(settings1, anita1, iband, ifreq);
+	if (anita1->freq[ifreq]>=fSettings->FREQ_LOW_SEAVEYS && anita1->freq[ifreq]<=fSettings->FREQ_HIGH_SEAVEYS){
+	  addToChannelSums(anita1, iband, ifreq);
 	}
       } // end loop over nfreq
       
@@ -1047,17 +1047,17 @@ void anitaSim::ChanTrigger::TriggerPath(const Settings *settings1, Anita *anita1
       
 #ifdef ANITA_UTIL_EXISTS
       // if applying the impulse response
-      applyImpulseResponseTrigger(settings1, anita1, ant,
+      applyImpulseResponseTrigger(anita1, ant,
 				  v_banding_rfcm_forfft[0][iband].data(),
 				  v_banding_rfcm[0][iband].data(),
 				  0);
-      applyImpulseResponseTrigger(settings1, anita1, ant,
+      applyImpulseResponseTrigger(anita1, ant,
 				  v_banding_rfcm_forfft[1][iband].data(),
 				  v_banding_rfcm[1][iband].data(), 1);
 #endif
     }
 
-    if (settings1->ZEROSIGNAL) {
+    if (fSettings->ZEROSIGNAL) {
       v_banding_rfcm_forfft[0][iband].fill(0);
       v_banding_rfcm_forfft[1][iband].fill(0);      
     }
@@ -1091,7 +1091,7 @@ void anitaSim::ChanTrigger::TriggerPath(const Settings *settings1, Anita *anita1
 
 
 
-void anitaSim::ChanTrigger::DigitizerPath(const Settings *settings1, Anita *anita1, int ant)//}, FlightDataManager *bn1)
+void anitaSim::ChanTrigger::DigitizerPath(Anita *anita1, int ant)//}, FlightDataManager *bn1)
 {
   std::array<double, Anita::NFREQ> vhz_rx_rfcm_e; // V/Hz after rx, rfcm
   std::array<double, Anita::NFREQ> vhz_rx_rfcm_h;
@@ -1099,7 +1099,7 @@ void anitaSim::ChanTrigger::DigitizerPath(const Settings *settings1, Anita *anit
   int fNumPoints = anita1->HALFNFOUR;
   
   // Apply anita-3 measured impulse response
-  if (settings1->APPLYIMPULSERESPONSEDIGITIZER){
+  if (fSettings->APPLYIMPULSERESPONSEDIGITIZER){
     anita1->GetNoiseWaveforms(); // get noise waveforms
     for (int i=0;i<fNumPoints;i++){
       volts_rx_rfcm_lab[0][i] = volts_rx_forfft[0][4][i];
@@ -1107,11 +1107,11 @@ void anitaSim::ChanTrigger::DigitizerPath(const Settings *settings1, Anita *anit
     }
     
 #ifdef ANITA_UTIL_EXISTS
-    applyImpulseResponseDigitizer(settings1, anita1, fNumPoints, ant, anita1->fTimes, volts_rx_rfcm_lab[0], 0);
-    applyImpulseResponseDigitizer(settings1, anita1, fNumPoints, ant, anita1->fTimes, volts_rx_rfcm_lab[1], 1);
+    applyImpulseResponseDigitizer( anita1, fNumPoints, ant, anita1->fTimes, volts_rx_rfcm_lab[0], 0);
+    applyImpulseResponseDigitizer( anita1, fNumPoints, ant, anita1->fTimes, volts_rx_rfcm_lab[1], 1);
 #endif
 
-    if (settings1->SIGNAL_FLUCT > 0 && !settings1->NOISEFROMFLIGHTDIGITIZER){
+    if (fSettings->SIGNAL_FLUCT > 0 && !fSettings->NOISEFROMFLIGHTDIGITIZER){
       for (int i=0;i<anita1->NFOUR/2;i++) {
      	for (int ipol=0;ipol<2;ipol++){
      	  volts_rx_rfcm_lab[ipol][i]+=anita1->timedomainnoise_lab[ipol][i]; // add noise
@@ -1129,14 +1129,14 @@ void anitaSim::ChanTrigger::DigitizerPath(const Settings *settings1, Anita *anit
     // for other trigger types we do
       
     // apply rfcm's
-    if (settings1->TRIGGERSCHEME==1 || settings1->TRIGGERSCHEME==2 || settings1->TRIGGERSCHEME == 3 || settings1->TRIGGERSCHEME == 4 || settings1->TRIGGERSCHEME == 5) {
+    if (fSettings->TRIGGERSCHEME==1 || fSettings->TRIGGERSCHEME==2 || fSettings->TRIGGERSCHEME == 3 || fSettings->TRIGGERSCHEME == 4 || fSettings->TRIGGERSCHEME == 5) {
       anita1->RFCMs(1,1,vhz_rx_rfcm_e.data());
       anita1->RFCMs(1,1,vhz_rx_rfcm_h.data());
     }
 
     double scale;
     double sumpower=0.;
-    if (settings1->PULSER) { // if we are using the pulser spectrum instead of simulating neutrinos
+    if (fSettings->PULSER) { // if we are using the pulser spectrum instead of simulating neutrinos
       scale=icemc::Tools::max(vhz_rx_rfcm_e)/icemc::Tools::max(anita1->v_pulser);
       sumpower=0.;
       int ifour;// index for fourier transform
@@ -1169,7 +1169,7 @@ void anitaSim::ChanTrigger::DigitizerPath(const Settings *settings1, Anita *anit
     anita1->peak_rx_rfcm_signalonly[0]=anitaSim::ChanTrigger::FindPeak(volts_rx_rfcm[0],anita1->HALFNFOUR); // with no noise
     anita1->peak_rx_rfcm_signalonly[1]=anitaSim::ChanTrigger ::FindPeak(volts_rx_rfcm[1],anita1->HALFNFOUR);
       
-    if (settings1->SIGNAL_FLUCT) {
+    if (fSettings->SIGNAL_FLUCT) {
       for (int i=0;i<anita1->NFOUR/2;i++) {
 	for (int ipol=0;ipol<2;ipol++){
 	  volts_rx_rfcm[ipol][i]+=anita1->timedomainnoise_rfcm[ipol][i]; // add noise.
@@ -1213,7 +1213,7 @@ void anitaSim::ChanTrigger::DigitizerPath(const Settings *settings1, Anita *anit
     icemc::Tools::NormalTimeOrdering(anita1->NFOUR/2,volts_rx_rfcm_lab[0]);
     icemc::Tools::NormalTimeOrdering(anita1->NFOUR/2,volts_rx_rfcm_lab[1]);
 
-    if (settings1->SIGNAL_FLUCT > 0) { 
+    if (fSettings->SIGNAL_FLUCT > 0) { 
       for (int i=0;i<anita1->NFOUR/2;i++) {
 	for (int ipol=0;ipol<2;ipol++){
 	  justSig_digPath[ipol][i] = volts_rx_rfcm_lab[ipol][i];
@@ -1227,15 +1227,15 @@ void anitaSim::ChanTrigger::DigitizerPath(const Settings *settings1, Anita *anit
 
 
 
-// void anitaSim::ChanTrigger::TimeShiftAndSignalFluct(const Settings *settings1, Anita *anita1, int ilayer, int ifold, double volts_rx_rfcm_lab_e_all[48][512], double volts_rx_rfcm_lab_h_all[48][512])
-// void anitaSim::ChanTrigger::TimeShiftAndSignalFluct(const Settings *settings1, Anita *anita1, int ilayer, int ifold, double* volts_rx_rfcm_lab_e_all, double* volts_rx_rfcm_lab_h_all)
- void anitaSim::ChanTrigger::TimeShiftAndSignalFluct(const Settings *settings1, Anita *anita1, int rx, double* volts_rx_rfcm_lab_e_all, double* volts_rx_rfcm_lab_h_all) {
+// void anitaSim::ChanTrigger::TimeShiftAndSignalFluct(Anita *anita1, int ilayer, int ifold, double volts_rx_rfcm_lab_e_all[48][512], double volts_rx_rfcm_lab_h_all[48][512])
+// void anitaSim::ChanTrigger::TimeShiftAndSignalFluct(Anita *anita1, int ilayer, int ifold, double* volts_rx_rfcm_lab_e_all, double* volts_rx_rfcm_lab_h_all)
+ void anitaSim::ChanTrigger::TimeShiftAndSignalFluct(Anita *anita1, int rx, double* volts_rx_rfcm_lab_e_all, double* volts_rx_rfcm_lab_h_all) {
   // int ant = anita1->GetRxTriggerNumbering(ilayer, ifold);
 
   // now shift right to account for arrival times
   // this is done inside the impulse response function normally
   // if we don't use it, we need to do it here
-  // if (!settings1->APPLYIMPULSERESPONSEDIGITIZER){
+  // if (!fSettings->APPLYIMPULSERESPONSEDIGITIZER){
   //   //  for (int i=0;i<48;i++) std::cout << "Arrival times " << anita1->arrival_times[0][anita1->GetRx(ilayer,ifold)] << std::endl;
   //   icemc::Tools::ShiftRight(volts_rx_rfcm_lab[0],anita1->NFOUR/2, int(anita1->arrival_times[0][anita1->GetRx(ilayer,ifold)]/anita1->TIMESTEP));
   //   icemc::Tools::ShiftRight(volts_rx_rfcm_lab[1],anita1->NFOUR/2, int(anita1->arrival_times[1][anita1->GetRx(ilayer,ifold)]/anita1->TIMESTEP));
@@ -1259,7 +1259,7 @@ void anitaSim::ChanTrigger::DigitizerPath(const Settings *settings1, Anita *anit
 
 
 
-anitaSim::ChanTrigger::ChanTrigger(Anita* anita1) {
+anitaSim::ChanTrigger::ChanTrigger(const Settings* settings, Anita* anita1) : fSettings(settings) {
   InitializeEachBand(anita1);
 }
 
@@ -1278,23 +1278,23 @@ double anitaSim::ChanTrigger::FindPeak(const double *waveform,int n) {
 }
 
 
-void anitaSim::ChanTrigger::addToChannelSums(const Settings *settings1,Anita *anita1,int ibw, int k) {
+void anitaSim::ChanTrigger::addToChannelSums(Anita *anita1,int ibw, int k) {
     
   double term_e= v_banding_rfcm[0][ibw][k]*    // for the integral over e-field
-    (settings1->BW/(double)Anita::NFREQ/1.E6); // width of a frequency bin
+    (fSettings->BW/(double)Anita::NFREQ/1.E6); // width of a frequency bin
   // uses e- and h-components instead of lcp,rcp, for Anita-lite
     
   double energyterm_e=v_banding_rfcm[0][ibw][k]*v_banding_rfcm[0][ibw][k]* // for the integral of energy of time T=N delta t = 1/delta f
-    (settings1->BW/(double)Anita::NFREQ/1.E6)*(settings1->BW/(double)Anita::NFREQ/1.E6)/50.*
+    (fSettings->BW/(double)Anita::NFREQ/1.E6)*(fSettings->BW/(double)Anita::NFREQ/1.E6)/50.*
     anita1->INTEGRATIONTIME; // divide by width of a freq. bin
   // end divide by 50 ohms
     
     
   double term_h=v_banding_rfcm[1][ibw][k]* // for the integral over e-field
-    (settings1->BW/(double)Anita::NFREQ/1.E6);
+    (fSettings->BW/(double)Anita::NFREQ/1.E6);
     
   double energyterm_h=v_banding_rfcm[1][ibw][k]*v_banding_rfcm[1][ibw][k]* // for the integral over energy
-    (settings1->BW/(double)Anita::NFREQ/1.E6)*(settings1->BW/(double)Anita::NFREQ/1.E6)/50.*
+    (fSettings->BW/(double)Anita::NFREQ/1.E6)*(fSettings->BW/(double)Anita::NFREQ/1.E6)/50.*
     anita1->INTEGRATIONTIME; // multiply by frequency bin and divide by 50 ohms
     
     
@@ -1553,8 +1553,7 @@ void anitaSim::ChanTrigger::L1Trigger(Anita *anita1,double timedomain_output_1[5
   
 
 
-// double anitaSim::ChanTrigger::GetNoise(const Settings *settings1,const Geoid::Position& detector,double theta_zenith,double bw,double temp) {
-double anitaSim::ChanTrigger::GetNoise(const Settings *settings1,double altitude_bn, double geoid, double theta_zenith,double bw,double temp) {
+double anitaSim::ChanTrigger::GetNoise(Payload payload, double altitude_bn, double geoid, double theta_zenith,double bw,double temp) {
 
   // double geoid = detector.Mag();
   // double altitude_bn = detector.Altitude(); 
@@ -1578,7 +1577,7 @@ double anitaSim::ChanTrigger::GetNoise(const Settings *settings1,double altitude
   double integral_secondhalf=0;
   double vnoise=0;
     
-  if (settings1->WHICH != anitaSim::Payload::AnitaLite) {		
+  if (payload != anitaSim::Payload::AnitaLite) {		
     for (int i=0;i<NSTEPS;i++) {
 			
       // step in theta
@@ -1602,8 +1601,8 @@ double anitaSim::ChanTrigger::GetNoise(const Settings *settings1,double altitude
 		
     //    cout << "sum, KBOLTZ, bw, sqrt are " << sum << " " << KBOLTZ << " " << bw << " " << sqrt(sum*50.*KBOLTZ*bw) << "\n";
     return sqrt(sum*50.*icemc::constants::KBOLTZ*bw);
-  } //if (settings1->WHICH != 0)
-  else if (settings1->WHICH ==anitaSim::Payload::AnitaLite){
+  } //if (fSettings->WHICH != 0)
+  else if (payload ==anitaSim::Payload::AnitaLite){
     return sqrt(temp*50.*icemc::constants::KBOLTZ*bw);
   }
   return 0;
@@ -1611,9 +1610,9 @@ double anitaSim::ChanTrigger::GetNoise(const Settings *settings1,double altitude
 
 
 
-void anitaSim::ChanTrigger::GetThresholds(const Settings *settings1, const Anita *anita1,int ilayer,double thresholds[2][5]) const {
+void anitaSim::ChanTrigger::GetThresholds(const Anita *anita1,int ilayer,double thresholds[2][5]) const {
     
-  if (ilayer==3 && settings1->DISCONES==2) // if it's a nadir layer
+  if (ilayer==3 && fSettings->DISCONES==2) // if it's a nadir layer
     for (int i=0;i<5;i++) {
       thresholds[0][i]=anita1->powerthreshold_nadir[i];
       thresholds[1][i]=anita1->powerthreshold_nadir[i];
@@ -1650,15 +1649,15 @@ double anitaSim::ChanTrigger::applyButterworthFilter(double ff, double ampl, int
 
 
 #ifdef ANITA_UTIL_EXISTS    
-// void anitaSim::ChanTrigger::applyImpulseResponseDigitizer(const Settings *settings1, Anita *anita1, int nPoints, int ant, double *x, double y[512], bool pol){
-void anitaSim::ChanTrigger::applyImpulseResponseDigitizer(const Settings *settings1, Anita *anita1, int nPoints, int ant, double *x, double y[Anita::HALFNFOUR], bool pol){
+// void anitaSim::ChanTrigger::applyImpulseResponseDigitizer(Anita *anita1, int nPoints, int ant, double *x, double y[512], bool pol){
+void anitaSim::ChanTrigger::applyImpulseResponseDigitizer(Anita *anita1, int nPoints, int ant, double *x, double y[Anita::HALFNFOUR], bool pol){
 
-  if (settings1->ZEROSIGNAL){
+  if (fSettings->ZEROSIGNAL){
     for (int i=0;i<nPoints;i++) y[i]=0;
   }
 
   TGraph *graph1 = nullptr;
-  if (settings1->TRIGGEREFFSCAN && !pol){
+  if (fSettings->TRIGGEREFFSCAN && !pol){
     graph1 = getPulserAtAMPA(anita1, ant);
   }
   else {
@@ -1677,7 +1676,7 @@ void anitaSim::ChanTrigger::applyImpulseResponseDigitizer(const Settings *settin
 
   int iphi = ant - (iring*16);
   
-  if (settings1->ADDCW){
+  if (fSettings->ADDCW){
     for (int i=0;i<nPoints;i++){
       y[i]+=cw_digPath[ipol][i];
     }
@@ -1686,7 +1685,7 @@ void anitaSim::ChanTrigger::applyImpulseResponseDigitizer(const Settings *settin
   TGraph *surfSignal = nullptr;  
   
   //Calculate convolution
-  if(!settings1->TUFFSON){
+  if(!fSettings->TUFFSON){
     surfSignal = FFTtools::getConvolution(graphUp, anita1->fSignalChainResponseDigitizer[ipol][iring][iphi]);
   }
   else
@@ -1710,7 +1709,7 @@ void anitaSim::ChanTrigger::applyImpulseResponseDigitizer(const Settings *settin
   TGraph *surfSignalDown = FFTtools::getInterpolatedGraph(surfSignal, 1/2.6);  
   
   // add thermal noise for anita-3 flight
-  if (settings1->SIGNAL_FLUCT && settings1->NOISEFROMFLIGHTDIGITIZER) { 
+  if (fSettings->SIGNAL_FLUCT && fSettings->NOISEFROMFLIGHTDIGITIZER) { 
     for (int i=0;i<nPoints;i++){
       justSig_digPath[ipol][i] = surfSignalDown->Eval(x[i]);
       y[i] = justSig_digPath[ipol][i] + justNoise_digPath[ipol][i];
@@ -1746,17 +1745,17 @@ void anitaSim::ChanTrigger::applyImpulseResponseDigitizer(const Settings *settin
 }
 
 
-void anitaSim::ChanTrigger::applyImpulseResponseTrigger(const Settings *settings1, Anita *anita1, int ant, double y[Anita::HALFNFOUR], double *vhz, bool pol){
+void anitaSim::ChanTrigger::applyImpulseResponseTrigger(Anita *anita1, int ant, double y[Anita::HALFNFOUR], double *vhz, bool pol){
 
   int nPoints = anita1->HALFNFOUR;
   double *x   = anita1->fTimes;
   
-  if (settings1->ZEROSIGNAL){
+  if (fSettings->ZEROSIGNAL){
     for (int i=0;i<nPoints;i++) y[i]=0;
   }
   
   TGraph *graph1 = nullptr;
-  if (settings1->TRIGGEREFFSCAN && !pol){
+  if (fSettings->TRIGGEREFFSCAN && !pol){
     graph1 = getPulserAtAMPA(anita1, ant);
   }
   else {
@@ -1779,7 +1778,7 @@ void anitaSim::ChanTrigger::applyImpulseResponseTrigger(const Settings *settings
 
 // begin keith edits
   TGraph *surfSignal = nullptr;
-  if (!settings1->TUFFSON){
+  if (!fSettings->TUFFSON){
     surfSignal = FFTtools::getConvolution(graphUp, anita1->fSignalChainResponseTrigger[ipol][iring][iphi]);
   }
   else
@@ -1804,7 +1803,7 @@ void anitaSim::ChanTrigger::applyImpulseResponseTrigger(const Settings *settings
   TGraph *surfSignalDown = FFTtools::getInterpolatedGraph(surfSignal, 1/2.6);
 
   // add thermal noise for anita-3 flight
-  if (settings1->SIGNAL_FLUCT && settings1->NOISEFROMFLIGHTTRIGGER) { 
+  if (fSettings->SIGNAL_FLUCT && fSettings->NOISEFROMFLIGHTTRIGGER) { 
     for (int i=0;i<nPoints;i++){
       justSig_trigPath[ipol][i] = surfSignalDown->Eval(x[i]);
       y[i] = voltsArray[i] = justSig_trigPath[ipol][i] + justNoise_trigPath[ipol][i];

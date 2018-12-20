@@ -230,60 +230,55 @@ bool anitaSim::ANITA::applyTrigger(int inu){
   // start looping over antennnas.
   // ilayer loops through vertical layers
 
-  globalTrigger->volts_rx_rfcm_trigger.assign(16,  std::vector <std::vector <double> >(3,  std::vector <double>(0)));
 
-  int loctrig[Anita::NPOL][Anita::NLAYERS_MAX][Anita::NPHI_MAX]; //counting how many pass trigger requirement
-  int loctrig_nadironly[Anita::NPOL][Anita::NPHI_MAX]; //counting how many pass trigger requirement
   
   for (int antNum=0; antNum < getNumRX(); antNum++) { // loop over layers on the payload
       
-      ChanTrigger ct(this);
+    ChanTrigger ct(fSettings, this);
+    int ilayer, ifold;
+    getLayerFoldFromTriggerRX(antNum, ilayer, ifold);
+    // int antNum = this->GetRx(ilayer, ifold);
+    ct.readInSeavey(&fSeaveys.at(antNum), antNum, this);
 
-      // int antNum = this->GetRxTriggerNumbering(ilayer, ifold);
-      int ilayer, ifold;
-      getLayerFoldFromTriggerRX(antNum, ilayer, ifold);
-      // int antNum = this->GetRx(ilayer, ifold);
-      ct.readInSeavey(fSettings,  &fSeaveys.at(antNum), antNum, this);
+    // this->GetAntennaOrientation(fSettings,  this,  ilayer,  ifold, n_eplane,  n_hplane,  n_normal);
+    // ct.ApplyAntennaGain(fSettings, this, fScreenPtrIDontOwn, antNum, n_eplane, n_hplane, n_normal, inu);
 
-      // this->GetAntennaOrientation(fSettings,  this,  ilayer,  ifold, n_eplane,  n_hplane,  n_normal);
-      // ct.ApplyAntennaGain(fSettings, this, fScreenPtrIDontOwn, antNum, n_eplane, n_hplane, n_normal, inu);
+    // std::cout << antNum << "\t" << count_rx << std::endl;
 
-      // std::cout << antNum << "\t" << count_rx << std::endl;
+    ct.TriggerPath(this, antNum, this);
+    ct.DigitizerPath(this, antNum);
+    ct.TimeShiftAndSignalFluct(this, antNum,
+			       fVoltsRX.rfcm_lab_e_all.at(antNum).data(),
+			       fVoltsRX.rfcm_lab_h_all.at(antNum).data());
+    ct.saveTriggerWaveforms(&fJustSignalTrig[0][antNum][0], &fJustSignalTrig[1][antNum][0], &fJustNoiseTrig[0][antNum][0], &fJustNoiseTrig[1][antNum][0]);
+    ct.saveDigitizerWaveforms(&fJustSignalDig[0][antNum][0], &fJustSignalDig[1][antNum][0], &fJustNoiseDig[0][antNum][0], &fJustNoiseDig[1][antNum][0]);
 
-      ct.TriggerPath(fSettings, this, antNum, this);
-      ct.DigitizerPath(fSettings, this, antNum);
-      ct.TimeShiftAndSignalFluct(fSettings, this, antNum,
-				 fVoltsRX.rfcm_lab_e_all.at(antNum).data(),
-				 fVoltsRX.rfcm_lab_h_all.at(antNum).data());
-      ct.saveTriggerWaveforms(&fJustSignalTrig[0][antNum][0], &fJustSignalTrig[1][antNum][0], &fJustNoiseTrig[0][antNum][0], &fJustNoiseTrig[1][antNum][0]);
-      ct.saveDigitizerWaveforms(&fJustSignalDig[0][antNum][0], &fJustSignalDig[1][antNum][0], &fJustNoiseDig[0][antNum][0], &fJustNoiseDig[1][antNum][0]);
-
-      if (fSettings->SCALEDOWNLCPRX1){
-	globalTrigger->volts[0][ilayer][0] = globalTrigger->volts[0][ilayer][0]/sqrt(2.);
-      }
-
-      if (fSettings->RCPRX2ZERO){
-	globalTrigger->volts[1][ilayer][1]=0.;
-      }
-
-      if (fSettings->LCPRX2ZERO){
-	globalTrigger->volts[0][ilayer][1]=0.;
-      }
-
-      if (fSettings->SIGNAL_FLUCT) {
-	if (fSettings->WHICH==Payload::AnitaLite) {
-	  globalTrigger->volts[ilayer][ifold][0]+=gRandom->Gaus(0., this->VNOISE_ANITALITE[ifold]);
-	  globalTrigger->volts[ilayer][ifold][1]+=gRandom->Gaus(0., this->VNOISE_ANITALITE[ifold]);
-	} //else
-      } //if adding noise
-
-      ct.WhichBandsPass(fSettings, this, globalTrigger.get(), this, ilayer, ifold, fThresholdsAnt[antNum]);
-
-  //   } //loop through the phi-fold antennas
-  // }  //loop through the layers of antennas
+    if (fSettings->SCALEDOWNLCPRX1){
+      globalTrigger->volts[0][ilayer][0] = globalTrigger->volts[0][ilayer][0]/sqrt(2.);
     }
 
-  int count_pass = 0;
+    if (fSettings->RCPRX2ZERO){
+      globalTrigger->volts[1][ilayer][1]=0.;
+    }
+
+    if (fSettings->LCPRX2ZERO){
+      globalTrigger->volts[0][ilayer][1]=0.;
+    }
+
+    if (fSettings->SIGNAL_FLUCT) {
+      if (fSettings->WHICH==Payload::AnitaLite) {
+	globalTrigger->volts[ilayer][ifold][0]+=gRandom->Gaus(0., this->VNOISE_ANITALITE[ifold]);
+	globalTrigger->volts[ilayer][ifold][1]+=gRandom->Gaus(0., this->VNOISE_ANITALITE[ifold]);
+      } //else
+    } //if adding noise
+
+    ct.WhichBandsPass(this, globalTrigger.get(), this, ilayer, ifold, fThresholdsAnt[antNum]);
+
+    //   } //loop through the phi-fold antennas
+    // }  //loop through the layers of antennas
+  }
+
+  int count_pass = 0;///@todo remove me?
   // globalTrigger->PassesTrigger(fSettings, this, discones_passing, 2, fL3trig, fL2trig, fL1trig, fSettings->antennaclump, loctrig, loctrig_nadironly, inu, thispasses);
   const int triggerMode = 2;
   globalTrigger->PassesTrigger(this, triggerMode, fTriggerState);

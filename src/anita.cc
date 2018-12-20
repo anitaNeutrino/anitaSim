@@ -271,7 +271,8 @@ void anitaSim::Anita::SetNoise(const Settings *settings1, FlightDataManager *bn1
   else { // if not anita 1
     for (int il=0;il<NLAYERS_MAX;il++) {
       for (int ibw=0;ibw<5;ibw++) {
-	bwslice_vnoise[il][ibw] = ChanTrigger::GetNoise(settings1, bn1->altitude_bn,
+	bwslice_vnoise[il][ibw] = ChanTrigger::GetNoise(settings1->WHICH,
+							bn1->altitude_bn,
 							antarctica->SurfaceAboveGeoid(bn1->getLatitude(),bn1->getLongitude()),
 							THETA_ZENITH[il],
 							bwslice_max[ibw]-bwslice_min[ibw],0.);

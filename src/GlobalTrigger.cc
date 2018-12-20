@@ -27,7 +27,9 @@
 anitaSim::GlobalTrigger::GlobalTrigger(const Settings *settings,Anita *anita1)
   : fSettings(settings)
 {
-    
+  
+  volts_rx_rfcm_trigger.assign(16,  std::vector <std::vector <double> >(3,  std::vector <double>(0)));
+  
   // 2=top,1=middle,0=bottom
   WHICHLAYERSLCPRCP[0]=0;
   WHICHLAYERSLCPRCP[1]=1;
