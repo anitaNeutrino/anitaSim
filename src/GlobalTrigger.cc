@@ -24,7 +24,9 @@
 #include "GlobalTrigger.h"
 
 
-anitaSim::GlobalTrigger::GlobalTrigger(const Settings *settings1,Anita *anita1){
+anitaSim::GlobalTrigger::GlobalTrigger(const Settings *settings1,Anita *anita1)
+  : fSettings(settings1)
+{
     
   // 2=top,1=middle,0=bottom
   WHICHLAYERSLCPRCP[0]=0;
@@ -222,30 +224,41 @@ anitaSim::GlobalTrigger::GlobalTrigger(const Settings *settings1,Anita *anita1){
  *			There is a decent amount of dead code which should be pruned, as well.
  */
 
-void anitaSim::GlobalTrigger::PassesTrigger(const Settings *settings1,Anita *anita1,int discones_passing,int mode,int *l3trig,int l2trig[Anita::NPOL][Anita::NTRIGGERLAYERS_MAX],int l1trig[Anita::NPOL][Anita::NTRIGGERLAYERS_MAX],int antennaclump,int loctrig[Anita::NPOL][Anita::NLAYERS_MAX][Anita::NPHI_MAX],int loctrig_nadironly[Anita::NPOL][Anita::NPHI_MAX],int inu,  int *thispasses) {
+// void anitaSim::GlobalTrigger::PassesTrigger(const Settings *settings1,Anita *anita1,int discones_passing,int mode,int *l3trig,int l2trig[Anita::NPOL][Anita::NTRIGGERLAYERS_MAX],int l1trig[Anita::NPOL][Anita::NTRIGGERLAYERS_MAX],int antennaclump,int loctrig[Anita::NPOL][Anita::NLAYERS_MAX][Anita::NPHI_MAX],int loctrig_nadironly[Anita::NPOL][Anita::NPHI_MAX],int inu,  int *thispasses) {
+
+//   double this_threshold= anita1->powerthreshold[4]; 
+//   return PassesTrigger(settings1,anita1,discones_passing,mode,l3trig,l2trig,l1trig,antennaclump,loctrig,loctrig_nadironly,inu,this_threshold, thispasses);   
+// }
+
+
+void anitaSim::GlobalTrigger::PassesTrigger(const Settings *settings1,Anita *anita1,int mode, TriggerState& triggerState) {
 
   double this_threshold= anita1->powerthreshold[4]; 
-  return PassesTrigger(settings1,anita1,discones_passing,mode,l3trig,l2trig,l1trig,antennaclump,loctrig,loctrig_nadironly,inu,this_threshold, thispasses);   
+  // return PassesTrigger(settings1,anita1,discones_passing,mode,l3trig,l2trig,l1trig,antennaclump,loctrig,loctrig_nadironly,inu,this_threshold, thispasses);
+  return PassesTrigger(settings1, anita1, mode, triggerState, this_threshold);
 }
 
 
 
 
-void anitaSim::GlobalTrigger::PassesTrigger(const Settings *settings1,Anita *anita1,int discones_passing,int mode,int *l3trig,int l2trig[Anita::NPOL][Anita::NTRIGGERLAYERS_MAX],int l1trig[Anita::NPOL][Anita::NTRIGGERLAYERS_MAX],int antennaclump,int loctrig[Anita::NPOL][Anita::NLAYERS_MAX][Anita::NPHI_MAX],int loctrig_nadironly[Anita::NPOL][Anita::NPHI_MAX],int inu,double this_threshold, int *thispasses) {
+// void anitaSim::GlobalTrigger::PassesTrigger(const Settings *settings1,Anita *anita1,int discones_passing,int mode,int *l3trig,int l2trig[Anita::NPOL][Anita::NTRIGGERLAYERS_MAX],int l1trig[Anita::NPOL][Anita::NTRIGGERLAYERS_MAX],int antennaclump,int loctrig[Anita::NPOL][Anita::NLAYERS_MAX][Anita::NPHI_MAX],int loctrig_nadironly[Anita::NPOL][Anita::NPHI_MAX],int inu,double this_threshold, int *thispasses) {
 
+void anitaSim::GlobalTrigger::PassesTrigger(const Settings *settings1,Anita *anita1, int mode, TriggerState& triggerState, double this_threshold) {  
 
   //bool ishpol should only be used for anita3, by default do only vpol
 
   if (settings1->TRIGGERSCHEME < 3) {
 
     // Basic trigger refers to  frequency domain voltage (0) frequency domain energy (1) timedomain diode integration (2) 
-    PassesTriggerBasic(settings1, anita1, discones_passing, mode, l3trig, l2trig, l1trig, antennaclump, loctrig, loctrig_nadironly, thispasses, inu);
+    // PassesTriggerBasic(settings1, anita1, discones_passing, mode, l3trig, l2trig, l1trig, antennaclump, loctrig, loctrig_nadironly, thispasses, inu);
+    PassesTriggerBasic(settings1, anita1, mode, triggerState);
 
   }
 
   else if (settings1->TRIGGERSCHEME == 3) {
 
-    PassesTriggerCoherentSum(settings1, anita1, inu, thispasses);
+    int inu=0;
+    PassesTriggerCoherentSum(settings1, anita1, inu, triggerState.passes.data());
      
   }
   else if (settings1->TRIGGERSCHEME == 4) {
@@ -256,7 +269,7 @@ void anitaSim::GlobalTrigger::PassesTrigger(const Settings *settings1,Anita *ani
   else if (settings1->TRIGGERSCHEME == 5) {
     
     // Don't know the name of this one so I'll call it 5
-    PassesTriggerScheme5(anita1, this_threshold, thispasses);
+    PassesTriggerScheme5(anita1, this_threshold, triggerState.passes.data());
    
   }
 
@@ -265,8 +278,19 @@ void anitaSim::GlobalTrigger::PassesTrigger(const Settings *settings1,Anita *ani
 
 
 
-void  anitaSim::GlobalTrigger::PassesTriggerBasic(const Settings *settings1,Anita *anita1,int discones_passing,int mode,int *l3trig,int l2trig[Anita::NPOL][Anita::NTRIGGERLAYERS_MAX],int l1trig[Anita::NPOL][Anita::NTRIGGERLAYERS_MAX],int antennaclump,int loctrig[Anita::NPOL][Anita::NLAYERS_MAX][Anita::NPHI_MAX],int loctrig_nadironly[Anita::NPOL][Anita::NPHI_MAX], int *thispasses, int inu){
+// void  anitaSim::GlobalTrigger::PassesTriggerBasic(const Settings *settings1,Anita *anita1,
+// 						  int discones_passing,int mode,
+// 						  int *l3trig,
+// 						  int l2trig[Anita::NPOL][Anita::NTRIGGERLAYERS_MAX],
+// 						  int l1trig[Anita::NPOL][Anita::NTRIGGERLAYERS_MAX],
+// 						  int antennaclump,
+// 						  int loctrig[Anita::NPOL][Anita::NLAYERS_MAX][Anita::NPHI_MAX],
+// 						  int loctrig_nadironly[Anita::NPOL][Anita::NPHI_MAX],
+// 						  int *thispasses, int inu){
 
+void  anitaSim::GlobalTrigger::PassesTriggerBasic(const Settings *settings1,Anita *anita1,
+						  int mode, TriggerState& triggerState){
+  
   int ltsum=0;
   int channsum=0;
   int ihit=0;
@@ -279,21 +303,29 @@ void  anitaSim::GlobalTrigger::PassesTriggerBasic(const Settings *settings1,Anit
   // layer number, antenna, polarization, bandwidth slice
   int channels_compacted_passing[Anita::NLAYERS_MAX][Anita::NPHI_MAX][2][5] = {{{{0}}}};
 
+  triggerState.L3.fill(0);
+
   for (int k=0;k<Anita::NPOL;k++) {
-    l3trig[k]=0;
-    icemc::Tools::Zero(l1trig[k],Anita::NTRIGGERLAYERS_MAX);
-    icemc::Tools::Zero(l2trig[k],Anita::NTRIGGERLAYERS_MAX); // for all three layers
-    icemc::Tools::Zero(loctrig_nadironly[k],Anita::NPHI_MAX);
+    std::fill(triggerState.L2.at(k).begin(), triggerState.L2.at(k).end(), 0);
+    std::fill(triggerState.L1.at(k).begin(), triggerState.L1.at(k).end(), 0);    
+    std::fill(triggerState.locationNadirOnly.at(k).begin(),
+	      triggerState.locationNadirOnly.at(k).end(),
+	      0);
+    // l3trig[k]=0;
+    // icemc::Tools::Zero(l1trig[k],Anita::NTRIGGERLAYERS_MAX);
+    // icemc::Tools::Zero(l2trig[k],Anita::NTRIGGERLAYERS_MAX); // for all three layers
+    // icemc::Tools::Zero(loctrig_nadironly[k],Anita::NPHI_MAX);
   }
   // which clumps of 3 antennas
   //within the nadir layer pass
   // 0th and 1st element= antenna at phi=0,
   // 2nd and 3rd element=next antenna, etc.
-    
+  
   for (int ilayer=0;ilayer<settings1->NLAYERS;ilayer++) {
     for (int k=0;k<Anita::NPOL;k++) {
       // for (int j=0;j<Anita::NPHI_MAX;j++) {
-      icemc::Tools::Zero(loctrig[k][ilayer],Anita::NPHI_MAX);
+      auto& v = triggerState.location.at(k).at(ilayer);
+      std::fill(v.begin(), v.end(), 0);
     }
     // which clumps of 3 antennas
     //within each trigger layer pass L2 trigger
@@ -417,15 +449,16 @@ void  anitaSim::GlobalTrigger::PassesTriggerBasic(const Settings *settings1,Anit
       iphitrig=GetPhiSector(settings1,iloc,iphi);
       for (int ipolar=0;ipolar<2;ipolar++) {	  
 	if (ant[ipolar][iloc][iphitrig]==1) 
-	  l1trig[ipolar][iloc] += (1<<iphitrig); // this keeps track of which antennas pass the l1 trigger
+	  triggerState.L1.at(ipolar).at(iloc) += (1<<iphitrig); // this keeps track of which antennas pass the l1 trigger
       }
     }//for (phi position)
   } //for (layers) // Hmm this is not used
     
   if (mode == 1) {// TRIGTYPE=2 -> just require ANTtrig channels pass on 2 antennas
     for (int ipolar=0;ipolar<Anita::NPOL;ipolar++) {
-      if (antpass[ipolar] >= 2) 
-	thispasses[ipolar] = 1;
+      if (antpass[ipolar] >= 2){
+	triggerState.passes.at(ipolar) = 1;
+      }
     }
    
   } else if (mode == 2) { // TRIGTYPE=1 ->
@@ -472,12 +505,13 @@ void  anitaSim::GlobalTrigger::PassesTriggerBasic(const Settings *settings1,Anit
       }
 	
       int vl3trig[2][16];
-      L3Anita3and4(anita1,vl2trig,
-		   vl3trig,thispasses);
+      L3Anita3and4(anita1,vl2trig,vl3trig,triggerState.passes.data());
 
       for (int ipol=0;ipol<2;ipol++) {
 	for (int iphi=0;iphi<16;iphi++) {
-	  if (vl3trig[ipol][iphi]>0)    l3trig[ipol]+=(1<<iphi);
+	  if (vl3trig[ipol][iphi]>0){
+	    triggerState.L3.at(ipol)+=(1<<iphi);
+	  }
 	}
       }
 	
@@ -512,12 +546,13 @@ void  anitaSim::GlobalTrigger::PassesTriggerBasic(const Settings *settings1,Anit
 		   vl2trig);
 
       int vl3trig[2][16];
-      L3Anita3and4(anita1,vl2trig,
-		   vl3trig,thispasses);
+      L3Anita3and4(anita1,vl2trig,vl3trig,triggerState.passes.data());
       
       for (int ipol=0;ipol<2;ipol++) {
 	for (int iphi=0;iphi<16;iphi++) {
-	  if (vl3trig[ipol][iphi]>0)    l3trig[ipol]+=(1<<iphi);
+	  if (vl3trig[ipol][iphi]>0){
+	    triggerState.L3.at(ipol)+=(1<<iphi);
+	  }
 	}
       }
       
@@ -626,10 +661,12 @@ void  anitaSim::GlobalTrigger::PassesTriggerBasic(const Settings *settings1,Anit
       } // loop over time steps
       
 
-      if (thispasses_l3type0)
-	thispasses[0]=1;
-      if (thispasses_l3type1)
-	thispasses[1]=1;
+      if (thispasses_l3type0){
+	triggerState.passes.at(0) = 1;
+      }
+      if (thispasses_l3type1){
+	triggerState.passes.at(1) = 1;
+      }
 
       //	if (thispasses[0] || thispasses[1])
       //cout << "This passes! " << thispasses[0] << "\t" << thispasses[1] << "\n";
@@ -697,7 +734,8 @@ void  anitaSim::GlobalTrigger::PassesTriggerBasic(const Settings *settings1,Anit
       for (int iphi=0;iphi<16;iphi++) {
 	for (unsigned int ibin=0; ibin<anita1->HALFNFOUR; ibin++){
 	  if (anita1->l3trig_anita4lr_inanita[iphi][ibin]>0){
-	    l3trig[0]+=(1<<iphi);
+	    // l3trig[0]+=(1<<iphi);
+	    triggerState.L3.at(0)+=(1<<iphi);	    
 	    ibin = anita1->HALFNFOUR;
 	  }
 	}
@@ -722,8 +760,8 @@ void  anitaSim::GlobalTrigger::PassesTriggerBasic(const Settings *settings1,Anit
       //only goes to 8, wheras iphi goes to 16
       int x;//for number of antenna in clump
       int y;//for number of antenna in clump
-      x = (antennaclump-1)/2;//setting boundries for clump dependent on clump size(antennaclump)
-      y = (antennaclump-1)/2 +1;
+      x = (triggerState.antennaClump-1)/2;//setting boundries for clump dependent on clump size(antennaclump)
+      y = (triggerState.antennaClump-1)/2 +1;
       
       for (int iloc=0;iloc<anita1->NTRIGGERLAYERS;iloc++) {
 	for (int ipolar=0;ipolar<Anita::NPOL;ipolar++) {
@@ -760,8 +798,8 @@ void  anitaSim::GlobalTrigger::PassesTriggerBasic(const Settings *settings1,Anit
 	    } //for
 	  
 	    if(ltsum >= Nreq_l2[iloc]){ // if enough antennas in this clump pass
-	      loctrig[ipolar][iloc][iphitrig] = 1;
-	      l2trig[ipolar][iloc] += (1<<iphi);
+	      triggerState.location.at(ipolar).at(iloc).at(iphitrig) = 1;
+	      triggerState.L2.at(ipolar).at(iloc) += (1<<iphi);
 	    }//if
 	  } //for (phi position)
 
@@ -771,8 +809,8 @@ void  anitaSim::GlobalTrigger::PassesTriggerBasic(const Settings *settings1,Anit
 	// fill the slots in  between the actual antennas with the "or"
 	// of the neighboring antennas
       if (settings1->DISCONES==2) {
-	FillInNadir(settings1,anita1,l2trig[0][2]);
-	FillInNadir(settings1,anita1,l2trig[1][2]);
+	FillInNadir(settings1,anita1,triggerState.L2.at(0).at(2));
+	FillInNadir(settings1,anita1,triggerState.L2.at(1).at(2));
       }
       // only difference between these is whether they implement masking in both polarizations
       // can we simplify it
@@ -782,8 +820,8 @@ void  anitaSim::GlobalTrigger::PassesTriggerBasic(const Settings *settings1,Anit
 	  if ((1<<iphi) & phiTrigMask[0]) { // if this phi sector is masked
 	    for (int ipolar=0;ipolar<Anita::NPOL;ipolar++) {
 	      for (int iloc=0;iloc<anita1->NTRIGGERLAYERS;iloc++) {
-		loctrig[ipolar][iloc][iphi] = 0;
-		if(l2trig[ipolar][iloc] & (1<<iphi)) l2trig[ipolar][iloc] -= (1<<iphi);
+		triggerState.location.at(ipolar).at(iloc).at(iphi) = 0;
+		if(triggerState.L2.at(ipolar).at(iloc) & (1<<iphi)) triggerState.L2.at(ipolar).at(iloc) -= (1<<iphi);
 	      }
 	    } // end loop over polarizations
 	  } // if this phi sector is masked
@@ -795,8 +833,8 @@ void  anitaSim::GlobalTrigger::PassesTriggerBasic(const Settings *settings1,Anit
 	  for (int ipolar=0;ipolar<Anita::NPOL;ipolar++) {
 	    if ( (1<<iphi) & phiTrigMask[ipolar] )   { // if this phi sector is masked
 	      for (int iloc=0;iloc<anita1->NTRIGGERLAYERS;iloc++) {
-		loctrig[ipolar][iloc][iphi] = 0;
-		if(l2trig[ipolar][iloc] & (1<<iphi)) l2trig[ipolar][iloc] -= (1<<iphi);
+		triggerState.location.at(ipolar).at(iloc).at(iphi) = 0;
+		if(triggerState.L2.at(ipolar).at(iloc) & (1<<iphi)) triggerState.L2.at(ipolar).at(iloc) -= (1<<iphi);
 	      }
 	    }
 	  }// if this phi sector is masked
@@ -808,8 +846,8 @@ void  anitaSim::GlobalTrigger::PassesTriggerBasic(const Settings *settings1,Anit
       for (int iloc=0;iloc<anita1->NTRIGGERLAYERS;iloc++) {
 	for (int ipolar=0;ipolar<Anita::NPOL;ipolar++) {
 	  for (int iphi=0;iphi<anita1->NTRIGPHISECTORS;iphi++) {
-	    if (l2trig[ipolar][iloc] & (1<<iphi)) { // if we are not making a L3 trigger requirement and there was a l2 trigger then call it a pass
-	      thispasses[ipolar]=1;
+	    if (triggerState.L2.at(ipolar).at(iloc) & (1<<iphi)) { // if we are not making a L3 trigger requirement and there was a l2 trigger then call it a pass
+	      triggerState.passes.at(ipolar)=1;
 	      //cout << "This one passes.  inu is " << inu << " " << "iloc is " << iloc << "\n";
 	    }
 	  }
@@ -818,8 +856,8 @@ void  anitaSim::GlobalTrigger::PassesTriggerBasic(const Settings *settings1,Anit
     }
       
 
-    L3Trigger(settings1,anita1,loctrig,loctrig_nadironly,discones_passing,l3trig,
-	      thispasses);
+    L3Trigger(settings1,anita1,triggerState);
+    // L3Trigger(settings1,anita1,loctrig,loctrig_nadironly,discones_passing,l3trig,thispasses);    
 
   } //else if (mode 2)
 } // end of PassesTriggerBasic
@@ -1528,8 +1566,8 @@ void anitaSim::GlobalTrigger::GetAnitaLayerPhiSector(const Settings *settings1,i
  *			of integers into a bit shift, so nothing is lost by switching from explicit shifts to
  *			multiplication, and readability is gained.
  */
-void anitaSim::GlobalTrigger::L3Trigger(const Settings *settings1,Anita *anita1,int loctrig[Anita::NPOL][Anita::NLAYERS_MAX][Anita::NPHI_MAX],int loctrig_nadironly[Anita::NPOL][Anita::NPHI_MAX],int discones_passing,int *l3trig,
-				     int *thispasses) {
+// void anitaSim::GlobalTrigger::L3Trigger(const Settings *settings1,Anita *anita1,int loctrig[Anita::NPOL][Anita::NLAYERS_MAX][Anita::NPHI_MAX],int loctrig_nadironly[Anita::NPOL][Anita::NPHI_MAX],int discones_passing,int *l3trig,int *thispasses) {
+void anitaSim::GlobalTrigger::L3Trigger(const Settings *settings1,Anita *anita1,TriggerState& triggerState){
   
   int whichphipass[Anita::NPOL][Anita::NPHI_MAX]={{0}};
   triggerbits.fill(0);
@@ -1541,7 +1579,7 @@ void anitaSim::GlobalTrigger::L3Trigger(const Settings *settings1,Anita *anita1,
 		
     //     if (settings1->WHICH==9) { // anita 3
     //       for (int ipolar=0;ipolar<2;ipolar++) {
-    // 	if (loctrig[ipolar][0][i]>0 && loctrig[ipolar][1][i]>0 && loctrig[ipolar][2][i]>0) {
+    // 	if (triggerState.location.at(ipolar).at(0).at(i)>0 && triggerState.location.at(ipolar).at(1).at(i)>0 && triggerState.location.at(ipolar).at(2).at(i)>0) {
     // 	  thispasses[ipolar]=1;
     // 	  whichphipass[ipolar][i]=1;
     // 	  if (!(triggerbits[3] & (1<<i)))
@@ -1554,16 +1592,16 @@ void anitaSim::GlobalTrigger::L3Trigger(const Settings *settings1,Anita *anita1,
     for (int ilayer=0;ilayer<anita1->NTRIGGERLAYERS-1;ilayer++) {
       for (int ipolar=0;ipolar<2;ipolar++) {
 	// check this - does ilayer and ilayer+1 include just 1 and 2, or also 2 and 3, and is that ok?
-	if (loctrig[ipolar][ilayer][i]>0 && loctrig[ipolar][ilayer+1][i]>0) { // upper two layers
+	if (triggerState.location.at(ipolar).at(ilayer).at(i)>0 && triggerState.location.at(ipolar).at(ilayer+1).at(i)>0) { // upper two layers
 	    
 	  //l3trig += (1<<i);
-	  thispasses[ipolar]=1;
+	  triggerState.passes.at(ipolar)=1;
 	  whichphipass[ipolar][i]=1;
 	    
-	  if(loctrig[ipolar][0][i]>0 && loctrig[ipolar][1][i]>0) {
-	    if (!(triggerbits.at(0) & (1<<i)))
+	  if(triggerState.location.at(ipolar).at(0).at(i)>0 && triggerState.location.at(ipolar).at(1).at(i)>0) {
+	    if (!(triggerbits.at(0) & (1<<i))){
 	      triggerbits.at(0) += (1<<i);
-
+	    }
 	  }
 	}
       }
@@ -1576,22 +1614,22 @@ void anitaSim::GlobalTrigger::L3Trigger(const Settings *settings1,Anita *anita1,
 	settings1->WHICH==Payload::Anita2) { // Anita 1, 2
 				
       for (int ipolar=0;ipolar<2;ipolar++) {
-	if (((settings1->DISCONES==2) && (loctrig[ipolar][1][i]>0 && loctrig[ipolar][2][i]>0)) || // second layer and nadir?
-	    ((settings1->DISCONES==2) && (loctrig[ipolar][0][i]>0 && loctrig[ipolar][2][i]>0)) || // first layer and nadir?
-	    ((settings1->DISCONES==2) && loctrig_nadironly[ipolar][i]>0) || // just nadir - does this mean having just a nadir pass makes the whole event pass?
-	    (settings1->DISCONES==1 && (loctrig[ipolar][1][i]>0 && discones_passing>=settings1->NDISCONES_PASS)) || // second layer and discones
-	    (settings1->DISCONES==1 && (loctrig[ipolar][0][i]>0 && discones_passing>=settings1->NDISCONES_PASS))   // top layer and discones
+	if (((settings1->DISCONES==2) && (triggerState.location.at(ipolar).at(1).at(i)>0 && triggerState.location.at(ipolar).at(2).at(i)>0)) || // second layer and nadir?
+	    ((settings1->DISCONES==2) && (triggerState.location.at(ipolar).at(0).at(i)>0 && triggerState.location.at(ipolar).at(2).at(i)>0)) || // first layer and nadir?
+	    ((settings1->DISCONES==2) && triggerState.locationNadirOnly.at(ipolar).at(i)>0) || // just nadir - does this mean having just a nadir pass makes the whole event pass?
+	    (settings1->DISCONES==1 && (triggerState.location.at(ipolar).at(1).at(i)>0 && triggerState.disconesPassing>=settings1->NDISCONES_PASS)) || // second layer and discones
+	    (settings1->DISCONES==1 && (triggerState.location.at(ipolar).at(0).at(i)>0 && triggerState.disconesPassing>=settings1->NDISCONES_PASS))   // top layer and discones
 	    ) {
 					
-	  thispasses[ipolar]=1;
+	  triggerState.passes.at(ipolar)=1;
 	  whichphipass[ipolar][i]=1;
 	  // this is just for nadir studies->
 	  //how many of each trigger condition
 					
-	  if(loctrig[ipolar][1][i]>0 && loctrig[ipolar][2][i]>0) {
+	  if(triggerState.location.at(ipolar).at(1).at(i)>0 && triggerState.location.at(ipolar).at(2).at(i)>0) {
 	    triggerbits.at(1) += (1<<i);						
 	  }
-	  if(loctrig[ipolar][0][i]>0 && loctrig[ipolar][2][i]>0) {
+	  if(triggerState.location.at(ipolar).at(0).at(i)>0 && triggerState.location.at(ipolar).at(2).at(i)>0) {
 	    triggerbits.at(2)+=(1<<i);
 						
 	  }
@@ -1604,7 +1642,7 @@ void anitaSim::GlobalTrigger::L3Trigger(const Settings *settings1,Anita *anita1,
 	  // 	  triggerbits[4]+=weight2;
 					
 					
-	  thispasses[ipolar]=1;
+	  triggerState.passes.at(ipolar)=1;
 					
 	}
 				
@@ -1616,8 +1654,8 @@ void anitaSim::GlobalTrigger::L3Trigger(const Settings *settings1,Anita *anita1,
 		
     for (int ipolar=0;ipolar<2;ipolar++) {
       if (whichphipass[ipolar][i])
-	l3trig[ipolar]+=(1<<i);
-      // std::cout << ipolar << " " << whichphipass[ipolar][i] << " " << l3trig[ipolar] << std::endl;
+	triggerState.L3.at(ipolar)+=(1<<i);
+      // std::cout << ipolar << " " << whichphipass[ipolar][i] << " " << triggerState.L3.at(ipolar) << std::endl;
     }
 		
   } // end looping over phi

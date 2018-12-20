@@ -5,8 +5,9 @@
 //class GlobalTrigger:
 ////////////////////////////////////////////////////////////////////////////////////////////////
 #include "TVector3.h"
+#include "TriggerState.h"
 
-namespace anitaSim{
+namespace anitaSim {
 
   class Settings;
   class Anita;  
@@ -15,6 +16,7 @@ namespace anitaSim{
   class GlobalTrigger {
     
   private:
+    const Settings* fSettings = nullptr; 
     
   public:
     GlobalTrigger(const Settings *settings1,Anita *anita1);
@@ -99,37 +101,53 @@ namespace anitaSim{
     // for the nadir studies
     
     // this is L2 and L3 triggers
-    void PassesTrigger(const Settings *settings1,Anita *anita1,int discones_passing,int mode,
-		       int *l3trig,
-		       int l2trig[Anita::NPOL][Anita::NTRIGGERLAYERS_MAX],
-		       int l1trig[Anita::NPOL][Anita::NTRIGGERLAYERS_MAX],
-		       int antennaclump,
-		       int loctrig[Anita::NPOL][Anita::NLAYERS_MAX][Anita::NPHI_MAX],
-		       int loctrig_nadironly[Anita::NPOL][Anita::NPHI_MAX],
-		       int inu, int *thispasses);
+    // void PassesTrigger(const Settings *settings1,Anita *anita1,int discones_passing,int mode,
+    // 		       int *l3trig,
+    // 		       int l2trig[Anita::NPOL][Anita::NTRIGGERLAYERS_MAX],
+    // 		       int l1trig[Anita::NPOL][Anita::NTRIGGERLAYERS_MAX],
+    // 		       int antennaclump,
+    // 		       int loctrig[Anita::NPOL][Anita::NLAYERS_MAX][Anita::NPHI_MAX],
+    // 		       int loctrig_nadironly[Anita::NPOL][Anita::NPHI_MAX],
+    // 		       int inu, int *thispasses);
 
+    void PassesTrigger(const Settings *settings1,Anita *anita1, int mode, TriggerState& triggerState);
     
-    void PassesTrigger(const Settings *settings1,Anita *anita1,int discones_passing,int mode,
-		       int *l3trig,
-		       int l2trig[Anita::NPOL][Anita::NTRIGGERLAYERS_MAX],
-		       int l1trig[Anita::NPOL][Anita::NTRIGGERLAYERS_MAX],
-		       int antennaclump,
-		       int loctrig[Anita::NPOL][Anita::NLAYERS_MAX][Anita::NPHI_MAX],
-		       int loctrig_nadironly[Anita::NPOL][Anita::NPHI_MAX],
-		       int inu,double this_threshold,int *thispasses);
+    
+    void PassesTrigger(const Settings *settings1,Anita *anita1,int mode,
+		       TriggerState& triggerState,
+		       double this_threshold);
 
+    // void PassesTrigger(const Settings *settings1,Anita *anita1,int discones_passing,int mode,
+    // 		       int *l3trig,
+    // 		       int l2trig[Anita::NPOL][Anita::NTRIGGERLAYERS_MAX],
+    // 		       int l1trig[Anita::NPOL][Anita::NTRIGGERLAYERS_MAX],
+    // 		       int antennaclump,
+    // 		       int loctrig[Anita::NPOL][Anita::NLAYERS_MAX][Anita::NPHI_MAX],
+    // 		       int loctrig_nadironly[Anita::NPOL][Anita::NPHI_MAX],
+    // 		       int inu,double this_threshold,int *thispasses);
+    
   
-    void PassesTriggerBasic(const Settings *settings1,Anita *anita1,int discones_passing,int mode,int *l3trig,int l2trig[Anita::NPOL][Anita::NTRIGGERLAYERS_MAX],int l1trig[Anita::NPOL][Anita::NTRIGGERLAYERS_MAX],int antennaclump,int loctrig[Anita::NPOL][Anita::NLAYERS_MAX][Anita::NPHI_MAX],int loctrig_nadironly[Anita::NPOL][Anita::NPHI_MAX], int *thispasses, int inu);
+    // void PassesTriggerBasic(const Settings *settings1,Anita *anita1,int discones_passing,int mode,int *l3trig,
+    // 			    int l2trig[Anita::NPOL][Anita::NTRIGGERLAYERS_MAX],
+    // 			    int l1trig[Anita::NPOL][Anita::NTRIGGERLAYERS_MAX],
+    // 			    int antennaclump,
+    // 			    int loctrig[Anita::NPOL][Anita::NLAYERS_MAX][Anita::NPHI_MAX],
+    // 			    int loctrig_nadironly[Anita::NPOL][Anita::NPHI_MAX],
+    // 			    int *thispasses, int inu);
 
+    void PassesTriggerBasic(const Settings *settings1,Anita *anita1,int mode, TriggerState& triggerState);
+    
     void PassesTriggerCoherentSum(const Settings *settings1, Anita *anita1, int inu, int *thispasses);
 
     void PassesTriggerSummedPower(const Settings *settings1,Anita *anita1);
 
     void PassesTriggerScheme5(Anita *anita1, double this_threshold, int *thispasses);
   
-  
-    void L3Trigger(const Settings *settings1,Anita *anita1,int loctrig[Anita::NPOL][Anita::NLAYERS_MAX][Anita::NPHI_MAX],int loctrig_nadironly[Anita::NPOL][Anita::NPHI_MAX],int discones_passing,int *l3trigy,
-		   int *thispasses);
+    void L3Trigger(const Settings *settings1,Anita *anita1,TriggerState& triggerState);
+    // void L3Trigger(const Settings *settings1,Anita *anita1,
+    // 		   int loctrig[Anita::NPOL][Anita::NLAYERS_MAX][Anita::NPHI_MAX],
+    // 		   int loctrig_nadironly[Anita::NPOL][Anita::NPHI_MAX],
+    // 		   int discones_passing,int *l3trig,int *thispasses);
     
     
     int GetPhiSector(const Settings *settings1,int i,int j); // given trigger layer and index, get phi sector.
@@ -199,8 +217,12 @@ namespace anitaSim{
     void L1Anita4LR_ScB_OneBin(int IZERO,const std::vector<int>& vleft,const std::vector<int>& vright,
 			       std::vector<int> &vl1trig);
 
-    void L2Anita4LR_ScB_AllPhiSectors_OneBin(int IZERO,Anita *anita1,std::array< std::array< std::vector<int>,16>,3> vl1trig_anita4lr_scb,
-					     std::array<std::array<std::vector<int>,3>,16> &vl2_realtime_anita4_scb, int &npassesl2, int &npassesl2_type0);
+    void L2Anita4LR_ScB_AllPhiSectors_OneBin(int IZERO,
+					     Anita *anita1,
+					     std::array< std::array< std::vector<int>,16>,3> vl1trig_anita4lr_scb,
+					     std::array<std::array<std::vector<int>,3>,16> &vl2_realtime_anita4_scb,
+					     int &npassesl2,
+					     int &npassesl2_type0);
 
   
     // keep track of whether you get a coincidence between 1, 2 or 3 antennas in a phi sector with the right windows.
@@ -228,6 +250,5 @@ namespace anitaSim{
 
   };
 }
-
 
 #endif //ANITA_SIM_GLOBAL_TRIGGER_H

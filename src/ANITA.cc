@@ -20,6 +20,7 @@ anitaSim::ANITA::ANITA(const Settings* settings)
     fSettings(settings),
     fNumRX(settings ? settings->NANTENNAS : 48),
     fVoltsRX(settings ? settings->NANTENNAS : 0),
+    fTriggerState(settings),
     fAnitaOutput(this, settings, settings->getOutputDir(), settings->getRun())
 {
   initSeaveys(settings, this);
@@ -212,11 +213,10 @@ bool anitaSim::ANITA::applyTrigger(int inu){
   //////////////////////////////////////
 
   fVoltsRX.reset();
-  int thispasses[Anita::NPOL]={0,0};
 
   auto globalTrigger = std::make_shared<GlobalTrigger>(fSettings, dynamic_cast<Anita*>(this));
 
-  int discones_passing = 0;  // number of discones that pass
+  // int discones_passing = 0;  // number of discones that pass
 
   for(int pol=0;  pol < NPOL; pol++){
     for(int ant=0; ant < nAnt; ant++){
@@ -284,7 +284,9 @@ bool anitaSim::ANITA::applyTrigger(int inu){
     }
 
   int count_pass = 0;
-  globalTrigger->PassesTrigger(fSettings, this, discones_passing, 2, fL3trig, fL2trig, fL1trig, fSettings->antennaclump, loctrig, loctrig_nadironly, inu, thispasses);
+  // globalTrigger->PassesTrigger(fSettings, this, discones_passing, 2, fL3trig, fL2trig, fL1trig, fSettings->antennaclump, loctrig, loctrig_nadironly, inu, thispasses);
+  const int triggerMode = 2;
+  globalTrigger->PassesTrigger(fSettings, this, triggerMode, fTriggerState);  
 
   ///////////////////////////////////////
   //       Require that it passes      //
@@ -296,8 +298,8 @@ bool anitaSim::ANITA::applyTrigger(int inu){
   // Independentely from the fact that they generated an RF trigger
 
   bool eventPassesTrigger = false;
-  if ( (thispasses[0]==1 && this->pol_allowed[0]==1)
-       || (thispasses[1]==1 && this->pol_allowed[1]==1)
+  if ( (fTriggerState.passes.at(0) > 0 && this->pol_allowed[0]==1)
+       || (fTriggerState.passes.at(1) > 0 && this->pol_allowed[1]==1)
        || (fSettings->TRIGTYPE==0 && count_pass>=fSettings->NFOLD)
        || (fSettings->MINBIAS==1)){
     eventPassesTrigger = true;

@@ -8,6 +8,7 @@
 #include "FlightDataManager.h"
 #include "Seavey.h"
 #include "AnitaSimOutput.h"
+#include "TriggerState.h"
 
 namespace anitaSim {
 
@@ -56,11 +57,12 @@ namespace anitaSim {
 
     ///@todo maybe move or remove these things...? Although they are used in the ROOTified ANITA style data trees...
     VoltsRX fVoltsRX;
-    int fL3trig[Anita::NPOL] = {0};  // 16 bit number which says which phi sectors pass L3 V-POL
-    // For each trigger layer,  which "clumps" pass L2.  16 bit,  16 bit and 8 bit for layers 1 & 2 and nadirs
-    int fL2trig[Anita::NPOL][Anita::NTRIGGERLAYERS_MAX] = {{0}};
-    //For each trigger layer,  which antennas pass L1.  16 bit,  16 bit and 8 bit and layers 1,  2 and nadirs
-    int fL1trig[Anita::NPOL][Anita::NTRIGGERLAYERS_MAX] = {{0}};
+    TriggerState fTriggerState;
+    // int fL3trig[Anita::NPOL] = {0};  // 16 bit number which says which phi sectors pass L3 V-POL
+    // // For each trigger layer,  which "clumps" pass L2.  16 bit,  16 bit and 8 bit for layers 1 & 2 and nadirs
+    // int fL2trig[Anita::NPOL][Anita::NTRIGGERLAYERS_MAX] = {{0}};
+    // //For each trigger layer,  which antennas pass L1.  16 bit,  16 bit and 8 bit and layers 1,  2 and nadirs
+    // int fL1trig[Anita::NPOL][Anita::NTRIGGERLAYERS_MAX] = {{0}};
 
     static const int nAnt = 48; ///@todo I hate this.
     std::vector<double> fJustNoiseTrig[Anita::NPOL][nAnt];
@@ -74,19 +76,8 @@ namespace anitaSim {
 
     double fLastPositionTime = TMath::QuietNaN();
 
-
     void initSeaveys(const Settings *settings1, const Anita *anita1);
 
-    // /** 
-    //  * What's the ilayer/ifold of given RX?
-    //  * 
-    //  * @param rx index of the fSeaveys
-    //  * @param ilayer layer of ANITA 
-    //  * @param ifold index in phi, maybe...
-    //  */
-    // void getLayerFoldFromRX(int rx, int& ilayer, int& ifold) const; ///@todo temp public for test
-
-    
   };
 }
 

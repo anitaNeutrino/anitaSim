@@ -45,8 +45,7 @@ anitaSim::AnitaSimOutput::AnitaSimOutput(const ANITA* detector, const Settings* 
 anitaSim::AnitaSimOutput::~AnitaSimOutput(){
 
   // write, close and delete all non-NULL member files.
-  std::vector<TFile*> fs {fHeadFile, fGpsFile, fEventFile, fTruthFile};
-  for(auto f : fs){
+  for(auto f : {fHeadFile, fGpsFile, fEventFile, fTruthFile}){
     if(f){
       f->Write();
       f->Close();
@@ -144,19 +143,19 @@ void anitaSim::AnitaSimOutput::fillRootifiedAnitaDataTrees(const icemc::Event& i
 
   const ANITA* bn1 = fDetector;
   const ANITA* anita1 = fDetector;
-  
+
   fEvent  = new UsefulAnitaEvent();
   fHeader = new RawAnitaHeader();
   Adu5Pat gps = fDetector->pat();
   fGps    = &gps;
-  fGps->run = fRun;//clOpts.run_no;
+  fGps->run = fRun;
 
   memset(fEvent->fNumPoints, 0, sizeof(fEvent->fNumPoints) );
   memset(fEvent->fVolts,     0, sizeof(fEvent->fVolts)     );
   memset(fEvent->fTimes,     0, sizeof(fEvent->fTimes)     );
 
-  int fNumPoints = 260;
-  for (int ichan=0; ichan<108; ichan++){
+  int fNumPoints = NUM_SAMP;
+  for (int ichan=0; ichan<NUM_DIGITZED_CHANNELS; ichan++){
     fEvent->fNumPoints[ichan] = fNumPoints;
 
     for (int j = 0; j < fNumPoints; j++) {
@@ -167,7 +166,6 @@ void anitaSim::AnitaSimOutput::fillRootifiedAnitaDataTrees(const icemc::Event& i
   fEvent->fRFSpike = 0;// when we get as far as simulating this, we're doing well
 
   for (int iant = 0; iant < fSettings->NANTENNAS; iant++){
-    //int anitaSimAnt = getanitaSimAntfromUsefulEventAnt(anita1,  AnitaGeom1,  iant);
     int UsefulChanIndexH = geom->getChanIndexFromAntPol(iant,  AnitaPol::kHorizontal);
     int UsefulChanIndexV = geom->getChanIndexFromAntPol(iant,  AnitaPol::kVertical);
     fEvent->fNumPoints[UsefulChanIndexV] = fNumPoints;
@@ -176,8 +174,6 @@ void anitaSim::AnitaSimOutput::fillRootifiedAnitaDataTrees(const icemc::Event& i
     fEvent->chanId[UsefulChanIndexH] = UsefulChanIndexH;
 
     const int offset = (fDetector->fVoltsRX.rfcm_lab_h_all[iant].size() - fNumPoints)/2; ///@todo find a better way to do this...
-    // const int offset = 0; //(fDetector->fVoltsRX.rfcm_lab_h_all[iant].size() - fNumPoints)/2; ///@todo find a better way to do this...    
-
     for (int j = 0; j < fNumPoints; j++) {
       // convert seconds to nanoseconds
       fEvent->fTimes[UsefulChanIndexV][j] = j * anita1->TIMESTEP * 1.0E9;
@@ -190,13 +186,6 @@ void anitaSim::AnitaSimOutput::fillRootifiedAnitaDataTrees(const icemc::Event& i
       fEvent->fCapacitorNum[UsefulChanIndexH][j] = j;
       fEvent->fCapacitorNum[UsefulChanIndexV][j] = j;
     }//end int j
-
-    // if(headTree.GetEntries()==0){
-    //   std::cout << "in output " << iant << "\t" << iant << "\t"
-    // 		<< TMath::MaxElement(Anita::HALFNFOUR, fDetector->fVoltsRX.rfcm_lab_e_all[iant]) << "\t"
-    // 		<< TMath::MaxElement(fNumPoints, fEvent->fVolts[UsefulChanIndexV]) << std::endl;
-    // }
-
   }// end int iant
 
   fEventNumber = icemcEvent.loop.eventNumber;
@@ -215,16 +204,24 @@ void anitaSim::AnitaSimOutput::fillRootifiedAnitaDataTrees(const icemc::Event& i
   fHeader->run = icemcEvent.loop.run;
   // put the vpol only as a placeholder - these are only used in Anita-2 anyway
 
-  fHeader->upperL1TrigPattern = fDetector->fL1trig[0][0];
-  fHeader->lowerL1TrigPattern = fDetector->fL1trig[0][1];
-  fHeader->nadirL1TrigPattern = fDetector->fL1trig[0][2];
-  fHeader->upperL2TrigPattern = fDetector->fL2trig[0][0];
-  fHeader->lowerL2TrigPattern = fDetector->fL2trig[0][1];
-  fHeader->nadirL2TrigPattern = fDetector->fL2trig[0][2];
+  fHeader->upperL1TrigPattern = fDetector->fTriggerState.L1[0][0];
+  fHeader->lowerL1TrigPattern = fDetector->fTriggerState.L1[0][1];
+  fHeader->nadirL1TrigPattern = fDetector->fTriggerState.L1[0][2];
+  fHeader->upperL2TrigPattern = fDetector->fTriggerState.L2[0][0];
+  fHeader->lowerL2TrigPattern = fDetector->fTriggerState.L2[0][1];
+  fHeader->nadirL2TrigPattern = fDetector->fTriggerState.L2[0][2];
 
+  // fHeader->upperL1TrigPattern = fDetector->fL1trig[0][0];
+  // fHeader->lowerL1TrigPattern = fDetector->fL1trig[0][1];
+  // fHeader->nadirL1TrigPattern = fDetector->fL1trig[0][2];
+  // fHeader->upperL2TrigPattern = fDetector->fL2trig[0][0];
+  // fHeader->lowerL2TrigPattern = fDetector->fL2trig[0][1];
+  // fHeader->nadirL2TrigPattern = fDetector->fL2trig[0][2];
+  
   if (fSettings->WHICH<Payload::Anita3){
     fHeader->phiTrigMask  = (short) anita1->phiTrigMask;
-    fHeader->l3TrigPattern = (short) fDetector->fL3trig[0];
+    // fHeader->l3TrigPattern = (short) fDetector->fL3trig[0];
+    fHeader->l3TrigPattern = (short) fDetector->fTriggerState.L3[0];    
     // fHeader->l3TrigPattern = (short) uhen->l3trig[0];        
   }
 
@@ -234,8 +231,8 @@ void anitaSim::AnitaSimOutput::fillRootifiedAnitaDataTrees(const icemc::Event& i
 
 #ifdef ANITA3_EVENTREADER
   if (fSettings->WHICH==Payload::Anita3 || fSettings->WHICH==Payload::Anita4) {
-    fHeader->setTrigPattern((short) fDetector->fL3trig[0], AnitaPol::kVertical);
-    fHeader->setTrigPattern((short) fDetector->fL3trig[1], AnitaPol::kHorizontal);
+    fHeader->setTrigPattern((short) fDetector->fTriggerState.L3.at(0), AnitaPol::kVertical);
+    fHeader->setTrigPattern((short) fDetector->fTriggerState.L3.at(1), AnitaPol::kHorizontal);
     fHeader->setMask( (short) anita1->l1TrigMask,  (short) anita1->phiTrigMask,  AnitaPol::kVertical);
     fHeader->setMask( (short) anita1->l1TrigMaskH, (short) anita1->phiTrigMaskH, AnitaPol::kHorizontal);
   }
