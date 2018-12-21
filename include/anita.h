@@ -280,9 +280,9 @@ namespace anitaSim {
     // static int GetIfold(int rx);
     static int GetSurfChannel(int antenna, int ibw,int ipol); // which channel on the surf this channel on this antenna corresponds to.
     static int WhichBand(int ibw,int ipol); // which band, 1-8, in order as they are on the surf
-    void Banding(int j,double *freq_noise,double *powerperfreq,int NPOINTS_NOISE);
-    void Banding(int iband,double *vmmhz);
-    void RFCMs(int ilayer,int ifold,double *vmmhz);
+    void Banding(int j, const double *freq_noise,double *powerperfreq,int NPOINTS_NOISE) const;
+    // void Banding(int iband,double *vmmhz);
+    void RFCMs(int ilayer,int ifold,double *vmmhz) const;
     void normalize_for_nsamples(double *spectrum, double nsamples, double nsamp);
     void convert_power_spectrum_to_voltage_spectrum_for_fft(int length,double *spectrum, double domain[], double phase[]);
     void GetNoiseWaveforms(); // make time domain noise waveform based on avgnoise being the v^2

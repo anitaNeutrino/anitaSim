@@ -1449,7 +1449,8 @@ int anitaSim::Anita::WhichBand(int ibw,int ipol) {
     
   return 2*ibw+ipol+1; // from 1 to 8, which scalar channel on an antenna this band corresponds to, in order as they are on the surfs
 }
-void anitaSim::Anita::Banding(int j,double *freq_noise,double *vmmhz,int NPOINTS_NOISE) {
+
+void anitaSim::Anita::Banding(int j, const double *freq_noise,double *vmmhz,int NPOINTS_NOISE) const  {
     
   if (j<0 || j>4) {
     std::cout << "Band out of range.\n";
@@ -1475,10 +1476,10 @@ void anitaSim::Anita::Banding(int j,double *freq_noise,double *vmmhz,int NPOINTS
 		
   } // if it's choose-your-own banding
 }
-void anitaSim::Anita::RFCMs(int ilayer,int ifold,double *vmmhz) {
+void anitaSim::Anita::RFCMs(int ilayer,int ifold,double *vmmhz) const {
     
   int irx=anitaSim::Anita::GetAntennaNumber(ilayer,ifold)-1; // want this to be 0-31
-    
+
   int iampl;
   for (int i=0;i<NFREQ;i++) {
     // first find the index of the amplification array

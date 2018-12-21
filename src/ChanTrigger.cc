@@ -1064,24 +1064,6 @@ void anitaSim::ChanTrigger::TriggerPath(Anita* anita1, int ant, FlightDataManage
     for (int i=0;i<anita1->NFOUR/4;i++) {
       integrate_energy_freq[iband]+=v_banding_rfcm_forfft[0][iband][2*i]*v_banding_rfcm_forfft[0][iband][2*i]+v_banding_rfcm_forfft[0][iband][2*i+1]*v_banding_rfcm_forfft[0][iband][2*i+1];
     }
-  
-    // write the signal events to a tree
-    for (int k=0;k<anita1->NFOUR/2;k++) {
-      anita1->signal_vpol_inanita[iband][k]=v_banding_rfcm_forfft[0][iband][k];
-    }
-    anita1->integral_vmmhz_foranita=integral_vmmhz;
-  
-    // Find the p2p value before adding noise
-    anita1->peak_v_banding_rfcm[0][iband]=FindPeak(v_banding_rfcm_forfft[0][iband].data(),anita1->NFOUR/2);
-    anita1->peak_v_banding_rfcm[1][iband]=FindPeak(v_banding_rfcm_forfft[1][iband].data(),anita1->NFOUR/2);
-
-    // Find the p2p value before adding noise
-    for (int iband=0;iband<5;iband++) {
-      if (anita1->bwslice_allowed[iband]!=1) continue;
-      for (int ipol=0; ipol<2; ipol++) {
-        anita1->peak_v_banding_rfcm[ipol][iband]=FindPeak(v_banding_rfcm_forfft[ipol][iband].data(),anita1->NFOUR/2);
-      }
-    }
   } // end loop over bands
 }
 
