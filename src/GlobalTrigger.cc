@@ -1201,8 +1201,8 @@ void anitaSim::GlobalTrigger::PassesTriggerScheme5(Anita *anita1,double this_thr
     
   // need to find how many in a set of 6 pass
     
-  int maxsample=TMath::MaxElement(5,anita1->imaxbin);
-  int minsample=TMath::MinElement(5,anita1->iminbin);
+  int maxsample=TMath::MaxElement(5,anita1->imaxbin.data());
+  int minsample=TMath::MinElement(5,anita1->iminbin.data());
     
   int nstayhigh=(int)(anita1->l1window/anita1->TIMESTEP);
   // now make each flag stay high for the required amount of time
@@ -2180,14 +2180,20 @@ void anitaSim::GlobalTrigger::L1Anita3_AllPhiSectors(Anita *anita1,std::array<st
     time_thisbin=(double)nstepback*TRIGTIMESTEP;
     while (time_thisbin<LASTTIMETOTESTL1_ANITA3) {
 
-      vl1trig[0][iphi].push_back(L1Anita3_OnePhiSector(itrigbin,arrayofhits[2][iphi][0][4], 
+      vl1trig[0][iphi].push_back(L1Anita3_OnePhiSector(itrigbin,
+						       arrayofhits[2][iphi][0][4], 
 						       arrayofhits[1][iphi][0][4], 
 						       arrayofhits[0][iphi][0][4],
-						       vl1_realtime_vbottom, vl1_realtime_vmiddle, vl1_realtime_vtop));
-      vl1trig[1][iphi].push_back(L1Anita3_OnePhiSector(itrigbin,arrayofhits[2][iphi][1][4],
+						       vl1_realtime_vbottom,
+						       vl1_realtime_vmiddle,
+						       vl1_realtime_vtop));
+      vl1trig[1][iphi].push_back(L1Anita3_OnePhiSector(itrigbin,
+						       arrayofhits[2][iphi][1][4],
 						       arrayofhits[1][iphi][1][4],
 						       arrayofhits[0][iphi][1][4],
-						       vl1_realtime_hbottom, vl1_realtime_hmiddle, vl1_realtime_htop));
+						       vl1_realtime_hbottom,
+						       vl1_realtime_hmiddle,
+						       vl1_realtime_htop));
       itrigbin++;
       //      if (vl1trig[0][iphi][vl1trig[0][iphi].size()-1]==1) {
       // 	cout << "an l1.\n";
@@ -2325,10 +2331,9 @@ void anitaSim::GlobalTrigger::L1Anita4LR_ScA_AllPhiSectors(Anita *anita1,std::ar
 }
 
 
-int anitaSim::GlobalTrigger::L1Anita3_OnePhiSector(int IZERO,std::vector<int> &vl0_realtime_bottom, std::vector<int> &vl0_realtime_middle, std::vector<int> &vl0_realtime_top,
-						std::vector<int> &vl1_realtime_bottom, std::vector<int> &vl1_realtime_middle, std::vector<int> &vl1_realtime_top) {
-
-
+int anitaSim::GlobalTrigger::L1Anita3_OnePhiSector(int IZERO,
+						   std::vector<int> &vl0_realtime_bottom, std::vector<int> &vl0_realtime_middle, std::vector<int> &vl0_realtime_top,
+						   std::vector<int> &vl1_realtime_bottom, std::vector<int> &vl1_realtime_middle, std::vector<int> &vl1_realtime_top) {
 
   // ask if L1 trigger passes
   // Patrick says "check every 2 ns for 4 ns back and start 4 ns gate, or 12 ns, or 16 ns."

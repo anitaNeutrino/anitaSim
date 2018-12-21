@@ -158,8 +158,8 @@ namespace anitaSim {
     int flag_h_inanita[5][HALFNFOUR];
     double dangle_inanita,emfrac_inanita,hadfrac_inanita;
     double ston[5];                                                                                             ///< signal to noise;
-    int iminbin[5];                                                                                             ///< this is the minimum bin to start
-    int imaxbin[5];
+    std::array<int, 5> iminbin;                                                                                             ///< this is the minimum bin to start
+    std::array<int, 5> imaxbin;
     int maxbin_fortotal[5];                                                                                     ///< when it sums the noise and signal together it shortens the waveform
     double peak_v_banding_rfcm[2][5];                                                                           ///< peak V in e/h polarization after rfcm's and banding
     double peak_rx_signalonly[2];                                                                               ///< peak voltage in e/h polarization received by the antenna

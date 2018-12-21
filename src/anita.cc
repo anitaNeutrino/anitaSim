@@ -69,6 +69,9 @@ anitaSim::Anita::Anita(const Settings* settings, const char* outputDir, const Fl
   FREQ_LOW=0.;//200.E6;
   FREQ_HIGH=1300.E6; //1200.E6;
 
+  iminbin.fill(0);
+  imaxbin.fill(HALFNFOUR);
+
   antennatosurf[0]=2;
   antennatosurf[1]=4;
   antennatosurf[2]=6;

@@ -91,7 +91,7 @@ namespace anitaSim {
      * @param  anita1 :: Anita - anita object
      * @param  ant :: int - antenna number
      */ 
-    void TriggerPath(Anita* anita1, int ant, FlightDataManager *bn1);
+    void TriggerPath(const Anita* anita1, int );
 
     //! Apply digitizer path
     /**

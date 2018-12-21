@@ -239,7 +239,7 @@ bool anitaSim::ANITA::applyTrigger(int inu){
     getLayerFoldFromTriggerRX(antNum, ilayer, ifold);
     ct.readInSeavey(&fSeaveys.at(antNum), antNum, this);
 
-    ct.TriggerPath(this, antNum, this);
+    ct.TriggerPath(this, antNum);
     ct.DigitizerPath(this, antNum);
     ct.TimeShiftAndSignalFluct(this, antNum,
 			       fVoltsRX.rfcm_lab_e_all.at(antNum).data(),
