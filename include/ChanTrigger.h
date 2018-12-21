@@ -68,7 +68,7 @@ namespace anitaSim {
     //!  Channel trigger constructur
     ChanTrigger(const Settings* settings, Anita* anita1); 
     
-    void readInSeavey(const Seavey* s, int ant, Anita* anita1);
+    void readInSeavey(const Seavey* s, int ant, const Anita* anita1);
   
   private:
     const Settings* fSettings;
@@ -323,7 +323,7 @@ namespace anitaSim {
      * @param  pol :: bool - which polarization
      */
     // void applyImpulseResponseTrigger(Anita *anita1, int ant, double y[512], double *vhz, bool pol);
-    void applyImpulseResponseTrigger(Anita *anita1, int ant, double y[Anita::HALFNFOUR], double *vhz, bool pol);    
+    void applyImpulseResponseTrigger(const Anita *anita1, int ant, double y[Anita::HALFNFOUR], double *vhz, bool pol);    
 
     //! Add noise from ANITA-3 flight to the time domain waveforms
     /**
@@ -355,7 +355,7 @@ namespace anitaSim {
      * @param  anita1 :: Anita - anita payload object
      * @param  ant :: int - which antennta
      */
-    TGraph *getPulserAtAMPA(Anita *anita1, int ant);
+    TGraph *getPulserAtAMPA(const Anita *anita1, int ant);
 
     //! Save signal and noise waveforms at trigger
     /**
@@ -395,7 +395,7 @@ namespace anitaSim {
      * @param phase
      * @param amplitude
      */  
-    void calculateCW(Anita *anita1, double frequency, double phase, double amplitude);
+    void calculateCW(const Anita *anita1, double frequency, double phase, double amplitude);
     //! Apply Butterworth Filter
     /**
      * This is an approximation of the notch filters flown during ANITA4

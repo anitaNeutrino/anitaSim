@@ -332,7 +332,7 @@ void anitaSim::ChanTrigger::WhichBandsPassTrigger1(const Anita *anita1, GlobalTr
  *
  */
 void anitaSim::ChanTrigger::WhichBandsPassTrigger2(Anita *anita1, GlobalTrigger *globaltrig1, FlightDataManager *bn1, int ilayer, int ifold, double thresholds[2][5]){
-  
+
   double psignal[2][5][Anita::NFOUR];
   
   double mindiodeconvl[2][5];
@@ -760,7 +760,7 @@ void anitaSim::ChanTrigger::InitializeEachBand(Anita *anita1)
 
 
 
-void anitaSim::ChanTrigger::readInSeavey(const Seavey* s, int ant, Anita* anita1){
+void anitaSim::ChanTrigger::readInSeavey(const Seavey* s, int ant, const Anita* anita1){
 
   const int band = 4;
   for(auto pol : {Seavey::Pol::V, Seavey::Pol::H}){
@@ -1745,10 +1745,10 @@ void anitaSim::ChanTrigger::applyImpulseResponseDigitizer(Anita *anita1, int nPo
 }
 
 
-void anitaSim::ChanTrigger::applyImpulseResponseTrigger(Anita *anita1, int ant, double y[Anita::HALFNFOUR], double *vhz, bool pol){
+void anitaSim::ChanTrigger::applyImpulseResponseTrigger(const Anita *anita1, int ant, double y[Anita::HALFNFOUR], double *vhz, bool pol){
 
   int nPoints = anita1->HALFNFOUR;
-  double *x   = anita1->fTimes;
+  const double *x   = anita1->fTimes;
   
   if (fSettings->ZEROSIGNAL){
     for (int i=0;i<nPoints;i++) y[i]=0;
@@ -1921,7 +1921,7 @@ void anitaSim::ChanTrigger::getNoiseFromFlight(const Anita* anita1, int ant, boo
   }
 }
 
-void anitaSim::ChanTrigger::calculateCW(Anita *anita1, double frequency, double phase, double amplitude){
+void anitaSim::ChanTrigger::calculateCW(const Anita *anita1, double frequency, double phase, double amplitude){
 
   double omega;
   
@@ -1933,7 +1933,7 @@ void anitaSim::ChanTrigger::calculateCW(Anita *anita1, double frequency, double 
 
 }  
 
-TGraph *anitaSim::ChanTrigger::getPulserAtAMPA(Anita *anita1, int ant){
+TGraph *anitaSim::ChanTrigger::getPulserAtAMPA(const Anita *anita1, int ant){
 
   // phiIndex is 0 for central antenna in trigger efficiency scan
   int phiIndex = anita1->trigEffScanPhi - (ant%16);

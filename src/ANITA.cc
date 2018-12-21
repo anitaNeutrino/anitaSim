@@ -237,13 +237,7 @@ bool anitaSim::ANITA::applyTrigger(int inu){
     ChanTrigger ct(fSettings, this);
     int ilayer, ifold;
     getLayerFoldFromTriggerRX(antNum, ilayer, ifold);
-    // int antNum = this->GetRx(ilayer, ifold);
     ct.readInSeavey(&fSeaveys.at(antNum), antNum, this);
-
-    // this->GetAntennaOrientation(fSettings,  this,  ilayer,  ifold, n_eplane,  n_hplane,  n_normal);
-    // ct.ApplyAntennaGain(fSettings, this, fScreenPtrIDontOwn, antNum, n_eplane, n_hplane, n_normal, inu);
-
-    // std::cout << antNum << "\t" << count_rx << std::endl;
 
     ct.TriggerPath(this, antNum, this);
     ct.DigitizerPath(this, antNum);
