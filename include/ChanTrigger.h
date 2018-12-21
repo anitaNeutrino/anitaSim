@@ -39,7 +39,7 @@ namespace anitaSim {
      * @param  iant :: int - which antenna number
      * @return relative power threshold (double)
      */
-    double ADCCountstoPowerThreshold(Anita *anita1, int ipol, int iant);
+    double ADCCountstoPowerThreshold(const Anita* anita1, int ipol, int iant);
 
     const static int NSURF=9;                           ///< Number of surfs
     const static int NSURFPLUSONE=10;                   ///< Number of surfs plus one
@@ -66,7 +66,7 @@ namespace anitaSim {
   public:
 
     //!  Channel trigger constructur
-    ChanTrigger(const Settings* settings, Anita* anita1); 
+    ChanTrigger(const Settings* settings, const Anita* anita1); 
     
     void readInSeavey(const Seavey* s, int ant, const Anita* anita1);
   
@@ -78,7 +78,7 @@ namespace anitaSim {
      * 
      * @param  anita1 :: Anita - anita object
      */
-    void InitializeEachBand(Anita *anita1);
+    void InitializeEachBand(const Anita* anita1);
   public:
 
     //! Apply trigger path
@@ -91,7 +91,7 @@ namespace anitaSim {
      * @param  anita1 :: Anita - anita object
      * @param  ant :: int - antenna number
      */ 
-    void TriggerPath(Anita *anita1, int ant, FlightDataManager *bn1);
+    void TriggerPath(Anita* anita1, int ant, FlightDataManager *bn1);
 
     //! Apply digitizer path
     /**
@@ -103,7 +103,7 @@ namespace anitaSim {
      * @param  anita1 :: Anita - anita object
      * @param  ant :: int - antenna number
      */ 
-    void DigitizerPath(Anita *anita1, int ant);
+    void DigitizerPath(Anita* anita1, int ant);
 
     //! Time shift and fluctuate signal
     /**
@@ -116,7 +116,7 @@ namespace anitaSim {
      * @param  volts_rx_rfcm_lab_e_all :: double [48][512] - time domain waveform for each channel (VPOL)
      * @param  volts_rx_rfcm_lab_h_all :: double [48][512] - time domain waveform for each channel (HPOL)
      */ 
-    void TimeShiftAndSignalFluct(Anita *anita1, int rx, double* volts_rx_rfcm_lab_e_all, double* volts_rx_rfcm_lab_h_all);
+    void TimeShiftAndSignalFluct(Anita* anita1, int rx, double* volts_rx_rfcm_lab_e_all, double* volts_rx_rfcm_lab_h_all);
   
     //!  Convert E and H to left and right e field
     /**
@@ -167,7 +167,7 @@ namespace anitaSim {
      *  @param channels_passing_h_forglob :: double* - array of channels passing the L1 trigger for h (used in the GlobalTrigger class)
      *  @param npass :: &int - number of bands passing the L1 trigger
      */
-    void L1Trigger(Anita *anita1,double timedomain_output_1[5][Anita::NFOUR],double timedomain_output_2[5][Anita::NFOUR],double powerthreshold[2][5],int *channels_passing_e_forglob,int *channels_passing_h_forglob,int &npass);
+    void L1Trigger(const Anita* anita1,double timedomain_output_1[5][Anita::NFOUR],double timedomain_output_2[5][Anita::NFOUR],double powerthreshold[2][5],int *channels_passing_e_forglob,int *channels_passing_h_forglob,int &npass);
 
 
     //!	Returns the thisrate variable value (in MHz)
@@ -215,7 +215,7 @@ namespace anitaSim {
      * @param  ifold :: int - phi sector
      * @param  thresholds :: double [2][5] - relative power thresholds for each pol and band
      */
-    void WhichBandsPass(Anita *anita1, GlobalTrigger *globaltrig1, FlightDataManager *bn1, int ilayer, int ifold, double thresholds[2][5]);
+    void WhichBandsPass(Anita* anita1, GlobalTrigger *globaltrig1, FlightDataManager *bn1, int ilayer, int ifold, double thresholds[2][5]);
 
     //! Which bands passes the trigger (for trigger scheme 0 and 1)
     /**
@@ -227,7 +227,7 @@ namespace anitaSim {
      * @param  ifold :: int - phi sector
      * @param  thresholds :: double [2][5] - relative power thresholds for each pol and band
      */
-    void WhichBandsPassTrigger1(const Anita *anita1, GlobalTrigger *globaltrig1, FlightDataManager *bn1, int ilayer, int ifold, double thresholds[2][5]);
+    void WhichBandsPassTrigger1(const Anita* anita1, GlobalTrigger *globaltrig1, FlightDataManager *bn1, int ilayer, int ifold, double thresholds[2][5]);
 
     //! Which bands passes the trigger (for trigger scheme larger than 2)
     /**
@@ -239,7 +239,7 @@ namespace anitaSim {
      * @param  ifold :: int - phi sector
      * @param  thresholds :: double [2][5] - relative power thresholds for each pol and band
      */
-    void WhichBandsPassTrigger2(Anita *anita1, GlobalTrigger *globaltrig1, FlightDataManager *bn1, int ilayer, int ifold, double thresholds[2][5]);
+    void WhichBandsPassTrigger2(Anita* anita1, GlobalTrigger *globaltrig1, FlightDataManager *bn1, int ilayer, int ifold, double thresholds[2][5]);
 
     //! Find peak voltage of a waveform
     /**
@@ -257,7 +257,7 @@ namespace anitaSim {
      *	\todo	Deprecate in favor of the more robust boost::multi_array or the more specialized
      *			PayloadArray class. Both have multi-index access to the same items.
      */
-    void GetThresholds(const Anita *anita1,int ilayer,double thresholds[2][5]) const ; // get thresholds for this layer
+    void GetThresholds(const Anita* anita1,int ilayer,double thresholds[2][5]) const ; // get thresholds for this layer
 
     //! Apply the diode convolution
     /**
@@ -273,7 +273,7 @@ namespace anitaSim {
      * @param  ipol :: int - which polarization
      * @param  thresholds :: double[2][5] - relative power thresholds for each pol and band
      */
-    void DiodeConvolution(Anita *anita1, GlobalTrigger *globaltrig1, int ilayer, int ifold, double mindiodeconvl[5], double onediodeconvl[5], double psignal[5][Anita::NFOUR],  double timedomain_output[5][Anita::NFOUR], int ibinshift, int ipol, double thresholds[2][5]);
+    void DiodeConvolution(Anita* anita1, GlobalTrigger *globaltrig1, int ilayer, int ifold, double mindiodeconvl[5], double onediodeconvl[5], double psignal[5][Anita::NFOUR],  double timedomain_output[5][Anita::NFOUR], int ibinshift, int ipol, double thresholds[2][5]);
 
 
     //! Increment the volts in each band 
@@ -283,7 +283,7 @@ namespace anitaSim {
      * @param  ibw :: int - which band
      * @param  k :: int - frequency bin
      */
-    void addToChannelSums(Anita *anita1,int ibw,int k);
+    void addToChannelSums(const Anita* anita1,int ibw,int k);
 
     //!	Returns whether the indicated antenna and band are "masked"
     /**
@@ -309,8 +309,8 @@ namespace anitaSim {
      * @param  y :: double[512] - output voltages
      * @param  pol :: bool - which polarization
      */
-    // void applyImpulseResponseDigitizer(Anita *anita1, int nPoints, int ant, double *x, double y[512], bool pol);
-    void applyImpulseResponseDigitizer(Anita *anita1, int nPoints, int ant, double *x, double y[Anita::HALFNFOUR], bool pol);    
+    // void applyImpulseResponseDigitizer(Anita* anita1, int nPoints, int ant, double *x, double y[512], bool pol);
+    void applyImpulseResponseDigitizer(Anita* anita1, int nPoints, int ant, double *x, double y[Anita::HALFNFOUR], bool pol);    
 
     //! Apply impulse response to trigger path
     /**
@@ -322,8 +322,8 @@ namespace anitaSim {
      * @param  vhz :: double* - amplitude in Fourier domain
      * @param  pol :: bool - which polarization
      */
-    // void applyImpulseResponseTrigger(Anita *anita1, int ant, double y[512], double *vhz, bool pol);
-    void applyImpulseResponseTrigger(const Anita *anita1, int ant, double y[Anita::HALFNFOUR], double *vhz, bool pol);    
+    // void applyImpulseResponseTrigger(Anita* anita1, int ant, double y[512], double *vhz, bool pol);
+    void applyImpulseResponseTrigger(const Anita* anita1, int ant, double y[Anita::HALFNFOUR], double *vhz, bool pol);    
 
     //! Add noise from ANITA-3 flight to the time domain waveforms
     /**
@@ -346,7 +346,7 @@ namespace anitaSim {
      * @param  anita1 :: Anita - anita payload object
      * @param  ant :: int - which antennta
      */
-    void injectImpulseAfterAntenna(Anita *anita1, int ant);
+    void injectImpulseAfterAntenna(const Anita* anita1, int ant);
 
     //! Get time domain graph of pulse at AMPA (used for trigger efficiency scans)
     /**
@@ -355,7 +355,7 @@ namespace anitaSim {
      * @param  anita1 :: Anita - anita payload object
      * @param  ant :: int - which antennta
      */
-    TGraph *getPulserAtAMPA(const Anita *anita1, int ant);
+    TGraph *getPulserAtAMPA(const Anita* anita1, int ant);
 
     //! Save signal and noise waveforms at trigger
     /**
@@ -384,7 +384,7 @@ namespace anitaSim {
      * @param  volts_triggerPath_e :: double[NFOUR] - time domain waveform at surf
      * @param  volts_triggerPath_h :: double[NFOUR] - time domain waveform at surf
      */
-    void injectImpulseAtSurf(Anita *anita1, double volts_triggerPath_e[Anita::HALFNFOUR], double volts_triggerPath_h[Anita::HALFNFOUR], int ant);
+    void injectImpulseAtSurf(const Anita* anita1, double volts_triggerPath_e[Anita::HALFNFOUR], double volts_triggerPath_h[Anita::HALFNFOUR], int ant);
 
     //! Add CW
     /**
@@ -395,7 +395,7 @@ namespace anitaSim {
      * @param phase
      * @param amplitude
      */  
-    void calculateCW(const Anita *anita1, double frequency, double phase, double amplitude);
+    void calculateCW(const Anita* anita1, double frequency, double phase, double amplitude);
     //! Apply Butterworth Filter
     /**
      * This is an approximation of the notch filters flown during ANITA4
