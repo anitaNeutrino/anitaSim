@@ -136,9 +136,9 @@ namespace anitaSim {
 
     void PassesTriggerBasic(Anita *anita1,int mode, TriggerState& triggerState);
     
-    void PassesTriggerCoherentSum(Anita *anita1, int inu, int *thispasses);
+    void PassesTriggerCoherentSum(const Anita *anita1, int inu, int *thispasses);
 
-    void PassesTriggerSummedPower(Anita *anita1);
+    void PassesTriggerSummedPower(const Anita *anita1);
 
     void PassesTriggerScheme5(Anita *anita1, double this_threshold, int *thispasses);
   
@@ -164,7 +164,6 @@ namespace anitaSim {
     void convert_wfm_to_3_bit(const std::vector <double>& wfm, double rms, std::vector <double>& output);
     void delay_align_antenna_waveforms(const std::vector< std::vector < std::vector <double> > >& waveforms, const std::vector < std::vector <unsigned int> >& delays, std::vector < std::vector <double> >& output);
     void sum_aligned_waveforms(const std::vector < std::vector <double> >& waveforms, std::vector <double>& output);
-    void square_waveform_elements(const std::vector <double>& waveform, std::vector <double>& output);
     double summed_power_window(const std::vector <double>& waveform, unsigned int start_index, unsigned int length);
     // End of functions relating to coherent-sum trigger
 
@@ -245,6 +244,33 @@ namespace anitaSim {
     void delay_AllAntennas(Anita *anita1);
 
 
+
+
+
+
+
+
+  private:
+    unsigned cwst_event_number;
+    unsigned cwst_center_phi_sector;
+    double cwst_rms_noise;
+    double cwst_actual_rms;
+    double cwst_threshold;
+    unsigned cwst_window_start;
+    unsigned cwst_window_end;
+    double cwst_deg_theta;
+    double cwst_deg_phi;
+    double cwst_actual_deg_theta;
+    double cwst_actual_deg_phi;
+    TVector3 cwst_rf_direction;
+    TVector3 cwst_0th_sector_position;
+    double cwst_timesteps[Anita::HALFNFOUR];
+    RX cwst_RXs[48];
+    RX cwst_aligned_wfms[9];
+    std::vector <double> cwst_summed_wfm;
+    std::vector <double> cwst_power_of_summed_wfm;
+    double cwst_power;
+    
 
 
   };

@@ -181,15 +181,6 @@ namespace anitaSim {
     double rms_lab[2];                                                                                          ///< rms noise at lab chip
 
 
-    TFile *fsignals;
-    TTree *tsignals;
-
-    TFile *fdata;
-    TTree *tdata;                                                                                               ///< writing data out for the analysers
-    TTree *tgaryanderic;                                                                                        ///< writing data out for the analysers
-
-    TTree *tglob;
-
     TH1F *hsignals[5];                                                                                          ///< s/n (max diode output/mean diode output) for vertical polarization in each band
 
     std::array<double, NFOUR/4> f_pulser;
@@ -449,9 +440,6 @@ namespace anitaSim {
     double bwslice_max[5]; //minimum of each bandwidth slice
     double bwmin; // minimum width of any allowed bandwidth slice
 
-    TRandom3* summed_power_trigger_digitizer_zero_random;
-    TFile* coherent_datafile;
-    TTree* coherent_waveform_sum_tree;
     static const unsigned int NUM_COHERENT_ANTENNAS = 9;
     unsigned hypothesis_offsets[16][200][200][4][3]; // Time bin offsets for each hypothesis - [center_phi_sector_index][phi_angle_index][theta_angle_index][phi_sector_index][layer_index]
     std::vector< std::vector< std::vector <double> > > hypothesis_angles; // Time bin offsets for each hypothesis - [center_phi_sector_index][phi_angle_index][theta_angle_index][phi_sector_index][layer_index]
@@ -459,26 +447,6 @@ namespace anitaSim {
     std::vector< std::vector <int> > vdifferent_offsets;
     std::vector< std::vector <double> > vdifferent_angles;
 
-    unsigned cwst_event_number;
-    unsigned cwst_center_phi_sector;
-    double cwst_rms_noise;
-    double cwst_actual_rms;
-    double cwst_threshold;
-    unsigned cwst_window_start;
-    unsigned cwst_window_end;
-    double cwst_deg_theta;
-    double cwst_deg_phi;
-    double cwst_actual_deg_theta;
-    double cwst_actual_deg_phi;
-    TVector3 cwst_rf_direction;
-    TVector3 cwst_0th_sector_position;
-    double cwst_timesteps[HALFNFOUR];
-    RX cwst_RXs[48];
-    RX cwst_aligned_wfms[9];
-    std::vector <double> cwst_summed_wfm;
-    std::vector <double> cwst_power_of_summed_wfm;
-    double cwst_power;
-    void fill_coherent_waveform_sum_tree(unsigned inu, unsigned center_phi_sector, const Settings* settings1, double rms_noise, double actual_rms, unsigned window_start, unsigned window_end, double deg_theta, double deg_phi, double actual_deg_theta, double actual_deg_phi, std::vector <double>& summed_wfm, std::vector <double>& power_of_summed_wfm, double power);
     std::array<double, NPHI_MAX> VNOISE_ANITALITE; // noise for each antenna, for the anita-lite trigger configuration.
     double LIVETIME;
 

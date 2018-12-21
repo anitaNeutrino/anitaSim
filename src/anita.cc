@@ -49,6 +49,10 @@
 const std::string ICEMC_SRC_DIR=icemc::EnvironmentVariable::ICEMC_SRC_DIR();
 const std::string ICEMC_DATA_DIR=ICEMC_SRC_DIR+"/data/";
 
+anitaSim::Anita::~Anita(){
+}
+
+
 anitaSim::Anita::Anita(const Settings* settings, const char* outputDir, const FlightDataManager* bn1) : PayloadGeometry(settings){
 
   std::string stemp = "";
@@ -136,47 +140,6 @@ anitaSim::Anita::Anita(const Settings* settings, const char* outputDir, const Fl
 
   bwmin=0.; // minimum width of any allowed bandwidth slice
     
-  /*** Used for the Coherent Sum Trigger ***/
-  summed_power_trigger_digitizer_zero_random = new TRandom3();
-  // Prepare the file and tree for the coherent sum trigger's data tree  
-  coherent_datafile = new TFile("outputs/coherent_sum_data_file.root","RECREATE");
-  coherent_waveform_sum_tree = new TTree("coherent_waveform_sum_tree", "Coherent Waveform Sum");
-  coherent_waveform_sum_tree->Branch("event_number", &cwst_event_number);
-  coherent_waveform_sum_tree->Branch("center_phi_sector", &cwst_center_phi_sector);
-  coherent_waveform_sum_tree->Branch("rms_noise", &cwst_rms_noise);
-  coherent_waveform_sum_tree->Branch("actual_rms", &cwst_actual_rms);
-  coherent_waveform_sum_tree->Branch("threshold", &cwst_threshold);
-  coherent_waveform_sum_tree->Branch("window_start", &cwst_window_start);
-  coherent_waveform_sum_tree->Branch("window_end", &cwst_window_end);
-  coherent_waveform_sum_tree->Branch("deg_theta", &cwst_deg_theta);
-  coherent_waveform_sum_tree->Branch("deg_phi", &cwst_deg_phi);
-  coherent_waveform_sum_tree->Branch("actual_deg_theta", &cwst_actual_deg_theta);
-  coherent_waveform_sum_tree->Branch("actual_deg_phi", &cwst_actual_deg_phi);
-  coherent_waveform_sum_tree->Branch("timesteps", cwst_timesteps);
-    
-  for (unsigned i = 0; i < 48; ++i) {
-    cwst_RXs[i].waveform = new std::vector <double>(HALFNFOUR, 0.);
-    cwst_RXs[i].digitized = new std::vector <double>(HALFNFOUR, 0.);
-    coherent_waveform_sum_tree->Branch(Form("rx%u", i), &(cwst_RXs[i]));
-  }
-    
-  for (unsigned int i = 0; i < 9; i++) {
-    cwst_aligned_wfms[i].digitized = new std::vector <double>(HALFNFOUR, 0.);
-    coherent_waveform_sum_tree->Branch(Form("aligned_wfms%u", i), &(cwst_aligned_wfms[i]));
-    /*
-    //coherent_waveform_sum_tree->Branch(Form("whole_wfms%u", i), &(cwst_whole_wfms[i]));
-    cwst_whole_wfms[i] = new std::vector <double>(HALFNFOUR, 0.);
-    cwst_wfms[i] = new std::vector <double>(HALFNFOUR, 0.);
-    cwst_aligned_wfms[i] = new std::vector <double>(HALFNFOUR, 0.);
-    coherent_waveform_sum_tree->Branch(Form("whole_wfms%u", i), &(cwst_whole_wfms[i]));
-    coherent_waveform_sum_tree->Branch(Form("wfms%u", i), &(cwst_wfms[i]));
-    coherent_waveform_sum_tree->Branch(Form("aligned_wfms%u", i), &(cwst_aligned_wfms[i]));
-    */
-  }
-	
-  coherent_waveform_sum_tree->Branch("summed_wfm", &cwst_summed_wfm);
-  coherent_waveform_sum_tree->Branch("power_of_summed_wfm", &cwst_power_of_summed_wfm);
-  coherent_waveform_sum_tree->Branch("power", &cwst_power);
   // End of preparition for the coherent sum trigger's data tree
 
   // Initialize(settings, icemc::report().foutput, settings->getOutputDir());
@@ -200,21 +163,6 @@ anitaSim::Anita::Anita(const Settings* settings, const char* outputDir, const Fl
 
 
 
-
-anitaSim::Anita::~Anita(){
-
-  std::cout << coherent_datafile << std::endl;
-  coherent_datafile->cd();
-    
-  coherent_waveform_sum_tree->Write();
-  coherent_datafile->Write();
-
-  coherent_waveform_sum_tree->Delete();
-  coherent_datafile->Close();
-  coherent_datafile->Delete();
-
-  delete summed_power_trigger_digitizer_zero_random;
-}
 
 int anitaSim::Anita::Match(int ilayer,int ifold,int rx_minarrivaltime) {
 
@@ -420,98 +368,8 @@ void anitaSim::Anita::Initialize(const Settings *settings1, std::ofstream &foutp
 #endif
 
   setDiodeRMS(settings1, outputdir);
-
   
-  // Setting up output files
-  
-  std::string stemp = std::string(outputdir.Data())+"/signals.root";
-  fsignals=new TFile(stemp.c_str(),"RECREATE");
-  tsignals=new TTree("tsignals","tsignals");
-    
-  stemp = std::string(outputdir.Data())+"/data.root";
-  fdata = new TFile(stemp.c_str(),"RECREATE");
-  tdata = new TTree("tdata","tdata");    
-    
-  tsignals->Branch("signal_vpol_inanita",&signal_vpol_inanita,"signal_vpol_inanita[5][512]/D");
-  tsignals->Branch("timedomainnoise_rfcm_banding",&timedomainnoise_rfcm_banding,"timedomainnoise_rfcm_banding[2][5][512]/D");
-  tsignals->Branch("total_vpol_inanita",&total_vpol_inanita,"total_vpol_inanita[5][512]/D");
-  tsignals->Branch("total_diodeinput_1_inanita",&total_diodeinput_1_inanita,"total_diodeinput_1_inanita[5][512]/D"); // this is the waveform that is input to the tunnel diode in the first (LCP or vertical) polarization
-  tsignals->Branch("total_diodeinput_2_inanita",&total_diodeinput_2_inanita,"total_diodeinput_2_inanita[5][512]/D"); // this is the waveform that is input to the tunnel diode in the first (RCP or horizontal) polarization
-  tsignals->Branch("timedomain_output_corrected_forplotting",&timedomain_output_corrected_forplotting,"timedomain_output_1_corrected_forplotting[2][6][512]/D"); 
-  tsignals->Branch("timedomain_output_inanita",&timedomain_output_inanita,"timedomain_output_inanita[2][5][512]/D");
-
-  tsignals->Branch("peak_rx_rfcm_lab",&peak_rx_rfcm_lab,"peak_rx_rfcm_lab[2]/D");
-  tsignals->Branch("inu",&inu,"inu/I");
-  // tsignals->Branch("dangle",&dangle_inanita,"dangle/D");
-  // tsignals->Branch("emfrac",&emfrac_inanita,"emfrac/D");
-  // tsignals->Branch("hadfrac",&hadfrac_inanita,"hadfrac/D");
-  tsignals->Branch("ston",&ston,"ston[5]/D");
-
-  tsignals->Branch("peak",                     &peak_v_banding_rfcm,      "peak_v_banding_rfcm[2][5]/D"   );
-  tsignals->Branch("peak_rx",                  &peak_rx_signalonly,       "peak_rx[2]/D"                  );
-  tsignals->Branch("peak_rx_rfcm",             &peak_rx_rfcm,             "peak_rx_rfcm[2]/D"             );
-  tsignals->Branch("peak_rx_rfcm_signalonly",  &peak_rx_rfcm_signalonly,  "peak_rx_rfcm_signalonly[2]/D"  );
-  tsignals->Branch("peak_rx_rfcm_lab",         &peak_rx_rfcm_lab,         "peak_rx_rfcm_lab[2]/D"         );
-  tsignals->Branch("bwslice_vrms",&bwslice_vrms,"bwslice_vrms[5]/D");
-  tsignals->Branch("iminbin",&iminbin,"iminbin[5]/I");
-  tsignals->Branch("imaxbin",&imaxbin,"imaxbin[5]/I");
-  tsignals->Branch("maxbin_fortotal",&maxbin_fortotal,"maxbin_fortotal[5]/I");
-  tsignals->Branch("channels_passing",&channels_passing,"channels_passing[2][5]/I");
-  tsignals->Branch("bwslice_rmsdiode",&bwslice_rmsdiode,"bwslice_rmsdiode[5]/D");
-  tsignals->Branch("l1_passing",&l1_passing,"l1_passing/I");
-  tsignals->Branch("integral_vmmhz",&integral_vmmhz_foranita,"integral_vmmhz/D");
-  //tsignals->Branch("dnutries",&dnutries,"dnutries/D");
-  //tsignals->Branch("weight_test",&weight_test,"weight_test/D");
-  tsignals->Branch("flag_e_inanita",&flag_e_inanita,"flag_e_inanita[5][512]/I");
-  tsignals->Branch("flag_h_inanita",&flag_h_inanita,"flag_h_inanita[5][512]/I");
-    
-    
-  tdata = new TTree("tdata","tdata");
-  tdata->Branch("total_diodeinput_1_allantennas",&total_diodeinput_1_allantennas,"total_diodeinput_1_allantennas[48][512]/D"); // this is the waveform that is input to the tunnel diode in the first (LCP or vertical) polarization
-  tdata->Branch("total_diodeinput_2_allantennas",&total_diodeinput_2_allantennas,"total_diodeinput_2_allantennas[48][512]/D"); // this is the waveform that is input to the tunnel diode in the first (LCP or vertical) polarization
-  tdata->Branch("timedomain_output_allantennas",&timedomain_output_allantennas,"timedomain_output_allantennas[2][48][512]/D"); // this is the waveform that is output to the tunnel diode in the first (LCP or vertical) polarization
-  // tdata->Branch("arrival_times",&arrival_times,"arrival_times[2][48]/D");
-  tdata->Branch("inu",&inu,"inu/I");
-  tdata->Branch("powerthreshold",&powerthreshold,"powerthreshold[5]/D");
-  tdata->Branch("bwslice_rmsdiode",&bwslice_rmsdiode,"bwslice_rmsdiode[5]/D");
-
-  //std::array< std::array< std::array< std::array<std::vector<int>,5>, 2>, 16>, 3>  arrayofhits_inanita; 
-
-  tdata->Branch("arrayofhits_inanita",&arrayofhits_inanita,"arrayofhits_inanita[3][16][2][512]/I");
-
-  tdata->Branch("l1trig_anita3and4_inanita",&l1trig_anita3and4_inanita,"l1trig_anita3and4_inanita[2][16][512]/I");
-
-  tdata->Branch("l1trig_anita4lr_inanita",&l1trig_anita4lr_inanita,"l1trig_anita4lr_inanita[3][16][512]/I");
-
-
-  tdata->Branch("l2trig_anita4lr_inanita",&l2trig_anita4lr_inanita,"l2trig_anita4lr_inanita[16][3][512]/I");
-
-  tdata->Branch("l3type0trig_anita4lr_inanita",&l3type0trig_anita4lr_inanita,"l3type0trig_anita4lr_inanita[16][512]/I");
-  tdata->Branch("l3trig_anita4lr_inanita",&l3trig_anita4lr_inanita,"l3trig_anita4lr_inanita[16][512]/I");
-
-
-  //tdata->Branch("arrayofhits_inanita",&arrayofhits_inanita,"std::array< std::array< std::array< std::array<std::vector<int>,5>, 2>, 16>, 3>");
-  tdata->Branch("passglobtrig",&passglobtrig,"passglobtrig[2]/I");
-    
-
-  tgaryanderic=new TTree("tgaryanderic","tgaryanderic");
-  tgaryanderic->Branch("arrayofhits",&arrayofhits_forgaryanderic,"arrayofhits_forgaryanderic[3][16][2][512]/I");
-  tgaryanderic->Branch("l1trig",&l1trig_anita4lr_forgaryanderic,"l1trig_anita4lr_forgaryanderic[3][16][512]/I");
-
-  tgaryanderic->Branch("l2trig",&l2trig_anita4lr_forgaryanderic,"l2trig_anita4lr_forgaryanderic[16][512]/I"); 
-  tgaryanderic->Branch("l3type0trig",&l3type0trig_anita4lr_forgaryanderic,"l3type0trig_anita4lr_forgaryanderic[16][512]/I"); 
-  tgaryanderic->Branch("l3type1trig",&l3type1trig_anita4lr_forgaryanderic,"l3type1trig_anita4lr_forgaryanderic[16][512]/I"); 
-  tgaryanderic->Branch("passglobtrig",&passglobtrig,"passglobtrig[2]/I");
-  tgaryanderic->Branch("weight",&weight_inanita,"weight_inanita/D");
-  tgaryanderic->Branch("time",&time_trig,"time_trig[512]/D");
-
-
-  tglob = new TTree("tglob","tglob");
-  tglob->Branch("inu",&inu,"inu/I");
-  tglob->Branch("passglobtrig",&passglobtrig,"passglobtrig[2]/I");
-  tglob->Branch("l1_passing_allantennas",&l1_passing_allantennas,"l1_passing_allantennas[48]/I");
-  
-  
+  // Setting up output files  
     
 }
 
@@ -2691,35 +2549,6 @@ double anitaSim::Anita::GaintoHeight(double gain,double freq,double nmedium_rece
 } //GaintoHeight
 
 
-void anitaSim::Anita::fill_coherent_waveform_sum_tree(unsigned event_number, unsigned center_phi_sector_index, const Settings* settings1, double rms_noise, double actual_rms, unsigned window_start, unsigned window_end, double deg_theta, double deg_phi, double actual_deg_theta, double actual_deg_phi, std::vector <double>& summed_wfm, std::vector <double>& power_of_summed_wfm, double power){
-    
-  cwst_event_number = event_number;
-  cwst_center_phi_sector = center_phi_sector_index;
-  cwst_rms_noise = rms_noise;
-  cwst_actual_rms = actual_rms;
-  cwst_threshold = settings1->COHERENT_THRESHOLD;
-  cwst_window_start = window_start;
-  cwst_window_end = window_end;
-    
-  cwst_deg_theta = deg_theta;
-  cwst_deg_phi = deg_phi;
-    
-  cwst_actual_deg_theta = actual_deg_theta;
-  cwst_actual_deg_phi = actual_deg_phi;
-    
-  // Reassign the array associated with the timesteps branch
-  for (int i = 0; i < HALFNFOUR; i++){
-    cwst_timesteps[i] = i;
-  }
-
-  cwst_summed_wfm = summed_wfm;
-  cwst_power_of_summed_wfm = power_of_summed_wfm;
-  cwst_power = power;
-    
-  coherent_waveform_sum_tree->Fill();
-    
-  return;
-}
 
 
 

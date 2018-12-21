@@ -884,7 +884,7 @@ void  anitaSim::GlobalTrigger::PassesTriggerBasic(Anita *anita1,
 //		There will be several things hardcoded into the following method, feel free to change these to be variables within the Settings class, but for the sake of sanity, PLEASE no more global variables!
 //		This will be made to implement all types of payloads shortly, what exists below is only a temporary specialization for ANITA III.
 
-void anitaSim::GlobalTrigger::PassesTriggerCoherentSum(Anita *anita1,int inu, int *thispasses) {
+void anitaSim::GlobalTrigger::PassesTriggerCoherentSum(const Anita *anita1,int inu, int *thispasses) {
     
   for (int center_phi_sector_offset = -1; center_phi_sector_offset <= 1; center_phi_sector_offset++){
     int center_phi_sector_index = first_phi_sector_hit + center_phi_sector_offset;
@@ -905,75 +905,78 @@ void anitaSim::GlobalTrigger::PassesTriggerCoherentSum(Anita *anita1,int inu, in
     unsigned fill_index = 0;
     for (unsigned fill_index_phi_sector = 0; fill_index_phi_sector < 16; ++fill_index_phi_sector) {
       for (unsigned fill_index_layer = 0; fill_index_layer < 3; ++fill_index_layer) {
-	anita1->cwst_RXs[fill_index].phi_sector = fill_index_phi_sector;
-	anita1->cwst_RXs[fill_index].layer = fill_index_layer;
+    	cwst_RXs[fill_index].phi_sector = fill_index_phi_sector;
+    	cwst_RXs[fill_index].layer = fill_index_layer;
 	  
-	unsigned physical_layer_index = ((fill_index_phi_sector%2) ? (fill_index_layer + 1) : (0));   // Maps the trigger layers {0, 1, 2} to the physical layers {0, 1, 2, 3}.
-	if (fill_index_phi_sector%2 == 0) {
-	  physical_layer_index = (fill_index_layer == 0) ? 0 : (fill_index + 1);
-	}
-	// If phi sector is even then trigger layer zero maps to physical layer zero. If phi odd, maps to layer 1.
-	unsigned physical_phi_index (fill_index_phi_sector);
-	if (fill_index_layer == 0) {
-	  physical_phi_index = unsigned(fill_index_phi_sector / 2.);   // Map {0, ..., 15} to {0, ..., 7}.
-	}
-	anita1->cwst_RXs[fill_index].x = anita1->ANTENNA_POSITION_START[0][physical_layer_index][physical_phi_index][0];
-	anita1->cwst_RXs[fill_index].y = anita1->ANTENNA_POSITION_START[0][physical_layer_index][physical_phi_index][1];
-	anita1->cwst_RXs[fill_index].z = anita1->ANTENNA_POSITION_START[0][physical_layer_index][physical_phi_index][2];
+    	unsigned physical_layer_index = ((fill_index_phi_sector%2) ? (fill_index_layer + 1) : (0));   // Maps the trigger layers {0, 1, 2} to the physical layers {0, 1, 2, 3}.
+    	if (fill_index_phi_sector%2 == 0) {
+    	  physical_layer_index = (fill_index_layer == 0) ? 0 : (fill_index + 1);
+    	}
+    	// If phi sector is even then trigger layer zero maps to physical layer zero. If phi odd, maps to layer 1.
+    	unsigned physical_phi_index (fill_index_phi_sector);
+    	if (fill_index_layer == 0) {
+    	  physical_phi_index = unsigned(fill_index_phi_sector / 2.);   // Map {0, ..., 15} to {0, ..., 7}.
+    	}
+    	cwst_RXs[fill_index].x = anita1->ANTENNA_POSITION_START[0][physical_layer_index][physical_phi_index][0];
+    	cwst_RXs[fill_index].y = anita1->ANTENNA_POSITION_START[0][physical_layer_index][physical_phi_index][1];
+    	cwst_RXs[fill_index].z = anita1->ANTENNA_POSITION_START[0][physical_layer_index][physical_phi_index][2];
 	    
-	anita1->cwst_RXs[fill_index].waveform->assign(volts_rx_rfcm_trigger[fill_index_phi_sector][fill_index_layer].begin(),volts_rx_rfcm_trigger[fill_index_phi_sector][fill_index_layer].end());
+    	cwst_RXs[fill_index].waveform->assign(volts_rx_rfcm_trigger[fill_index_phi_sector][fill_index_layer].begin(),volts_rx_rfcm_trigger[fill_index_phi_sector][fill_index_layer].end());
 	  
-	// for (unsigned fill_index_timestep = 0; fill_index_timestep < anita1->HALFNFOUR; ++fill_index_timestep) {
-	//   anita1->cwst_RXs[fill_index].digitized->at(fill_index_timestep) = three_bit_round(anita1->cwst_RXs[fill_index].waveform->at(fill_index_timestep)/ anita1->rms_rfcm_e_single_event, (anita1->summed_power_trigger_digitizer_zero_random->Rndm() >= 0.5), false);
-	// }
-	++fill_index;
+    	// for (unsigned fill_index_timestep = 0; fill_index_timestep < anita1->HALFNFOUR; ++fill_index_timestep) {
+    	//   anita1->cwst_RXs[fill_index].digitized->at(fill_index_timestep) = three_bit_round(anita1->cwst_RXs[fill_index].waveform->at(fill_index_timestep)/ anita1->rms_rfcm_e_single_event, (anita1->summed_power_trigger_digitizer_zero_random->Rndm() >= 0.5), false);
+    	// }
+    	++fill_index;
       }
     }
             
     for (unsigned center_phi_sector_index = 0; center_phi_sector_index < N_PHI_SECTORS; ++center_phi_sector_index) {
       // Loop over the hypotheses to align waveforms.
       for (unsigned index_phi = 0; index_phi < N_STEP_PHI; ++index_phi) {
-	for (unsigned index_theta = 0; index_theta < N_STEP_THETA; ++index_theta) {
-	  unsigned fill_index = 0;
-	  std::vector <double> summed_wfm(anita1->HALFNFOUR, 0.);
+    	for (unsigned index_theta = 0; index_theta < N_STEP_THETA; ++index_theta) {
+    	  unsigned fill_index = 0;
+    	  std::vector <double> summed_wfm(anita1->HALFNFOUR, 0.);
 	    
-	  for (int fill_index_phi_sector_offset = -1; fill_index_phi_sector_offset <= 1; ++fill_index_phi_sector_offset) {
-	    unsigned fill_index_phi_sector = (center_phi_sector_index + fill_index_phi_sector_offset + N_PHI_SECTORS)%N_PHI_SECTORS;
+    	  for (int fill_index_phi_sector_offset = -1; fill_index_phi_sector_offset <= 1; ++fill_index_phi_sector_offset) {
+    	    unsigned fill_index_phi_sector = (center_phi_sector_index + fill_index_phi_sector_offset + N_PHI_SECTORS)%N_PHI_SECTORS;
 	      
-	    for (unsigned fill_index_layer = 0; fill_index_layer < N_LAYERS_TRIGGER; ++fill_index_layer) {
-	      unsigned rx_index = fill_index_phi_sector * 3 + fill_index_layer;
-	      anita1->cwst_aligned_wfms[fill_index].phi_sector = fill_index_phi_sector;
-	      anita1->cwst_aligned_wfms[fill_index].layer = fill_index_layer;
+    	    for (unsigned fill_index_layer = 0; fill_index_layer < N_LAYERS_TRIGGER; ++fill_index_layer) {
+    	      unsigned rx_index = fill_index_phi_sector * 3 + fill_index_layer;
+    	      cwst_aligned_wfms[fill_index].phi_sector = fill_index_phi_sector;
+    	      cwst_aligned_wfms[fill_index].layer = fill_index_layer;
 		
-	      unsigned physical_layer_index = ((fill_index_phi_sector%2) ? (fill_index_layer + 1) : (0));   // Maps the trigger layers {0, 1, 2} to the physical layers {0, 1, 2, 3}.
-	      // If phi sector is even then trigger layer zero maps to physical layer zero. If phi odd, maps to layer 1.
-	      unsigned physical_phi_index (fill_index_phi_sector);
-	      if (fill_index_layer == 0) {
-		physical_phi_index = unsigned(fill_index_phi_sector / 2.);   // Map {0, ..., 15} to {0, ..., 7}.
-	      }
-	      anita1->cwst_aligned_wfms[fill_index].x = anita1->ANTENNA_POSITION_START[0][physical_layer_index][physical_phi_index][0];
-	      anita1->cwst_aligned_wfms[fill_index].y = anita1->ANTENNA_POSITION_START[0][physical_layer_index][physical_phi_index][1];
-	      anita1->cwst_aligned_wfms[fill_index].z = anita1->ANTENNA_POSITION_START[0][physical_layer_index][physical_phi_index][2];
+    	      unsigned physical_layer_index = ((fill_index_phi_sector%2) ? (fill_index_layer + 1) : (0));   // Maps the trigger layers {0, 1, 2} to the physical layers {0, 1, 2, 3}.
+    	      // If phi sector is even then trigger layer zero maps to physical layer zero. If phi odd, maps to layer 1.
+    	      unsigned physical_phi_index (fill_index_phi_sector);
+    	      if (fill_index_layer == 0) {
+    		physical_phi_index = unsigned(fill_index_phi_sector / 2.);   // Map {0, ..., 15} to {0, ..., 7}.
+    	      }
+    	      cwst_aligned_wfms[fill_index].x = anita1->ANTENNA_POSITION_START[0][physical_layer_index][physical_phi_index][0];
+    	      cwst_aligned_wfms[fill_index].y = anita1->ANTENNA_POSITION_START[0][physical_layer_index][physical_phi_index][1];
+    	      cwst_aligned_wfms[fill_index].z = anita1->ANTENNA_POSITION_START[0][physical_layer_index][physical_phi_index][2];
 			  
-	      unsigned time_offset = anita1->hypothesis_offsets[center_phi_sector_index][index_phi][index_theta][fill_index_phi_sector_offset + 1][fill_index_layer];
+    	      unsigned time_offset = anita1->hypothesis_offsets[center_phi_sector_index][index_phi][index_theta][fill_index_phi_sector_offset + 1][fill_index_layer];
 		
-	      for (unsigned fill_index_timestep = 0; fill_index_timestep < anita1->HALFNFOUR - time_offset; ++fill_index_timestep) {
-		anita1->cwst_aligned_wfms[fill_index].digitized->at(fill_index_timestep) = anita1->cwst_RXs[rx_index].digitized->at(fill_index_timestep + time_offset);
-		summed_wfm.at(fill_index_timestep) += anita1->cwst_aligned_wfms[fill_index].digitized->at(fill_index_timestep);
-	      }
+    	      for (unsigned fill_index_timestep = 0; fill_index_timestep < anita1->HALFNFOUR - time_offset; ++fill_index_timestep) {
+    		cwst_aligned_wfms[fill_index].digitized->at(fill_index_timestep) = cwst_RXs[rx_index].digitized->at(fill_index_timestep + time_offset);
+    		summed_wfm.at(fill_index_timestep) += cwst_aligned_wfms[fill_index].digitized->at(fill_index_timestep);
+    	      }
 		
-	      for (unsigned fill_index_timestep = anita1->HALFNFOUR - time_offset; fill_index_timestep < anita1->HALFNFOUR; ++fill_index_timestep) {
-		// Fill the ends of the waveforms with zeros. This should not negatively affect the simulation at all.
-		// This is an attempt to fix the power = 648 issue, where the bins were all +0.5 and summing to 9*0.5, summed over 32 bins.
-		anita1->cwst_aligned_wfms[fill_index].digitized->at(fill_index_timestep) = 0.;
-	      }
-	      ++fill_index;
+    	      for (unsigned fill_index_timestep = anita1->HALFNFOUR - time_offset; fill_index_timestep < anita1->HALFNFOUR; ++fill_index_timestep) {
+    		// Fill the ends of the waveforms with zeros. This should not negatively affect the simulation at all.
+    		// This is an attempt to fix the power = 648 issue, where the bins were all +0.5 and summing to 9*0.5, summed over 32 bins.
+    		cwst_aligned_wfms[fill_index].digitized->at(fill_index_timestep) = 0.;
+    	      }
+    	      ++fill_index;
 		
-	    } // for fill layer indices
-	  } // for fill phi sector indices
+    	    } // for fill layer indices
+    	  } // for fill phi sector indices
 	    
 	  std::vector <double> power_of_summed_wfm;
-	  square_waveform_elements(summed_wfm, power_of_summed_wfm);
+	  power_of_summed_wfm.reserve(summed_wfm.size());
+	  for(auto x : summed_wfm){power_of_summed_wfm.push_back(x*x);}
+	  
+	  // square_waveform_elements(summed_wfm, power_of_summed_wfm);
 	    
 	  for (unsigned window_index = 0; window_index < power_of_summed_wfm.size() - 32; window_index += 16) {
 	    double power = summed_power_window(power_of_summed_wfm, window_index, 32);
@@ -1006,7 +1009,7 @@ void anitaSim::GlobalTrigger::PassesTriggerCoherentSum(Anita *anita1,int inu, in
 
 
 
-void anitaSim::GlobalTrigger::PassesTriggerSummedPower(Anita *anita1){
+void anitaSim::GlobalTrigger::PassesTriggerSummedPower(const Anita *anita1){
 				  
   //	TRIGGERSCHEME == 4 is the Summed Power Trigger.
   //	For every window, all of the phi sectors find the maximum coherently summed power.
@@ -1031,8 +1034,8 @@ void anitaSim::GlobalTrigger::PassesTriggerSummedPower(Anita *anita1){
     
   for (unsigned fill_index_phi_sector = 0; fill_index_phi_sector < 16; ++fill_index_phi_sector) {
     for (unsigned fill_index_layer = 0; fill_index_layer < 3; ++fill_index_layer) {
-      anita1->cwst_RXs[fill_index].phi_sector = fill_index_phi_sector;
-      anita1->cwst_RXs[fill_index].layer = fill_index_layer;
+      cwst_RXs[fill_index].phi_sector = fill_index_phi_sector;
+      cwst_RXs[fill_index].layer = fill_index_layer;
 	
 	
       unsigned physical_phi_index = fill_index_phi_sector;
@@ -1058,12 +1061,12 @@ void anitaSim::GlobalTrigger::PassesTriggerSummedPower(Anita *anita1){
       }
 	
       //	Set antenna positions
-      anita1->cwst_RXs[fill_index].x = anita1->ANTENNA_POSITION_START[0][physical_layer_index][physical_phi_index][0];
-      anita1->cwst_RXs[fill_index].y = anita1->ANTENNA_POSITION_START[0][physical_layer_index][physical_phi_index][1];
-      anita1->cwst_RXs[fill_index].z = anita1->ANTENNA_POSITION_START[0][physical_layer_index][physical_phi_index][2];
+      cwst_RXs[fill_index].x = anita1->ANTENNA_POSITION_START[0][physical_layer_index][physical_phi_index][0];
+      cwst_RXs[fill_index].y = anita1->ANTENNA_POSITION_START[0][physical_layer_index][physical_phi_index][1];
+      cwst_RXs[fill_index].z = anita1->ANTENNA_POSITION_START[0][physical_layer_index][physical_phi_index][2];
 		  
       //	Fill the waveforms
-      anita1->cwst_RXs[fill_index].waveform->assign(volts_rx_rfcm_trigger[fill_index_phi_sector][fill_index_layer].begin(),volts_rx_rfcm_trigger[fill_index_phi_sector][fill_index_layer].end());
+      cwst_RXs[fill_index].waveform->assign(volts_rx_rfcm_trigger[fill_index_phi_sector][fill_index_layer].begin(),volts_rx_rfcm_trigger[fill_index_phi_sector][fill_index_layer].end());
 	
       // for (unsigned fill_index_timestep = 0; fill_index_timestep < anita1->HALFNFOUR; ++fill_index_timestep) {
       // 	anita1->cwst_RXs[fill_index].digitized->at(fill_index_timestep) = three_bit_round(anita1->cwst_RXs[fill_index].waveform->at(fill_index_timestep)/ anita1->rms_rfcm_e_single_event, false);
@@ -1100,7 +1103,9 @@ void anitaSim::GlobalTrigger::PassesTriggerSummedPower(Anita *anita1){
       double max_power = 0.;
 	
       //	Use the current and opposite phi sectors to find an even horizontal line.
-      TVector3 theta_zero (anita1->cwst_RXs[index_phi_sector * 3 + 1].x - anita1->cwst_RXs[(index_phi_sector + 8)%16 * 3 + 1].x, anita1->cwst_RXs[index_phi_sector * 3 + 1].y - anita1->cwst_RXs[(index_phi_sector + 8)%16 * 3 + 1].y, anita1->cwst_RXs[index_phi_sector * 3 + 1].z - anita1->cwst_RXs[(index_phi_sector + 8)%16 * 3 + 1].z);
+      TVector3 theta_zero (cwst_RXs[index_phi_sector * 3 + 1].x - cwst_RXs[(index_phi_sector + 8)%16 * 3 + 1].x,
+			   cwst_RXs[index_phi_sector * 3 + 1].y - cwst_RXs[(index_phi_sector + 8)%16 * 3 + 1].y,
+			   cwst_RXs[index_phi_sector * 3 + 1].z - cwst_RXs[(index_phi_sector + 8)%16 * 3 + 1].z);
       //	Normalizes that line.
       theta_zero = theta_zero.Unit();
 	
@@ -1117,13 +1122,13 @@ void anitaSim::GlobalTrigger::PassesTriggerSummedPower(Anita *anita1){
 	double dist[3] = {0.};
 	double offset[3] = {0.};
 	unsigned offset_steps[3] = {0};
-	TVector3 middle_rx (anita1->cwst_RXs[index_phi_sector * 3 + 1].x, anita1->cwst_RXs[index_phi_sector * 3 + 1].y, anita1->cwst_RXs[index_phi_sector * 3 + 1].z);
+	TVector3 middle_rx (cwst_RXs[index_phi_sector * 3 + 1].x, cwst_RXs[index_phi_sector * 3 + 1].y, cwst_RXs[index_phi_sector * 3 + 1].z);
 	  
 	  
 	//	Calculate the relative path length distances
-	dist[0] = hypoth_vector * (TVector3(anita1->cwst_RXs[index_phi_sector * 3].x, anita1->cwst_RXs[index_phi_sector * 3].y, anita1->cwst_RXs[index_phi_sector * 3].z) - middle_rx);
+	dist[0] = hypoth_vector * (TVector3(cwst_RXs[index_phi_sector * 3].x, cwst_RXs[index_phi_sector * 3].y, cwst_RXs[index_phi_sector * 3].z) - middle_rx);
 	dist[1] = 0.;	// Just let this one be defined as "zero", the other ones are relative.
-	dist[2] = hypoth_vector * (TVector3(anita1->cwst_RXs[index_phi_sector * 3 + 2].x, anita1->cwst_RXs[index_phi_sector * 3 + 2].y, anita1->cwst_RXs[index_phi_sector * 3 + 2].z) - middle_rx);
+	dist[2] = hypoth_vector * (TVector3(cwst_RXs[index_phi_sector * 3 + 2].x, cwst_RXs[index_phi_sector * 3 + 2].y, cwst_RXs[index_phi_sector * 3 + 2].z) - middle_rx);
 	  
 	  
 	//	Find time offsets from the relative path lengths
@@ -1151,7 +1156,7 @@ void anitaSim::GlobalTrigger::PassesTriggerSummedPower(Anita *anita1){
 	  
 	//	Calculate the powers for every time in the window and then add it to the window power
 	for (unsigned time_index = index_window * 16; time_index < index_window * 16 + 32; ++time_index) {
-	  double thispower = (anita1->cwst_RXs[index_phi_sector * 3].digitized->at(time_index + offset_steps[0]) + anita1->cwst_RXs[index_phi_sector * 3 + 1].digitized->at(time_index + offset_steps[1]) + anita1->cwst_RXs[index_phi_sector * 3 + 2].digitized->at(time_index + offset_steps[2]));
+	  double thispower = (cwst_RXs[index_phi_sector * 3].digitized->at(time_index + offset_steps[0]) + cwst_RXs[index_phi_sector * 3 + 1].digitized->at(time_index + offset_steps[1]) + cwst_RXs[index_phi_sector * 3 + 2].digitized->at(time_index + offset_steps[2]));
 	  thispower *= thispower;
 	  power += thispower;
 	}
@@ -1790,26 +1795,6 @@ void anitaSim::GlobalTrigger::sum_aligned_waveforms(const std::vector < std::vec
 
 
 
-
-//!	Performs an element-wise squaring of the values of the input array
-/*!
- *	@todo	This function should be deprecated because the same functionality
- *			is provided by the standard library:
- *
- *		std::transform(wfm.begin(), wfm.end(), result.begin(), [](auto& x){x *= x});
- *		
- *			or by using the boost library:
- *		
- *		result = boost::transform(wfm, [](auto& x){x *= x});
- *
- */
-void anitaSim::GlobalTrigger::square_waveform_elements(const std::vector <double>& waveform, std::vector <double>& output){
-  output.clear();
-    
-  for (unsigned int element_index = 0; element_index < waveform.size(); element_index++){
-    output.push_back(waveform[element_index] * waveform[element_index]);
-  }
-}
 
 
 //!	Sum a window from the specified starting index
