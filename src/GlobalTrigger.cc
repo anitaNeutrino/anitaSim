@@ -9,7 +9,6 @@
 #include "TGraph.h"
 #include "TTree.h"
 #include "TH2F.h"
-#include "TMath.h"
 #include "TVector3.h"
 
 #include "Constants.h"
@@ -1200,8 +1199,8 @@ void anitaSim::GlobalTrigger::PassesTriggerScheme5(Anita* anita1,double this_thr
     
   // need to find how many in a set of 6 pass
     
-  int maxsample=TMath::MaxElement(5,anita1->imaxbin.data());
-  int minsample=TMath::MinElement(5,anita1->iminbin.data());
+  int maxsample=icemc::Tools::max(anita1->imaxbin);
+  int minsample=icemc::Tools::max(anita1->iminbin);
 
   int nstayhigh=(int)(anita1->l1window/anita1->TIMESTEP);
   // now make each flag stay high for the required amount of time

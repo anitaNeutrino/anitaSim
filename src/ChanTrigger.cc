@@ -452,70 +452,23 @@ void anitaSim::ChanTrigger::WhichBandsPassTrigger2(Anita* anita1, GlobalTrigger 
 
   L1Trigger(anita1,timedomain_output[0],timedomain_output[1],thresholds, //inputs
 	    globaltrig1->channels_passing[ilayer][ifold][0],globaltrig1->channels_passing[ilayer][ifold][1],npass); //outputs
-
-  
-  //if (npass==1) std::cout << "L1 trigger " << ilayer << " " << ifold << " " << npass << std::endl;
-
-  // if it's the closest antenna,
-  // save flag_e,h in anita class for writing to tsignals tree
-  // int startbin=TMath::MinElement(5,anita1->iminbin);
-      
-  // if (ilayer==anita1->GetLayer(anita1->rx_minarrivaltime) && ifold==anita1->GetIfold(anita1->rx_minarrivaltime)) {
-  //   for (int iband=0;iband<5;iband++) {
-  //     if (anita1->bwslice_allowed[iband]!=1) continue; 
-  //     // cout << "zeroeing here 1.\n";
-  //     anita1->ston[iband]=0.;
-  //     for (int i=anita1->iminbin[iband];i<anita1->imaxbin[iband];i++) {
-  // 	// 	    if (iband==0 && i==Anita::NFOUR/4) {
-  // 	// 	      cout << "output is " << anita1->inu << "\t" << timedomain_output[0][iband][i] << "\n";
-  // 	// 	    }
-  // 	// cout << "output, bwslice_rmsdiode are " << timedomain_output[0][iband][i] << "\t" << anita1->bwslice_rmsdiode[iband] << "\n";
-  // 	if (timedomain_output[0][iband][i]/anita1->bwslice_rmsdiode[iband]<anita1->ston[iband]) {
-  // 	  anita1->ston[iband]=timedomain_output[0][iband][i]/anita1->bwslice_rmsdiode[iband];
-  // 	  // if (iband==4 && anita1->ston[iband]<0.)
-  // 	  // cout << "ston is " << anita1->ston[iband] << "\n";
-  // 	}
-  //     }
-
-
-  //     for (int i=0;i<anita1->HALFNFOUR;i++) {
-  // 	anita1->flag_e_inanita[iband][i]=0;
-  // 	anita1->flag_h_inanita[iband][i]=0;
-  // 	anita1->timedomain_output_inanita[0][iband][i]=timedomain_output[0][iband][i];
-  // 	anita1->timedomain_output_inanita[1][iband][i]=timedomain_output[1][iband][i];
-
-  //     }
-  //     for (int i=0;i<(int)flag_e[iband].size();i++) {
-  // 	anita1->flag_e_inanita[iband][i+startbin]=flag_e[iband][i];
-  //     }
-  //     for (int i=0;i<(int)flag_h[iband].size();i++) {
-  // 	anita1->flag_h_inanita[iband][i+startbin]=flag_h[iband][i];
-	    
-  //     }
-  //   }
-
-  // }
-      
-      
       
   for (int iband=0;iband<5;iband++) {
     if (anita1->bwslice_allowed[iband]!=1) continue; 
     // this is for the e polarization
     // if we're implementing masking and the channel has been masked
     if (fSettings->CHMASKING && !anitaSim::ChanTrigger::IsItUnmasked(bn1->surfTrigBandMask,iband,ilayer,ifold,0)) {
-      if (globaltrig1->channels_passing[ilayer][ifold][0][iband])
-	///@warning
-	// globaltrig1->nchannels_perrx_triggered[anita1->GetRx(ilayer,ifold)]--;
+      if (globaltrig1->channels_passing[ilayer][ifold][0][iband]){
 	globaltrig1->nchannels_perrx_triggered[anita1->GetRxTriggerNumbering(ilayer,ifold)]--;      
+      }
       globaltrig1->channels_passing[ilayer][ifold][0][iband]=0;// channel does not pass
     }
 	
     // if we're implementing masking and the channel has been masked
     if (fSettings->CHMASKING && !anitaSim::ChanTrigger::IsItUnmasked(bn1->surfTrigBandMask,iband,ilayer,ifold,1)) {
-      if (globaltrig1->channels_passing[ilayer][ifold][1][iband])
-	///@warning 
-	// globaltrig1->nchannels_perrx_triggered[anita1->GetRx(ilayer,ifold)]--;
+      if (globaltrig1->channels_passing[ilayer][ifold][1][iband]){
 	globaltrig1->nchannels_perrx_triggered[anita1->GetRxTriggerNumbering(ilayer,ifold)]--;      
+      }
       globaltrig1->channels_passing[ilayer][ifold][1][iband]=0;// channel does not pass
       // note the last element of the array is 0 because this is lcp or e pol
     }
@@ -573,8 +526,6 @@ void anitaSim::ChanTrigger::WhichBandsPassTrigger2(Anita* anita1, GlobalTrigger 
     for (unsigned int ibin=globaltrig1->arrayofhits[whichlayer][whichphisector][i][4].size();ibin<HALFNFOUR;ibin++) {
       anita1->arrayofhits_inanita[whichlayer][whichphisector][i][ibin]=0.;
     }
-    //       if (iband==4 && i==0)
-    // 	cout << "whichlayer, whichphisector, size of arrayofhits is " << whichlayer << "\t" << whichphisector << "\t" << anita1->arrayofhits_inanita[whichlayer][whichphisector][i][iband].size() << "\n";
   }
  
  
@@ -608,44 +559,6 @@ void anitaSim::ChanTrigger::DiodeConvolution(Anita* anita1, GlobalTrigger *globa
 		     anita1->fdiode_real[iband],
 		     mindiodeconvl[iband],onediodeconvl[iband],
 		     psignal[iband],timedomain_output[iband]);
-    // loop from the ibinshift left + some delay + 10 ns
-    
-
-    // // TEMPORARY CODE FOR PRINTING DIODE INPUT/OUTPUT
-    // if (anita1->inu==1){
-    //   TCanvas *c = new TCanvas("c");
-    //   string name = "newnoise";
-    //   TGraph *gV = new TGraph(anita1->HALFNFOUR, anita1->fTimes, vm_banding_rfcm_forfft[ipol][iband]);
-    //   gV->SetTitle("Diode Input;Time [s];Amplitude [V]");
-    //   gV->Draw("Al");
-    //   c->Print(Form("%s_%d_%d_%d_%d_diodeInput.png",  name.c_str(), anita1->inu, ipol, ilayer, ifold));
-    //   c->Print(Form("%s_%d_%d_%d_%d_diodeInput.pdf",  name.c_str(), anita1->inu, ipol, ilayer, ifold));
-    //   c->Print(Form("%s_%d_%d_%d_%d_diodeInput.C",    name.c_str(), anita1->inu, ipol, ilayer, ifold));
-    //   c->Print(Form("%s_%d_%d_%d_%d_diodeInput.root", name.c_str(), anita1->inu, ipol, ilayer, ifold));
-    
-    	
-    //   TGraph *g2 = new TGraph(anita1->HALFNFOUR, anita1->fTimes, timedomain_output[iband]);
-    //   g2->SetTitle("Diode Output;Time [s];Diode Output [J]");
-    //   g2->Draw("Al");
-    //   TLine *l = new TLine (0, thresholds[ipol][iband] * anita1->bwslice_rmsdiode[iband], 200, thresholds[ipol][iband] * anita1->bwslice_rmsdiode[iband]);
-    //   l->SetLineColor(kRed);
-    //   l->Draw();
-    //   c->Print(Form("%s_%d_%d_%d_%d_diodeOutput.png",  name.c_str(), anita1->inu, ipol, ilayer, ifold));
-    //   c->Print(Form("%s_%d_%d_%d_%d_diodeOutput.pdf",  name.c_str(), anita1->inu, ipol, ilayer, ifold));
-    //   c->Print(Form("%s_%d_%d_%d_%d_diodeOutput.C",    name.c_str(), anita1->inu, ipol, ilayer, ifold));
-    //   c->Print(Form("%s_%d_%d_%d_%d_diodeOutput.root", name.c_str(), anita1->inu, ipol, ilayer, ifold));
-    //   delete gV;
-    //   delete g2;
-    //   delete c;
-    // }
-
-    
-    // now shift right to account for arrival times
-    // this is done inside the impulse response function normally
-    // but if we don't use it, we need to apply it manually here
-    // if (!fSettings->APPLYIMPULSERESPONSETRIGGER){
-    //   Tools::ShiftRight(timedomain_output[iband],Anita::NFOUR,(int)(anita1->arrival_times[ipol][anita1->GetRx(ilayer,ifold)]/anita1->TIMESTEP));
-    // }
 	
     if (fSettings->TRIGGERSCHEME == 2 || fSettings->TRIGGERSCHEME == 3 || fSettings->TRIGGERSCHEME == 4 || fSettings->TRIGGERSCHEME == 5){
       //      if (anita1->inu==1570)
@@ -658,8 +571,7 @@ void anitaSim::ChanTrigger::DiodeConvolution(Anita* anita1, GlobalTrigger *globa
       anita1->timedomain_output_allantennas[ipol][anita1->GetRxTriggerNumbering(ilayer,ifold)][itime]=timedomain_output[4][itime];
       //cerr<<iband<<" "<<i<<" "<<vm_banding_rfcm_forfft[ipol] <<"  "<<timedomain_output[iband][i]<<endl;
     }
-	
-    
+
     // want the bits in arrayofhits to each represent a 2 ns interval =TRIGTIMESTEP
     // but TIMESTEP doesn't necessarily go into TRIGTIMESTEP nicely
  
