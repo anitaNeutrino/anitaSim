@@ -19,8 +19,8 @@ namespace anitaSim {
     const Settings* fSettings = nullptr; 
     
   public:
-    GlobalTrigger(const Settings *settings1,Anita *anita1);
-    void GetArrivalTimes(int inu,Anita *anita1, const TVector3 &rf_direction);
+    GlobalTrigger(const Settings *settings1, const Anita* anita1);
+    // void GetArrivalTimes(int inu,Anita* anita1, const TVector3 &rf_direction);
   
     // these are not really used now that we bin in frequency, but we keep them anyway.
   
@@ -100,7 +100,7 @@ namespace anitaSim {
     // for the nadir studies
     
     // this is L2 and L3 triggers
-    // void PassesTrigger(const Settings *settings1,Anita *anita1,int discones_passing,int mode,
+    // void PassesTrigger(const Settings *settings1,Anita* anita1,int discones_passing,int mode,
     // 		       int *l3trig,
     // 		       int l2trig[Anita::NPOL][Anita::NTRIGGERLAYERS_MAX],
     // 		       int l1trig[Anita::NPOL][Anita::NTRIGGERLAYERS_MAX],
@@ -109,14 +109,14 @@ namespace anitaSim {
     // 		       int loctrig_nadironly[Anita::NPOL][Anita::NPHI_MAX],
     // 		       int inu, int *thispasses);
 
-    void PassesTrigger(Anita *anita1, int mode, TriggerState& triggerState);
+    void PassesTrigger(Anita* anita1, int mode, TriggerState& triggerState);
     
     
-    void PassesTrigger(Anita *anita1,int mode,
+    void PassesTrigger(Anita* anita1,int mode,
 		       TriggerState& triggerState,
 		       double this_threshold);
 
-    // void PassesTrigger(const Settings *settings1,Anita *anita1,int discones_passing,int mode,
+    // void PassesTrigger(const Settings *settings1,Anita* anita1,int discones_passing,int mode,
     // 		       int *l3trig,
     // 		       int l2trig[Anita::NPOL][Anita::NTRIGGERLAYERS_MAX],
     // 		       int l1trig[Anita::NPOL][Anita::NTRIGGERLAYERS_MAX],
@@ -126,7 +126,7 @@ namespace anitaSim {
     // 		       int inu,double this_threshold,int *thispasses);
     
   
-    // void PassesTriggerBasic(const Settings *settings1,Anita *anita1,int discones_passing,int mode,int *l3trig,
+    // void PassesTriggerBasic(const Settings *settings1,Anita* anita1,int discones_passing,int mode,int *l3trig,
     // 			    int l2trig[Anita::NPOL][Anita::NTRIGGERLAYERS_MAX],
     // 			    int l1trig[Anita::NPOL][Anita::NTRIGGERLAYERS_MAX],
     // 			    int antennaclump,
@@ -134,16 +134,16 @@ namespace anitaSim {
     // 			    int loctrig_nadironly[Anita::NPOL][Anita::NPHI_MAX],
     // 			    int *thispasses, int inu);
 
-    void PassesTriggerBasic(Anita *anita1,int mode, TriggerState& triggerState);
+    void PassesTriggerBasic(Anita* anita1,int mode, TriggerState& triggerState);
     
-    void PassesTriggerCoherentSum(const Anita *anita1, int inu, int *thispasses);
+    void PassesTriggerCoherentSum(const Anita* anita1, int inu, int *thispasses);
 
-    void PassesTriggerSummedPower(const Anita *anita1);
+    void PassesTriggerSummedPower(const Anita* anita1);
 
-    void PassesTriggerScheme5(Anita *anita1, double this_threshold, int *thispasses);
+    void PassesTriggerScheme5(Anita* anita1, double this_threshold, int *thispasses);
   
-    void L3Trigger(Anita *anita1,TriggerState& triggerState);
-    // void L3Trigger(const Settings *settings1,Anita *anita1,
+    void L3Trigger(const Anita* anita1,TriggerState& triggerState);
+    // void L3Trigger(const Settings *settings1,Anita* anita1,
     // 		   int loctrig[Anita::NPOL][Anita::NLAYERS_MAX][Anita::NPHI_MAX],
     // 		   int loctrig_nadironly[Anita::NPOL][Anita::NPHI_MAX],
     // 		   int discones_passing,int *l3trig,int *thispasses);
@@ -153,8 +153,8 @@ namespace anitaSim {
     // for the upper two layers, the phi sector is just j
     // for the nadir layer, the phi sector is 2*j+1
     void GetAnitaLayerPhiSector(int i,int j,int &whichlayer,int &whichphisector);
-    void FillInNadir(Anita *anita1,int *ant);
-    void FillInNadir(Anita *anita1,int ant);
+    void FillInNadir(const Anita* anita1,int *ant);
+    void FillInNadir(const Anita* anita1,int ant);
     
     // The following functions are related to the coherent-sum trigger
     std::vector < std::vector < std::vector <double> > > volts_rx_rfcm_trigger; // This is used for easy access to the waveforms of specific phi sectors and layers, and it combines physical layers into their trigger layer.
@@ -173,17 +173,17 @@ namespace anitaSim {
     int L1Anita3_OnePhiSector(int IZERO,std::vector<int> &vl0_realtime_bottom, std::vector<int> &vl0_realtime_middle, std::vector<int> &vl0_realtime_top,
 			      std::vector<int> &vl1_realtime_bottom, std::vector<int> &vl1_realtime_middle, std::vector<int> &vl1_realtime_top);
 
-    void L1Anita3_AllPhiSectors(Anita *anita1,std::array<std::array<std::vector<int>,16>,2> &l1trig);  
+    void L1Anita3_AllPhiSectors(const Anita* anita1,std::array<std::array<std::vector<int>,16>,2> &l1trig);  
 
 
     int L1Anita4_OnePhiSector(int IZERO,std::vector<int> &vl0_realtime_bottom, std::vector<int> &vl0_realtime_middle, std::vector<int> &vl0_realtime_top,
 			      std::vector<int> &vl1_realtime_bottom, std::vector<int> &vl1_realtime_middle, std::vector<int> &vl1_realtime_top);
-    void L1Anita4_AllPhiSectors(Anita *anita1,std::array<std::array<std::vector<int>,16>,2> &l1trig);
+    void L1Anita4_AllPhiSectors(const  Anita* anita1,std::array<std::array<std::vector<int>,16>,2> &l1trig);
 
-    void L2Anita3and4(Anita *anita1,std::array<std::array<std::vector<int>,16>,2> l1trig,
+    void L2Anita3and4(const Anita* anita1,std::array<std::array<std::vector<int>,16>,2> l1trig,
 		      std::array<std::array<std::vector<int>,16>,2> &l2trig);
 
-    void L3Anita3and4(Anita *anita1,std::array<std::array<std::vector<int>,16>,2> vl2trig,
+    void L3Anita3and4(const Anita* anita1,std::array<std::array<std::vector<int>,16>,2> vl2trig,
 		      int vl3trig[2][16],int *thispasses);
 
 
@@ -203,20 +203,20 @@ namespace anitaSim {
 				     std::vector<int> &vl1_realtime_middle, 
 				     std::vector<int> &vl1_realtime_top);
   
-    void L1Anita4LR_ScA_AllPhiSectors(Anita *anita1,std::array<std::array<std::vector<int>,16>,2> &vl1trig);
-    void L3Anita4LR_ScA(Anita *anita1,std::array<std::array<std::vector<int>,16>,2> vl2trig,
+    void L1Anita4LR_ScA_AllPhiSectors(const Anita* anita1,std::array<std::array<std::vector<int>,16>,2> &vl1trig);
+    void L3Anita4LR_ScA(const Anita* anita1,std::array<std::array<std::vector<int>,16>,2> vl2trig,
 			int *thispasses);
 
 
 
 
-    void L1Anita4LR_ScB_AllAntennas_OneBin(int IZERO,Anita *anita1, std::array< std::array< std::vector<int>,16>,3> &vl1trig_anita4lr_scb,int &npassesl1);
+    void L1Anita4LR_ScB_AllAntennas_OneBin(int IZERO, const Anita* anita1, std::array< std::array< std::vector<int>,16>,3> &vl1trig_anita4lr_scb,int &npassesl1);
     // L1 trigger is at the antenna level again.  Just require coincidence between LCP and RCP
     void L1Anita4LR_ScB_OneBin(int IZERO,const std::vector<int>& vleft,const std::vector<int>& vright,
 			       std::vector<int> &vl1trig);
 
     void L2Anita4LR_ScB_AllPhiSectors_OneBin(int IZERO,
-					     Anita *anita1,
+					     const Anita* anita1,
 					     std::array< std::array< std::vector<int>,16>,3> vl1trig_anita4lr_scb,
 					     std::array<std::array<std::vector<int>,3>,16> &vl2_realtime_anita4_scb,
 					     int &npassesl2,
@@ -235,13 +235,13 @@ namespace anitaSim {
 						std::array<std::vector<int>,3> vl2_realtime_anita4_scb_other, // 3 neighbors, whether 1, 2 or 3 pass
 						int npass1,int npass2);
   
-    void L3Anita4LR_ScB_OneBin(int IZERO,Anita *anita1,std::array<std::array<std::vector<int>,3>,16> vl2_realtime_anita4_scb,
+    void L3Anita4LR_ScB_OneBin(int IZERO, const Anita* anita1,std::array<std::array<std::vector<int>,3>,16> vl2_realtime_anita4_scb,
 			       std::array<std::vector<int>,16> &vl3trig_type0, std::array<std::vector<int>,16> &vl3trig_type1,
 			       int &thispasses_l3type0,int &thispasses_l3type1);
 
   
     void delayL0(std::vector<int> &vl0,double delay);
-    void delay_AllAntennas(Anita *anita1);
+    void delay_AllAntennas(const Anita* anita1);
 
 
 
