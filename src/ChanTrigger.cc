@@ -338,7 +338,7 @@ void anitaSim::ChanTrigger::WhichBandsPassTrigger2(Anita* anita1, GlobalTrigger 
   double mindiodeconvl[2][5];
 
   double onediodeconvl[2][5];
-  
+
   double timedomain_output[2][5][Anita::NFOUR];
   int iant=anita1->GetRxTriggerNumbering(ilayer, ifold);
   int ipol=0;
@@ -349,7 +349,7 @@ void anitaSim::ChanTrigger::WhichBandsPassTrigger2(Anita* anita1, GlobalTrigger 
   
   // if we use the diode to perform an integral
   // this is the number of bins to the left of center where the diode function starts to be completely overlapping with the waveform in the convolution.
-  int ibinshift=(anita1->NFOUR/4-(int)(anita1->maxt_diode/anita1->TIMESTEP));
+  int ibinshift=(Anita::NFOUR/4-(int)(anita1->maxt_diode/anita1->TIMESTEP));
   
   // now we have converted the signal to time domain waveforms for all the bands of the antenna
       
@@ -359,25 +359,25 @@ void anitaSim::ChanTrigger::WhichBandsPassTrigger2(Anita* anita1, GlobalTrigger 
     if (anita1->bwslice_allowed[iband]!=1) continue; 
   
     if (fSettings->TRIGGERSCHEME == 2 || fSettings->TRIGGERSCHEME == 3 || fSettings->TRIGGERSCHEME == 4 || fSettings->TRIGGERSCHEME == 5){
-      for (int itime=0;itime<anita1->NFOUR/2-(int)(anita1->maxt_diode/anita1->TIMESTEP);itime++) {
-  	anita1->maxbin_fortotal[iband]=anita1->NFOUR/2-(int)(anita1->maxt_diode/anita1->TIMESTEP);
+      for (int itime=0;itime<Anita::HALFNFOUR-(int)(anita1->maxt_diode/anita1->TIMESTEP);itime++) {
+  	anita1->maxbin_fortotal[iband]=Anita::HALFNFOUR-(int)(anita1->maxt_diode/anita1->TIMESTEP);
   	
   	// The below line seems to shorten the length of the waveform to less than HALFNFOUR
-  	int itimenoisebin=anita1->NFOUR/2-(int)(anita1->maxt_diode/anita1->TIMESTEP)-itime;
+  	int itimenoisebin=Anita::HALFNFOUR-(int)(anita1->maxt_diode/anita1->TIMESTEP)-itime;
 
   	// this is just the straight sum of the two
   	anita1->total_vpol_inanita[iband][itime] = anita1->timedomainnoise_rfcm_banding[0][iband][itime]+anita1->signal_vpol_inanita[iband][itime];
 
   	integrateenergy[iband]+=anita1->timedomainnoise_rfcm_banding[0][iband][itime]*anita1->timedomainnoise_rfcm_banding[0][iband][itime]*anita1->TIMESTEP;
    	if ( fSettings->SIGNAL_FLUCT && (!fSettings->NOISEFROMFLIGHTTRIGGER) ) {
-  	  // this reverses the noise is time, and starts with bin anita1->NFOUR/2-(int)(anita1->maxt_diode/anita1->TIMESTEP)
+  	  // this reverses the noise is time, and starts with bin Anita::HALFNFOUR-(int)(anita1->maxt_diode/anita1->TIMESTEP)
 	  justNoise_trigPath[0][itime] = anita1->timedomainnoise_rfcm_banding[0][iband][itimenoisebin];
 	  justNoise_trigPath[1][itime] = anita1->timedomainnoise_rfcm_banding[1][iband][itimenoisebin];
 	  v_banding_rfcm_forfft[0][iband][itime]=v_banding_rfcm_forfft[0][iband][itime]+anita1->timedomainnoise_rfcm_banding[0][iband][itimenoisebin];
   	  v_banding_rfcm_forfft[1][iband][itime]=v_banding_rfcm_forfft[1][iband][itime]+anita1->timedomainnoise_rfcm_banding[1][iband][itimenoisebin];
 	}
       }
-      for (int itime=anita1->NFOUR/2-(int)(anita1->maxt_diode/anita1->TIMESTEP);itime<anita1->NFOUR/2;itime++) {
+      for (int itime=Anita::HALFNFOUR-(int)(anita1->maxt_diode/anita1->TIMESTEP);itime<Anita::HALFNFOUR;itime++) {
   	anita1->total_vpol_inanita[iband][itime]=0.;
   	v_banding_rfcm_forfft[0][iband][itime]=0.;
   	v_banding_rfcm_forfft[1][iband][itime]=0.;
@@ -409,7 +409,7 @@ void anitaSim::ChanTrigger::WhichBandsPassTrigger2(Anita* anita1, GlobalTrigger 
       
       // Convert Horiz and Vert polarization
       // To Left and Right circular polarization
-      ConvertHVtoLRTimedomain(anita1->NFOUR,
+      ConvertHVtoLRTimedomain(Anita::NFOUR,
 			      v_banding_rfcm_forfft[0][iband].data(),
 			      v_banding_rfcm_forfft[1][iband].data(),
 			      vm_banding_rfcm_forfft[0][iband].data(),
@@ -417,7 +417,7 @@ void anitaSim::ChanTrigger::WhichBandsPassTrigger2(Anita* anita1, GlobalTrigger 
       
     } else {
   
-      for (int itime=0;itime<anita1->NFOUR/2;itime++) {
+      for (int itime=0;itime<Anita::HALFNFOUR;itime++) {
 	    
 	vm_banding_rfcm_forfft[0][iband][itime] = v_banding_rfcm_forfft[0][iband][itime];
 	vm_banding_rfcm_forfft[1][iband][itime] = v_banding_rfcm_forfft[1][iband][itime];
@@ -425,7 +425,7 @@ void anitaSim::ChanTrigger::WhichBandsPassTrigger2(Anita* anita1, GlobalTrigger 
       }
     }
 
-    for (int itime=0;itime<anita1->NFOUR/2;itime++) {
+    for (int itime=0;itime<Anita::HALFNFOUR;itime++) {
       anita1->total_diodeinput_1_inanita[iband][itime] = vm_banding_rfcm_forfft[0][iband][itime];
       anita1->total_diodeinput_2_inanita[iband][itime] = vm_banding_rfcm_forfft[1][iband][itime];
 	  
@@ -434,7 +434,7 @@ void anitaSim::ChanTrigger::WhichBandsPassTrigger2(Anita* anita1, GlobalTrigger 
   } // end loop over bands
       
             
-  for (int itime=0;itime<Anita::NFOUR/2;itime++) {
+  for (int itime=0;itime<Anita::HALFNFOUR;itime++) {
     anita1->total_diodeinput_1_allantennas[anita1->GetRxTriggerNumbering(ilayer,ifold)][itime]=anita1->total_diodeinput_1_inanita[4][itime];
     anita1->total_diodeinput_2_allantennas[anita1->GetRxTriggerNumbering(ilayer,ifold)][itime]=anita1->total_diodeinput_2_inanita[4][itime];
   }
@@ -466,7 +466,7 @@ void anitaSim::ChanTrigger::WhichBandsPassTrigger2(Anita* anita1, GlobalTrigger 
   //     // cout << "zeroeing here 1.\n";
   //     anita1->ston[iband]=0.;
   //     for (int i=anita1->iminbin[iband];i<anita1->imaxbin[iband];i++) {
-  // 	// 	    if (iband==0 && i==anita1->NFOUR/4) {
+  // 	// 	    if (iband==0 && i==Anita::NFOUR/4) {
   // 	// 	      cout << "output is " << anita1->inu << "\t" << timedomain_output[0][iband][i] << "\n";
   // 	// 	    }
   // 	// cout << "output, bwslice_rmsdiode are " << timedomain_output[0][iband][i] << "\t" << anita1->bwslice_rmsdiode[iband] << "\n";
@@ -604,7 +604,7 @@ void anitaSim::ChanTrigger::DiodeConvolution(Anita* anita1, GlobalTrigger *globa
     // myconvl
     // this performs the convolution with the diode response
     anita1->myconvlv(vm_banding_rfcm_forfft[ipol][iband].data(),
-		     anita1->NFOUR,
+		     Anita::NFOUR,
 		     anita1->fdiode_real[iband],
 		     mindiodeconvl[iband],onediodeconvl[iband],
 		     psignal[iband],timedomain_output[iband]);
@@ -644,17 +644,17 @@ void anitaSim::ChanTrigger::DiodeConvolution(Anita* anita1, GlobalTrigger *globa
     // this is done inside the impulse response function normally
     // but if we don't use it, we need to apply it manually here
     // if (!fSettings->APPLYIMPULSERESPONSETRIGGER){
-    //   Tools::ShiftRight(timedomain_output[iband],anita1->NFOUR,(int)(anita1->arrival_times[ipol][anita1->GetRx(ilayer,ifold)]/anita1->TIMESTEP));
+    //   Tools::ShiftRight(timedomain_output[iband],Anita::NFOUR,(int)(anita1->arrival_times[ipol][anita1->GetRx(ilayer,ifold)]/anita1->TIMESTEP));
     // }
 	
     if (fSettings->TRIGGERSCHEME == 2 || fSettings->TRIGGERSCHEME == 3 || fSettings->TRIGGERSCHEME == 4 || fSettings->TRIGGERSCHEME == 5){
       //      if (anita1->inu==1570)
       //cout << "shifting left.\n";
-      icemc::Tools::ShiftLeft(timedomain_output[iband],anita1->NFOUR,ibinshift);
+      icemc::Tools::ShiftLeft(timedomain_output[iband],Anita::NFOUR,ibinshift);
     }
 
 	
-    for (int itime=0;itime<Anita::NFOUR/2;itime++) {
+    for (int itime=0;itime<Anita::HALFNFOUR;itime++) {
       anita1->timedomain_output_allantennas[ipol][anita1->GetRxTriggerNumbering(ilayer,ifold)][itime]=timedomain_output[4][itime];
       //cerr<<iband<<" "<<i<<" "<<vm_banding_rfcm_forfft[ipol] <<"  "<<timedomain_output[iband][i]<<endl;
     }
@@ -831,14 +831,14 @@ void anitaSim::ChanTrigger::TriggerPath(const Anita* anita1, int ant){
     if (anita1->bwslice_allowed[iband]!=1) continue;
 
     // anita1->iminbin[iband]=0.;
-    // anita1->imaxbin[iband]=anita1->NFOUR/2;
+    // anita1->imaxbin[iband]=Anita::HALFNFOUR;
 
     v_banding_rfcm_forfft[0][iband].fill(0);
     v_banding_rfcm_forfft[1][iband].fill(0);
 
-    for (int ifreq=0; ifreq<anita1->NFOUR/2; ifreq++){
-      v_banding_rfcm[0][iband][ifreq]=vhz_rx[0][iband][ifreq];
-      v_banding_rfcm[1][iband][ifreq]=vhz_rx[1][iband][ifreq];
+    for (int ifreq=0; ifreq<Anita::NFREQ; ifreq++){
+      v_banding_rfcm[0][iband].at(ifreq)=vhz_rx[0][iband][ifreq];
+      v_banding_rfcm[1][iband].at(ifreq)=vhz_rx[1][iband][ifreq];
     }
     
     // If not applying the trigger impulse response
@@ -862,7 +862,7 @@ void anitaSim::ChanTrigger::TriggerPath(const Anita* anita1, int ant){
       
       // for some reason I'm averaging over 10 neighboring bins
       // to get rid of the zero bins
-      for (int i=0;i<anita1->NFOUR/4;i++) {
+      for (int i=0;i<Anita::NFOUR/4;i++) {
         for (int ipol=0;ipol<2;ipol++){
 	  
           v_banding_rfcm_forfft_temp[ipol][iband][2*i]  =0.;
@@ -870,7 +870,7 @@ void anitaSim::ChanTrigger::TriggerPath(const Anita* anita1, int ant){
           
           int tempcount = 0;
           for (int k=i;k<i+10;k++) {
-            if (k<anita1->NFOUR/4) {
+            if (k<Anita::NFOUR/4) {
               v_banding_rfcm_forfft_temp[ipol][iband][2*i]  +=v_banding_rfcm_forfft[ipol][iband][2*k];
               v_banding_rfcm_forfft_temp[ipol][iband][2*i+1]+=v_banding_rfcm_forfft[ipol][iband][2*k+1];
               tempcount++;
@@ -887,15 +887,15 @@ void anitaSim::ChanTrigger::TriggerPath(const Anita* anita1, int ant){
 
       // now v_banding_rfcm_h_forfft is in the time domain
       // and now it is really in units of V
-      icemc::FTPair::realft(v_banding_rfcm_forfft[0][iband].data(),-1,anita1->NFOUR/2);
-      icemc::FTPair::realft(v_banding_rfcm_forfft[1][iband].data(),-1,anita1->NFOUR/2);
+      icemc::FTPair::realft(v_banding_rfcm_forfft[0][iband].data(),-1,Anita::HALFNFOUR);
+      icemc::FTPair::realft(v_banding_rfcm_forfft[1][iband].data(),-1,Anita::HALFNFOUR);
       
       // put it in normal time ording -T to T
       // instead of 0 to T, -T to 0
-      icemc::Tools::NormalTimeOrdering(anita1->NFOUR/2,v_banding_rfcm_forfft[0][iband].data());
-      icemc::Tools::NormalTimeOrdering(anita1->NFOUR/2,v_banding_rfcm_forfft[1][iband].data());
+      icemc::Tools::NormalTimeOrdering(Anita::HALFNFOUR,v_banding_rfcm_forfft[0][iband].data());
+      icemc::Tools::NormalTimeOrdering(Anita::HALFNFOUR,v_banding_rfcm_forfft[1][iband].data());
 
-      for (int itime=0; itime<anita1->NFOUR/2; itime++){
+      for (int itime=0; itime<Anita::HALFNFOUR; itime++){
 	justSig_trigPath[0][itime] = v_banding_rfcm_forfft[0][iband][itime];
 	justSig_trigPath[1][itime] = v_banding_rfcm_forfft[1][iband][itime];
       }
@@ -903,7 +903,7 @@ void anitaSim::ChanTrigger::TriggerPath(const Anita* anita1, int ant){
       
     }
     else {
-      for (int itime=0; itime<anita1->NFOUR/2 ; itime++){
+      for (int itime=0; itime<Anita::HALFNFOUR ; itime++){
 	v_banding_rfcm_forfft[0][iband][itime]=volts_rx_forfft[0][iband][itime];
 	v_banding_rfcm_forfft[1][iband][itime]=volts_rx_forfft[1][iband][itime];
       }
@@ -925,7 +925,7 @@ void anitaSim::ChanTrigger::TriggerPath(const Anita* anita1, int ant){
       v_banding_rfcm_forfft[1][iband].fill(0);      
     }
 
-    for (int i=0;i<anita1->NFOUR/4;i++) {
+    for (int i=0;i<Anita::NFOUR/4;i++) {
       double a = v_banding_rfcm_forfft[0][iband][2*i];
       double b = v_banding_rfcm_forfft[0][iband][2*i+1];
       integrate_energy_freq[iband] += a*a + b*b;
@@ -959,7 +959,7 @@ void anitaSim::ChanTrigger::DigitizerPath(Anita* anita1, int ant)//}, FlightData
 #endif
 
     if (fSettings->SIGNAL_FLUCT > 0 && !fSettings->NOISEFROMFLIGHTDIGITIZER){
-      for (int i=0;i<anita1->NFOUR/2;i++) {
+      for (int i=0;i<Anita::HALFNFOUR;i++) {
      	for (int ipol=0;ipol<2;ipol++){
      	  volts_rx_rfcm_lab[ipol][i]+=anita1->timedomainnoise_lab[ipol][i]; // add noise
      	}
@@ -988,7 +988,7 @@ void anitaSim::ChanTrigger::DigitizerPath(Anita* anita1, int ant)//}, FlightData
       sumpower=0.;
       int ifour;// index for fourier transform
       for (int i=0;i<Anita::NFREQ;i++) {
-        ifour=icemc::Tools::Getifreq(anita1->freq[i],anita1->freq_forfft[0],anita1->freq_forfft[anita1->NFOUR/2-1],anita1->NFOUR/4);
+        ifour=icemc::Tools::Getifreq(anita1->freq[i],anita1->freq_forfft[0],anita1->freq_forfft[Anita::HALFNFOUR-1],Anita::NFOUR/4);
         vhz_rx_rfcm_e[i]=scale*anita1->v_pulser[ifour];
         vhz_rx_rfcm_h[i]=0.;
         sumpower+=vhz_rx_rfcm_e[i]*vhz_rx_rfcm_e[i];
@@ -1017,7 +1017,7 @@ void anitaSim::ChanTrigger::DigitizerPath(Anita* anita1, int ant)//}, FlightData
     anita1->peak_rx_rfcm_signalonly[1]=anitaSim::ChanTrigger::FindPeak(volts_rx_rfcm[1],anita1->HALFNFOUR);
       
     if (fSettings->SIGNAL_FLUCT) {
-      for (int i=0;i<anita1->NFOUR/2;i++) {
+      for (int i=0;i<Anita::HALFNFOUR;i++) {
 	for (int ipol=0;ipol<2;ipol++){
 	  volts_rx_rfcm[ipol][i]+=anita1->timedomainnoise_rfcm[ipol][i]; // add noise.
 	}
@@ -1057,11 +1057,11 @@ void anitaSim::ChanTrigger::DigitizerPath(Anita* anita1, int ant)//}, FlightData
 
     // put it in normal time ording -T to T
     // instead of 0 to T, -T to 0 
-    icemc::Tools::NormalTimeOrdering(anita1->NFOUR/2,volts_rx_rfcm_lab[0]);
-    icemc::Tools::NormalTimeOrdering(anita1->NFOUR/2,volts_rx_rfcm_lab[1]);
+    icemc::Tools::NormalTimeOrdering(Anita::HALFNFOUR,volts_rx_rfcm_lab[0]);
+    icemc::Tools::NormalTimeOrdering(Anita::HALFNFOUR,volts_rx_rfcm_lab[1]);
 
     if (fSettings->SIGNAL_FLUCT > 0) { 
-      for (int i=0;i<anita1->NFOUR/2;i++) {
+      for (int i=0;i<Anita::HALFNFOUR;i++) {
 	for (int ipol=0;ipol<2;ipol++){
 	  justSig_digPath[ipol][i] = volts_rx_rfcm_lab[ipol][i];
 	  volts_rx_rfcm_lab[ipol][i]+=anita1->timedomainnoise_lab[ipol][i]; // add noise
@@ -1084,10 +1084,10 @@ void anitaSim::ChanTrigger::DigitizerPath(Anita* anita1, int ant)//}, FlightData
   // if we don't use it, we need to do it here
   // if (!fSettings->APPLYIMPULSERESPONSEDIGITIZER){
   //   //  for (int i=0;i<48;i++) std::cout << "Arrival times " << anita1->arrival_times[0][anita1->GetRx(ilayer,ifold)] << std::endl;
-  //   icemc::Tools::ShiftRight(volts_rx_rfcm_lab[0],anita1->NFOUR/2, int(anita1->arrival_times[0][anita1->GetRx(ilayer,ifold)]/anita1->TIMESTEP));
-  //   icemc::Tools::ShiftRight(volts_rx_rfcm_lab[1],anita1->NFOUR/2, int(anita1->arrival_times[1][anita1->GetRx(ilayer,ifold)]/anita1->TIMESTEP));
+  //   icemc::Tools::ShiftRight(volts_rx_rfcm_lab[0],Anita::HALFNFOUR, int(anita1->arrival_times[0][anita1->GetRx(ilayer,ifold)]/anita1->TIMESTEP));
+  //   icemc::Tools::ShiftRight(volts_rx_rfcm_lab[1],Anita::HALFNFOUR, int(anita1->arrival_times[1][anita1->GetRx(ilayer,ifold)]/anita1->TIMESTEP));
   // }
-  for (int i=0;i<anita1->NFOUR/2;i++) {
+  for (int i=0;i<Anita::HALFNFOUR;i++) {
     volts_rx_rfcm_lab_e_all[i] = volts_rx_rfcm_lab[0][i];
     volts_rx_rfcm_lab_h_all[i] = volts_rx_rfcm_lab[1][i];
   }
@@ -1663,7 +1663,7 @@ void anitaSim::ChanTrigger::applyImpulseResponseTrigger(const Anita* anita1, int
   }
   
   // find back the frequency domain
-  icemc::FTPair::realft(voltsArray,1,anita1->NFOUR/2);
+  icemc::FTPair::realft(voltsArray,1,Anita::HALFNFOUR);
   
   //convert the V pol time waveform into frequency amplitudes
   anita1->GetArrayFromFFT(voltsArray, vhz);
@@ -1700,7 +1700,7 @@ void anitaSim::ChanTrigger::applyImpulseResponseTrigger(const Anita* anita1, int
 
 void anitaSim::ChanTrigger::saveTriggerWaveforms(double* sig0, double* sig1, double* noise0, double* noise1) const {
 
-  for (int i=0; i<Anita::NFOUR/2; i++){
+  for (int i=0; i<Anita::HALFNFOUR; i++){
     sig0[i]   = justSig_trigPath[0][i];
     noise0[i] = justNoise_trigPath[0][i];
     sig1[i]   = justSig_trigPath[1][i];
@@ -1710,7 +1710,7 @@ void anitaSim::ChanTrigger::saveTriggerWaveforms(double* sig0, double* sig1, dou
 
 void anitaSim::ChanTrigger::saveDigitizerWaveforms(double* sig0, double* sig1, double* noise0, double* noise1) const {
 
-  for (int i=0; i<Anita::NFOUR/2; i++){
+  for (int i=0; i<Anita::HALFNFOUR; i++){
     sig0[i]   = justSig_digPath[0][i];
     noise0[i] = justNoise_digPath[0][i];
     sig1[i]   = justSig_digPath[1][i];
@@ -1832,13 +1832,13 @@ void anitaSim::ChanTrigger::injectImpulseAfterAntenna(const Anita* anita1, int a
     
     // put it in normal time ording -T to T
     // instead of 0 to T, -T to 0
-    icemc::Tools::NormalTimeOrdering(anita1->NFOUR/2,volts_rx_forfft[0][4].data());
-    icemc::Tools::NormalTimeOrdering(anita1->NFOUR/2,volts_rx_forfft[1][4].data());
+    icemc::Tools::NormalTimeOrdering(Anita::HALFNFOUR,volts_rx_forfft[0][4].data());
+    icemc::Tools::NormalTimeOrdering(Anita::HALFNFOUR,volts_rx_forfft[1][4].data());
 
 
     // find back the frequency domain
-    icemc::FTPair::realft(tmp_volts[0],1,anita1->NFOUR/2);
-    icemc::FTPair::realft(tmp_volts[1],1,anita1->NFOUR/2);
+    icemc::FTPair::realft(tmp_volts[0],1,Anita::HALFNFOUR);
+    icemc::FTPair::realft(tmp_volts[1],1,Anita::HALFNFOUR);
     
     //convert the V pol time waveform into frequency amplitudes
     anita1->GetArrayFromFFT(tmp_volts[0], vhz_rx[0][4]);
