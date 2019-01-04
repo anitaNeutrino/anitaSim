@@ -167,19 +167,6 @@ anitaSim::Anita::Anita(const Settings* settings, const char* outputDir, const Fl
 
 
 
-int anitaSim::Anita::Match(int ilayer,int ifold,int rx_minarrivaltime) {
-
-  int ilayer2=-1, ifold2=-1;
-  PayloadGeometry::getLayerFoldFromTriggerRX(rx_minarrivaltime, ilayer2, ifold2);
-  
-  if (ilayer==ilayer2 && ifold==ifold2){
-    return 1;
-  }
-  else{
-    return 0;
-  }
-}
-
 int anitaSim::Anita::GetRxTriggerNumbering(int ilayer, int ifold) const { // get antenna number based on which layer and position it is
   // make the top trigger layer count 1-16 left to right
   if (ilayer==0){
@@ -564,7 +551,6 @@ void anitaSim::Anita::getDiodeDataAndAttenuation(const Settings *settings1, TStr
   }
   TFile *fbands=new TFile(sbands.c_str());
   TTree *tbands=(TTree*)fbands->Get("bandstree");
-    
 
   // get diode model
   getDiodeModel();
@@ -621,9 +607,9 @@ void anitaSim::Anita::getDiodeDataAndAttenuation(const Settings *settings1, TStr
     for (int i=0;i<NPOINTS_BANDS;i++) {
 			
       //    bandsattn[j][i]*=4.;
-      if (bandsattn[j][i]>1.)
+      if (bandsattn[j][i]>1.){
 	bandsattn[j][i]=1.;
-			
+      }			
       //    if (BANDING==0 && j==4) // make this the same as the full band in anita 2
       //bandsattn[j][i]=1.;
     }
@@ -654,21 +640,6 @@ void anitaSim::Anita::getDiodeDataAndAttenuation(const Settings *settings1, TStr
   }
   stemp=std::string(outputdir.Data())+"/bands.eps";
   cbands->Print((TString)stemp);
-    
-    
-    
-  //   if (BANDING==0)
-  //     sbands=ICEMC_DATA_DIR+"/bands_anita2.root";
-    
-    
-  //   TFile *fbands_temp=new TFile(sbands.c_str());
-  //   TTree *tbands_temp=(TTree*)fbands_temp->Get("bandstree");
-  //   double bandsattn_temp[5][NPOINTS_BANDS];
-  //   tbands_temp->SetBranchAddress("bandsattn",bandsattn_temp);
-  //   tbands_temp->GetEvent(0);
-  //   for (int i=0;i<NPOINTS_BANDS;i++) {
-  //     bandsattn[4][i]=bandsattn_temp[4][i];
-  //   }
     
 }
 
@@ -720,44 +691,16 @@ void anitaSim::Anita::setDiodeRMS(const Settings *settings1, TString outputdir){
     hnoise[4]=new TH1F(histname,histname,nhnoisebins,-120.0,80.0);
 		
   }
-    
+
   // just take the average noise arrays from the tdiode tree
   tdiode->GetEvent(0);
     
   std::cout << "after getting event, freqdomain_rfcm_banding is " << freqdomain_rfcm_banding[0][NFOUR/8-1] << "\n";
-    
-  // TGraph *gfreqdomain_rfcm=new TGraph(HALFNFOUR/2,freq_forplotting,freqdomain_rfcm);
-  // TGraph *gavgfreqdomain_lab=new TGraph(HALFNFOUR/2,freq_forplotting,avgfreqdomain_lab);
-  // TGraph *gfreqdomain_rfcm_banding[5];
 
-  // for (int i=0;i<5;i++) {
-  //   gfreqdomain_rfcm_banding[i]=new TGraph(HALFNFOUR/2,freq_forplotting,freqdomain_rfcm_banding[i]);
-  // }
-    
-    
-    
-  // TCanvas *cfreq=new TCanvas("cfreq","cfreq",880,800);
-  // cfreq->Divide(1,3);
-  // cfreq->cd(1);
-  // gfreqdomain_rfcm->Draw("al");
-  // cfreq->cd(2);
-  // gavgfreqdomain_lab->Draw("al");
-  // cfreq->cd(3);
-  // gfreqdomain_rfcm_banding[4]->Draw("al");
-  // for (int i=0;i<5;i++) {
-  //   gfreqdomain_rfcm_banding[i]->Draw("l");
-  // }
-  // stemp=string(outputdir.Data())+"/freqdomainplots.eps";
-  // cfreq->Print((TString)stemp);
-    
-    
-    
   // do the box banding for BANDING==1
   if (BANDING==1) {
-    for (int j=0;j<5;j++) {
-	
-      for (int k=0;k<HALFNFOUR/2;k++) {
-	  
+    for (int j=0;j<5;j++) {	
+      for (int k=0;k<HALFNFOUR/2;k++) {	  
 	if (bwslice_min[j]>freq_forplotting[k] || bwslice_max[j]<freq_forplotting[k]) {
 	  freqdomain_rfcm_banding[j][k]=0.;
 	}
@@ -1780,51 +1723,7 @@ void anitaSim::Anita::MakeArrayforFFT(double *vsignalarray_e,double *vsignal_e_f
 }
 
 
-void anitaSim::Anita::BoxAverageComplex(double *array, const int n,int navg) const  {
-  // to get rid of the zero bins
-  double array_temp[2*n];
-  for (int i=0;i<n;i++) {
-		
-    array_temp[2*i]=0.;
-    array_temp[2*i+1]=0.;
-		
-		
-    for (int k=i;k<i+navg;k++) {
-      if (k<n) {
-	array_temp[2*i]+=array[2*k];
-	array_temp[2*i+1]+=array[2*k+1];
-      }
-    }
-		
-    array[2*i]=array_temp[2*i]/(double)navg;
-    array[2*i+1]=array_temp[2*i+1]/(double)navg;
-		
-    array_temp[2*i]=array[2*i];
-    array_temp[2*i+1]=array[2*i+1];
-		
-  }
-}
 
-void anitaSim::Anita::BoxAverage(double *array, const int n,int navg) const {
-  // to get rid of the zero bins
-  double array_temp[n];
-  for (int i=0;i<n;i++) {
-		
-    array_temp[i]=0.;
-		
-    for (int k=i;k<i+navg;k++) {
-      if (k<n) {
-	array_temp[i]+=array[k];
-      }
-    }
-		
-    array[i]=array_temp[i]/(double)navg;
-		
-		
-    array_temp[i]=array[i];
-		
-  }
-}
 
 
 void anitaSim::Anita::labAttn(double *vhz) const {

@@ -52,8 +52,7 @@ namespace anitaSim {
     // takes arrays that span NFREQ and turn them into arrays that span HALFNFOUR
     void MakeArrayforFFT(double *vsignalarray_e,double *vsignal_e_forfft, double phasedelay, bool useconstantdelay, bool debug=false) const;
     void GetArrayFromFFT(double *tmp_fftvhz, double *vhz_rx) const;
- 
-    int Match(int ilayer,int ifold,int rx_minarrivaltime);
+
     int getLabAttn(int NPOINTS_LAB, double *freqlab, double *labattn);
     void labAttn(double *vhz) const;
     void SetNoise(const Settings *settings1, FlightDataManager *bn1, const icemc::Antarctica *antarctica);
@@ -227,8 +226,6 @@ namespace anitaSim {
 
     void getDiodeModel();
     void setDiodeRMS(const Settings *settings1, TString outputdir);
-    void BoxAverageComplex(double *array,const int n,int navg) const;
-    void BoxAverage(double *array,const int n,int navg) const;
     int GetRxTriggerNumbering(int ilayer, int ifold) const;                                                           ///< get antenna number based on which layer and position it is
   
     TF1 fdiode;
