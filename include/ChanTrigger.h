@@ -307,7 +307,7 @@ namespace anitaSim {
      * @param  pol :: bool - which polarization
      */
     // void applyImpulseResponseDigitizer(Anita* anita1, int nPoints, int ant, double *x, double y[512], bool pol);
-    void applyImpulseResponseDigitizer(Anita* anita1, int nPoints, int ant, double *x, double y[Anita::HALFNFOUR], bool pol);    
+    void applyImpulseResponseDigitizer(const Anita* anita1, int nPoints, int ant, const double *x, double y[Anita::HALFNFOUR], bool pol);    
 
     //! Apply impulse response to trigger path
     /**

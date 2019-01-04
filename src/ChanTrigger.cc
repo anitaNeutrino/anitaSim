@@ -1412,7 +1412,7 @@ double anitaSim::ChanTrigger::applyButterworthFilter(double ff, double ampl, int
 
 #ifdef ANITA_UTIL_EXISTS    
 // void anitaSim::ChanTrigger::applyImpulseResponseDigitizer(Anita* anita1, int nPoints, int ant, double *x, double y[512], bool pol){
-void anitaSim::ChanTrigger::applyImpulseResponseDigitizer(Anita* anita1, int nPoints, int ant, double *x, double y[Anita::HALFNFOUR], bool pol){
+void anitaSim::ChanTrigger::applyImpulseResponseDigitizer(const Anita* anita1, int nPoints, int ant, const double *x, double y[Anita::HALFNFOUR], bool pol){
 
   if (fSettings->ZEROSIGNAL){
     for (int i=0;i<nPoints;i++) y[i]=0;
