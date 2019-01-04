@@ -94,7 +94,7 @@ void anitaSim::ChanTrigger::ConvertHVtoLRTimedomain(const int nfour,double *vvol
 }
 
 
-void anitaSim::ChanTrigger::WhichBandsPass(Anita* anita1, GlobalTrigger *globaltrig1, FlightDataManager *bn1, int ilayer, int ifold, double thresholds[2][5]){
+void anitaSim::ChanTrigger::WhichBandsPass(Anita* anita1, GlobalTrigger *globaltrig1, FlightDataManager *bn1, int ilayer, int ifold, std::array<std::array<double, 5>, 2>& thresholds){
 
   if (fSettings->USETIMEDEPENDENTTHRESHOLDS==1 && fSettings->WHICH==anitaSim::Payload::Anita3) {
     for(int i=0;i<4;i++) {
@@ -147,7 +147,7 @@ void anitaSim::ChanTrigger::WhichBandsPass(Anita* anita1, GlobalTrigger *globalt
  *
  *
  */
-void anitaSim::ChanTrigger::WhichBandsPassTrigger1(const Anita* anita1, GlobalTrigger *globaltrig1, FlightDataManager *bn1, int ilayer, int ifold, double thresholds[2][5]){
+void anitaSim::ChanTrigger::WhichBandsPassTrigger1(const Anita* anita1, GlobalTrigger *globaltrig1, FlightDataManager *bn1, int ilayer, int ifold, std::array<std::array<double, 5>, 2>& thresholds){
 
   double volts_thischannel;
   double energy_thischannel;
@@ -331,7 +331,7 @@ void anitaSim::ChanTrigger::WhichBandsPassTrigger1(const Anita* anita1, GlobalTr
  *
  *
  */
-void anitaSim::ChanTrigger::WhichBandsPassTrigger2(Anita* anita1, GlobalTrigger *globaltrig1, FlightDataManager *bn1, int ilayer, int ifold, double thresholds[2][5]){
+void anitaSim::ChanTrigger::WhichBandsPassTrigger2(Anita* anita1, GlobalTrigger *globaltrig1, FlightDataManager *bn1, int ilayer, int ifold, std::array<std::array<double, 5>, 2>& thresholds){
 
   double psignal[2][5][Anita::NFOUR];
   
@@ -536,7 +536,7 @@ void anitaSim::ChanTrigger::WhichBandsPassTrigger2(Anita* anita1, GlobalTrigger 
 
 
 
-void anitaSim::ChanTrigger::DiodeConvolution(Anita* anita1, GlobalTrigger *globaltrig1, int ilayer, int ifold, double mindiodeconvl[5], double onediodeconvl[5], double psignal[5][Anita::NFOUR],  double timedomain_output[5][Anita::NFOUR], int ibinshift, int ipol, double thresholds[2][5]){
+void anitaSim::ChanTrigger::DiodeConvolution(Anita* anita1, GlobalTrigger *globaltrig1, int ilayer, int ifold, double mindiodeconvl[5], double onediodeconvl[5], double psignal[5][Anita::NFOUR],  double timedomain_output[5][Anita::NFOUR], int ibinshift, int ipol, std::array<std::array<double, 5>, 2>& thresholds){
 
   int tempChansPassing[5]={0,0,0,0,0};
 
@@ -1197,12 +1197,14 @@ int anitaSim::ChanTrigger::IsItUnmasked(unsigned short surfTrigBandMask[9][2],in
   // which we & with surfTrigBandMask we get whether that bit is 1 or 0
     
   if (antennaonsurf<2) {
-    if ((surfTrigBandMask[surf-1][0] & whichbit)>0)
+    if ((surfTrigBandMask[surf-1][0] & whichbit)>0){
       return 0;
+    }
   }
   else {
-    if ((surfTrigBandMask[surf-1][1] & whichbit)>0)
+    if ((surfTrigBandMask[surf-1][1] & whichbit)>0){
       return 0;
+    }
   }
     
   return 1;
@@ -1214,7 +1216,7 @@ int anitaSim::ChanTrigger::IsItUnmasked(unsigned short surfTrigBandMask[9][2],in
 
 
 
-void anitaSim::ChanTrigger::L1Trigger(const Anita* anita1,double timedomain_output_1[5][Anita::NFOUR],double timedomain_output_2[5][Anita::NFOUR],double powerthreshold[2][5],
+void anitaSim::ChanTrigger::L1Trigger(const Anita* anita1,double timedomain_output_1[5][Anita::NFOUR],double timedomain_output_2[5][Anita::NFOUR],std::array<std::array<double, 5>, 2>& powerthreshold,
 				   int *channels_passing_e_forglob,int *channels_passing_h_forglob,int &npass) {
   
   int maxsample=icemc::Tools::max(anita1->imaxbin);
@@ -1369,7 +1371,7 @@ double anitaSim::ChanTrigger::GetNoise(Payload payload, double altitude_bn, doub
 
 
 
-void anitaSim::ChanTrigger::GetThresholds(const Anita* anita1,int ilayer,double thresholds[2][5]) const {
+void anitaSim::ChanTrigger::GetThresholds(const Anita* anita1,int ilayer,std::array<std::array<double, 5>, 2>& thresholds) const {
     
   if (ilayer==3 && fSettings->DISCONES==2) // if it's a nadir layer
     for (int i=0;i<5;i++) {

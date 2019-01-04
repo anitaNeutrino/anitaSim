@@ -1,5 +1,22 @@
 #include "VoltsRX.h"
 
+anitaSim::ChannelVolts::ChannelVolts(){
+
+}
+
+
+anitaSim::ChannelVolts::~ChannelVolts(){
+
+}
+
+
+void anitaSim::ChannelVolts::reset(){
+  rfcm_lab_all.fill(0);
+  justNoiseTrig.fill(0);
+  justSignalTrig.fill(0);
+  justNoiseDig.fill(0);
+  justSignalDig.fill(0);
+}
 
 anitaSim::VoltsRX::VoltsRX(int nRX) : fNRX(nRX) {
 
@@ -10,22 +27,23 @@ anitaSim::VoltsRX::VoltsRX(int nRX) : fNRX(nRX) {
   max_highband = 0; // max voltage seen on an antenna - just for debugging purposes
   max_lowband = 0; // max voltage seen on an antenna - just for debugging purposes
 
-  rfcm_lab_e_all.reserve(nRX);
-  rfcm_lab_h_all.reserve(nRX);
+
+  channelsV.reserve(nRX);
+  channelsH.reserve(nRX);
+
   for(int i=0; i < fNRX; i++){
-    rfcm_lab_e_all.emplace_back(std::array<double, Anita::HALFNFOUR>());
-    rfcm_lab_h_all.emplace_back(std::array<double, Anita::HALFNFOUR>());
+    channelsV.emplace_back(ChannelVolts());
+  }
+  for(int i=0; i < fNRX; i++){
+    channelsH.emplace_back(ChannelVolts());
   }
   reset();
 }
 
 
 void anitaSim::VoltsRX::reset() {
+
+  for(auto& chan : channelsV){chan.reset();}
+  for(auto& chan : channelsH){chan.reset();}
   
-  for(auto& rfcm_lab_e : rfcm_lab_e_all){
-    rfcm_lab_e.fill(0);
-  }
-  for(auto& rfcm_lab_h : rfcm_lab_h_all){
-    rfcm_lab_h.fill(0);
-  }
 }

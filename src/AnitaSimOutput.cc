@@ -173,15 +173,17 @@ void anitaSim::AnitaSimOutput::fillRootifiedAnitaDataTrees(const icemc::Event& i
     fEvent->chanId[UsefulChanIndexV] = UsefulChanIndexV;
     fEvent->chanId[UsefulChanIndexH] = UsefulChanIndexH;
 
-    const int offset = (fDetector->fVoltsRX.rfcm_lab_h_all[iant].size() - fNumPoints)/2; ///@todo find a better way to do this...
+    const int offset = (fDetector->fVoltsRX.channelsH.at(iant).rfcm_lab_all.size() - fNumPoints)/2; ///@todo find a better way to do this...
     for (int j = 0; j < fNumPoints; j++) {
       // convert seconds to nanoseconds
       fEvent->fTimes[UsefulChanIndexV][j] = j * anita1->TIMESTEP * 1.0E9;
       fEvent->fTimes[UsefulChanIndexH][j] = j * anita1->TIMESTEP * 1.0E9;
 
       const double voltsToMilliVolts = 1000; // volts to millivolts
-      fEvent->fVolts[UsefulChanIndexH][j] = fDetector->fVoltsRX.rfcm_lab_h_all[iant][j+offset]*voltsToMilliVolts;
-      fEvent->fVolts[UsefulChanIndexV][j] = fDetector->fVoltsRX.rfcm_lab_e_all[iant][j+offset]*voltsToMilliVolts;
+      // fEvent->fVolts[UsefulChanIndexH][j] = fDetector->fVoltsRX.rfcm_lab_h_all[iant][j+offset]*voltsToMilliVolts;
+      // fEvent->fVolts[UsefulChanIndexV][j] = fDetector->fVoltsRX.rfcm_lab_e_all[iant][j+offset]*voltsToMilliVolts;
+      fEvent->fVolts[UsefulChanIndexH][j] = fDetector->fVoltsRX.channelsH.at(iant).rfcm_lab_all[j+offset]*voltsToMilliVolts;
+      fEvent->fVolts[UsefulChanIndexV][j] = fDetector->fVoltsRX.channelsV.at(iant).rfcm_lab_all[j+offset]*voltsToMilliVolts;
       
       fEvent->fCapacitorNum[UsefulChanIndexH][j] = j;
       fEvent->fCapacitorNum[UsefulChanIndexV][j] = j;
@@ -297,14 +299,14 @@ void anitaSim::AnitaSimOutput::fillRootifiedAnitaDataTrees(const icemc::Event& i
     int UsefulChanIndexH = geom->getChanIndexFromAntPol(iant,  AnitaPol::kHorizontal);
     int UsefulChanIndexV = geom->getChanIndexFromAntPol(iant,  AnitaPol::kVertical);
 
-    fTruth->SNRAtTrigger[UsefulChanIndexV] = icemc::Tools::calculateSNR(fDetector->fJustSignalTrig[0][iant], fDetector->fJustNoiseTrig[0][iant]);
-    fTruth->SNRAtTrigger[UsefulChanIndexH] = icemc::Tools::calculateSNR(fDetector->fJustSignalTrig[1][iant], fDetector->fJustNoiseTrig[1][iant]);
+    fTruth->SNRAtTrigger[UsefulChanIndexV] = icemc::Tools::calculateSNR(fDetector->fVoltsRX.channelsV.at(iant).justSignalTrig, fDetector->fVoltsRX.channelsV.at(iant).justNoiseTrig);
+    fTruth->SNRAtTrigger[UsefulChanIndexH] = icemc::Tools::calculateSNR(fDetector->fVoltsRX.channelsH.at(iant).justSignalTrig, fDetector->fVoltsRX.channelsH.at(iant).justNoiseTrig);
 	      
     if (fTruth->SNRAtTrigger[UsefulChanIndexV]>fTruth->maxSNRAtTriggerV) fTruth->maxSNRAtTriggerV=fTruth->SNRAtTrigger[UsefulChanIndexV];
     if (fTruth->SNRAtTrigger[UsefulChanIndexH]>fTruth->maxSNRAtTriggerH) fTruth->maxSNRAtTriggerH=fTruth->SNRAtTrigger[UsefulChanIndexH];
 
-    fTruth->SNRAtDigitizer[UsefulChanIndexV] = icemc::Tools::calculateSNR(fDetector->fJustSignalDig[0][iant], fDetector->fJustNoiseDig[0][iant]);
-    fTruth->SNRAtDigitizer[UsefulChanIndexH] = icemc::Tools::calculateSNR(fDetector->fJustSignalDig[1][iant], fDetector->fJustNoiseDig[1][iant]);
+    fTruth->SNRAtDigitizer[UsefulChanIndexV] = icemc::Tools::calculateSNR(fDetector->fVoltsRX.channelsV.at(iant).justSignalDig, fDetector->fVoltsRX.channelsV.at(iant).justNoiseDig);
+    fTruth->SNRAtDigitizer[UsefulChanIndexH] = icemc::Tools::calculateSNR(fDetector->fVoltsRX.channelsH.at(iant).justSignalDig, fDetector->fVoltsRX.channelsH.at(iant).justNoiseDig);
 
     if (fTruth->SNRAtDigitizer[UsefulChanIndexV]>fTruth->maxSNRAtDigitizerV) fTruth->maxSNRAtDigitizerV=fTruth->SNRAtDigitizer[UsefulChanIndexV];
     if (fTruth->SNRAtDigitizer[UsefulChanIndexH]>fTruth->maxSNRAtDigitizerH) fTruth->maxSNRAtDigitizerH=fTruth->SNRAtDigitizer[UsefulChanIndexH];
@@ -323,14 +325,14 @@ void anitaSim::AnitaSimOutput::fillRootifiedAnitaDataTrees(const icemc::Event& i
 
       ///@todo replace this 128 with offset as in event->fVolts filling loop
       const int offset = 128;
-      fTruth->fSignalAtTrigger[UsefulChanIndexV][j]   = fDetector->fJustSignalTrig[0][iant][j+offset]*1000;
-      fTruth->fSignalAtTrigger[UsefulChanIndexH][j]   = fDetector->fJustSignalTrig[1][iant][j+offset]*1000;
-      fTruth->fNoiseAtTrigger[UsefulChanIndexV][j]    = fDetector->fJustNoiseTrig[0][iant][j+offset]*1000;
-      fTruth->fNoiseAtTrigger[UsefulChanIndexH][j]    = fDetector->fJustNoiseTrig[1][iant][j+offset]*1000;
-      fTruth->fSignalAtDigitizer[UsefulChanIndexV][j] = fDetector->fJustSignalDig[0][iant][j+offset]*1000;
-      fTruth->fSignalAtDigitizer[UsefulChanIndexH][j] = fDetector->fJustSignalDig[1][iant][j+offset]*1000;
-      fTruth->fNoiseAtDigitizer[UsefulChanIndexV][j]  = fDetector->fJustNoiseDig[0][iant][j+offset]*1000;
-      fTruth->fNoiseAtDigitizer[UsefulChanIndexH][j]  = fDetector->fJustNoiseDig[1][iant][j+offset]*1000;
+      fTruth->fSignalAtTrigger[UsefulChanIndexV][j]   = fDetector->fVoltsRX.channelsV.at(iant).justSignalTrig[j+offset]*1000;
+      fTruth->fSignalAtTrigger[UsefulChanIndexH][j]   = fDetector->fVoltsRX.channelsH.at(iant).justSignalTrig[j+offset]*1000;
+      fTruth->fNoiseAtTrigger[UsefulChanIndexV][j]    = fDetector->fVoltsRX.channelsV.at(iant).justNoiseTrig[j+offset]*1000;
+      fTruth->fNoiseAtTrigger[UsefulChanIndexH][j]    = fDetector->fVoltsRX.channelsH.at(iant).justNoiseTrig[j+offset]*1000;
+      fTruth->fSignalAtDigitizer[UsefulChanIndexV][j] = fDetector->fVoltsRX.channelsV.at(iant).justSignalDig[j+offset]*1000;
+      fTruth->fSignalAtDigitizer[UsefulChanIndexH][j] = fDetector->fVoltsRX.channelsH.at(iant).justSignalDig[j+offset]*1000;
+      fTruth->fNoiseAtDigitizer[UsefulChanIndexV][j]  = fDetector->fVoltsRX.channelsV.at(iant).justNoiseDig[j+offset]*1000;
+      fTruth->fNoiseAtDigitizer[UsefulChanIndexH][j]  = fDetector->fVoltsRX.channelsH.at(iant).justNoiseDig[j+offset]*1000;
       fTruth->fDiodeOutput[UsefulChanIndexV][j]       = anita1->timedomain_output_allantennas[0][irx][j];
       fTruth->fDiodeOutput[UsefulChanIndexH][j]       = anita1->timedomain_output_allantennas[1][irx][j];
     }//end int j

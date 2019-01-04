@@ -6,6 +6,21 @@
 
 namespace anitaSim {
 
+
+  class ChannelVolts {
+  public:
+    ChannelVolts();
+    ~ChannelVolts();
+    void reset();
+
+    std::array<double, Anita::HALFNFOUR> rfcm_lab_all;
+    std::array<double, Anita::HALFNFOUR> justNoiseTrig;
+    std::array<double, Anita::HALFNFOUR> justSignalTrig;
+    std::array<double, Anita::HALFNFOUR> justNoiseDig;
+    std::array<double, Anita::HALFNFOUR> justSignalDig;
+    ClassDef(ChannelVolts, 1)
+  };
+
   /**
    * @class VoltsRX
    * @brief Voltage seen at the antennas
@@ -18,15 +33,14 @@ namespace anitaSim {
     double max;		///< max voltage seen on an antenna - just for debugging purposes
     double ave;		///< ave voltage seen on an antenna,  among hit antennas
     double sum;		///< ave voltage seen on an antenna,  among hit antennas
-
-    double max_highband;	///< max voltage seen on an antenna - just for debugging purposes
+    double max_highband;///< max voltage seen on an antenna - just for debugging purposes
     double max_lowband;	///< max voltage seen on an antenna - just for debugging purposes
 
     const int fNRX;
-    std::vector<std::array<double, Anita::HALFNFOUR> > rfcm_lab_e_all;
-    std::vector<std::array<double, Anita::HALFNFOUR> > rfcm_lab_h_all;
+    std::vector<ChannelVolts> channelsV;
+    std::vector<ChannelVolts> channelsH;
     
-    ClassDef(VoltsRX, 2);
+    ClassDef(VoltsRX, 3);
   };
 }
 

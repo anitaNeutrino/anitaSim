@@ -167,7 +167,7 @@ namespace anitaSim {
      *  @param channels_passing_h_forglob :: double* - array of channels passing the L1 trigger for h (used in the GlobalTrigger class)
      *  @param npass :: &int - number of bands passing the L1 trigger
      */
-    void L1Trigger(const Anita* anita1,double timedomain_output_1[5][Anita::NFOUR],double timedomain_output_2[5][Anita::NFOUR],double powerthreshold[2][5],int *channels_passing_e_forglob,int *channels_passing_h_forglob,int &npass);
+    void L1Trigger(const Anita* anita1,double timedomain_output_1[5][Anita::NFOUR],double timedomain_output_2[5][Anita::NFOUR],std::array<std::array<double, 5>, 2>& powerthreshold,int *channels_passing_e_forglob,int *channels_passing_h_forglob,int &npass);
 
 
     //!	Returns the thisrate variable value (in MHz)
@@ -215,7 +215,7 @@ namespace anitaSim {
      * @param  ifold :: int - phi sector
      * @param  thresholds :: double [2][5] - relative power thresholds for each pol and band
      */
-    void WhichBandsPass(Anita* anita1, GlobalTrigger *globaltrig1, FlightDataManager *bn1, int ilayer, int ifold, double thresholds[2][5]);
+    void WhichBandsPass(Anita* anita1, GlobalTrigger *globaltrig1, FlightDataManager *bn1, int ilayer, int ifold, std::array<std::array<double, 5>, 2>& thresholds);
 
     //! Which bands passes the trigger (for trigger scheme 0 and 1)
     /**
@@ -227,7 +227,7 @@ namespace anitaSim {
      * @param  ifold :: int - phi sector
      * @param  thresholds :: double [2][5] - relative power thresholds for each pol and band
      */
-    void WhichBandsPassTrigger1(const Anita* anita1, GlobalTrigger *globaltrig1, FlightDataManager *bn1, int ilayer, int ifold, double thresholds[2][5]);
+    void WhichBandsPassTrigger1(const Anita* anita1, GlobalTrigger *globaltrig1, FlightDataManager *bn1, int ilayer, int ifold, std::array<std::array<double, 5>, 2>& thresholds);
 
     //! Which bands passes the trigger (for trigger scheme larger than 2)
     /**
@@ -239,7 +239,7 @@ namespace anitaSim {
      * @param  ifold :: int - phi sector
      * @param  thresholds :: double [2][5] - relative power thresholds for each pol and band
      */
-    void WhichBandsPassTrigger2(Anita* anita1, GlobalTrigger *globaltrig1, FlightDataManager *bn1, int ilayer, int ifold, double thresholds[2][5]);
+    void WhichBandsPassTrigger2(Anita* anita1, GlobalTrigger *globaltrig1, FlightDataManager *bn1, int ilayer, int ifold, std::array<std::array<double, 5>, 2>& thresholds);
 
     //! Find peak voltage of a waveform
     /**
@@ -257,7 +257,7 @@ namespace anitaSim {
      *	\todo	Deprecate in favor of the more robust boost::multi_array or the more specialized
      *			PayloadArray class. Both have multi-index access to the same items.
      */
-    void GetThresholds(const Anita* anita1,int ilayer,double thresholds[2][5]) const ; // get thresholds for this layer
+    void GetThresholds(const Anita* anita1,int ilayer,std::array<std::array<double, 5>, 2>& thresholds) const ; // get thresholds for this layer
 
     //! Apply the diode convolution
     /**
@@ -273,7 +273,7 @@ namespace anitaSim {
      * @param  ipol :: int - which polarization
      * @param  thresholds :: double[2][5] - relative power thresholds for each pol and band
      */
-    void DiodeConvolution(Anita* anita1, GlobalTrigger *globaltrig1, int ilayer, int ifold, double mindiodeconvl[5], double onediodeconvl[5], double psignal[5][Anita::NFOUR],  double timedomain_output[5][Anita::NFOUR], int ibinshift, int ipol, double thresholds[2][5]);
+    void DiodeConvolution(Anita* anita1, GlobalTrigger *globaltrig1, int ilayer, int ifold, double mindiodeconvl[5], double onediodeconvl[5], double psignal[5][Anita::NFOUR],  double timedomain_output[5][Anita::NFOUR], int ibinshift, int ipol, std::array<std::array<double, 5>, 2>& thresholds);
 
 
     //! Increment the volts in each band 

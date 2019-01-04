@@ -11,7 +11,6 @@
 #include "Seavey.h"
 #include "RootOutput.h"
 #include <memory>
-
 #include "TFile.h" ///@todo remove after done debugging
 
 anitaSim::ANITA::ANITA(const Settings* settings)
@@ -23,7 +22,7 @@ anitaSim::ANITA::ANITA(const Settings* settings)
     fTriggerState(settings),
     fAnitaOutput(this, settings, settings->getOutputDir(), settings->getRun())
 {
-  initSeaveys(settings, this);
+  initSeaveys();
 
   if(fSettings->WHICH == Payload::Anita1Simple ||
      fSettings->WHICH == Payload::Anita1){
@@ -31,6 +30,9 @@ anitaSim::ANITA::ANITA(const Settings* settings)
   }
 
   saveGainsPlot(std::string(fSettings->getOutputDir())+"/gains.eps");
+
+  fThresholdsAnt.resize(getNumRX());
+
   
   // sets position of balloon and related quantities
   // SetDefaultBalloonPosition();
@@ -90,7 +92,8 @@ TVector3 anitaSim::ANITA::getPositionRX(Int_t rx) const {
 
 
 
-void anitaSim::ANITA::initSeaveys(const Settings *settings1, const Anita *anita1) {
+
+void anitaSim::ANITA::initSeaveys() {
 
   for(int rx = 0; rx < getNumRX(); rx++){
     int ilayer = -1;
@@ -103,35 +106,35 @@ void anitaSim::ANITA::initSeaveys(const Settings *settings1, const Anita *anita1
     TVector3 n_hplane;
     TVector3 n_normal;
     
-    if(settings1->WHICH==Payload::Anita1 ||
-       settings1->WHICH==Payload::Anita2 ||
-       settings1->WHICH==Payload::Anita3 ||
-       settings1->WHICH==Payload::Anita4) { /// @todo presumably this is also correct for ANITA-4
+    if(fSettings->WHICH==Payload::Anita1 ||
+       fSettings->WHICH==Payload::Anita2 ||
+       fSettings->WHICH==Payload::Anita3 ||
+       fSettings->WHICH==Payload::Anita4) { /// @todo presumably this is also correct for ANITA-4
 
       n_eplane = icemc::constants::const_z;
-      n_eplane.RotateY(anita1->ANTENNA_DOWN[ilayer][ifold]);
+      n_eplane.RotateY(ANTENNA_DOWN[ilayer][ifold]);
       n_hplane = -icemc::constants::const_y;
-      n_hplane.RotateY(anita1->ANTENNA_DOWN[ilayer][ifold]);
+      n_hplane.RotateY(ANTENNA_DOWN[ilayer][ifold]);
       n_normal = icemc::constants::const_x;
-      n_normal.RotateY(anita1->ANTENNA_DOWN[ilayer][ifold]);
+      n_normal.RotateY(ANTENNA_DOWN[ilayer][ifold]);
     }
     else {
       n_eplane = icemc::constants::const_z;
-      n_eplane.RotateY(anita1->THETA_ZENITH[ilayer] - icemc::constants::PI/2);
+      n_eplane.RotateY(THETA_ZENITH[ilayer] - icemc::constants::PI/2);
       n_hplane = (-icemc::constants::const_y);
-      n_hplane.RotateY(anita1->THETA_ZENITH[ilayer] - icemc::constants::PI/2);
+      n_hplane.RotateY(THETA_ZENITH[ilayer] - icemc::constants::PI/2);
       n_normal = icemc::constants::const_x;
-      n_normal.RotateY(anita1->THETA_ZENITH[ilayer] - icemc::constants::PI/2);
+      n_normal.RotateY(THETA_ZENITH[ilayer] - icemc::constants::PI/2);
     }
 
     double phi = 0;
     // rotate about z axis for phi
-    if (settings1->CYLINDRICALSYMMETRY==1) {
-      phi=(double)ifold/(double)anita1->NRX_PHI[ilayer]*2*icemc::constants::PI + anita1->PHI_OFFSET[ilayer]; // + phi_spin;
+    if (fSettings->CYLINDRICALSYMMETRY==1) {
+      phi=(double)ifold/(double)NRX_PHI[ilayer]*2*icemc::constants::PI + PHI_OFFSET[ilayer]; // + phi_spin;
     }
     else{
-      //phi=anita1->PHI_EACHLAYER[ilayer][ifold] + anita1->PHI_OFFSET[ilayer] +phi_spin;
-      phi=anita1->PHI_EACHLAYER[ilayer][ifold];
+      //phi=PHI_EACHLAYER[ilayer][ifold] + PHI_OFFSET[ilayer] +phi_spin;
+      phi=PHI_EACHLAYER[ilayer][ifold];
     }
 
     n_eplane.RotateZ(phi);
@@ -145,28 +148,28 @@ void anitaSim::ANITA::initSeaveys(const Settings *settings1, const Anita *anita1
       TVector3& seaveyPayloadPos = pol == Seavey::Pol::V ? positionV : positionH;
 
       double phi = 0;
-      if (settings1->WHICH == Payload::Anita1 ||
-	  settings1->WHICH == Payload::Anita2 ||
-	  settings1->WHICH == Payload::Anita3 ||
-	  settings1->WHICH == Payload::Anita4 ){
-	seaveyPayloadPos = anita1->ANTENNA_POSITION_START[ipol][ilayer][ifold];
+      if (fSettings->WHICH == Payload::Anita1 ||
+	  fSettings->WHICH == Payload::Anita2 ||
+	  fSettings->WHICH == Payload::Anita3 ||
+	  fSettings->WHICH == Payload::Anita4 ){
+	seaveyPayloadPos = ANTENNA_POSITION_START[ipol][ilayer][ifold];
       }
       else {
-	if (settings1->CYLINDRICALSYMMETRY==1){ // for timing code
+	if (fSettings->CYLINDRICALSYMMETRY==1){ // for timing code
 	  // phi is 0 for antenna 0 (0-31) and antenna 16 (0-31)
 	  // antenna 1 (1-32) and antenna 18 (1-32)
-	  phi = (double) ifold / (double) anita1->NRX_PHI[ilayer] * 2 * icemc::constants::PI + anita1->PHI_OFFSET[ilayer];
+	  phi = (double) ifold / (double) NRX_PHI[ilayer] * 2 * icemc::constants::PI + PHI_OFFSET[ilayer];
 	}
 	else{
-	  phi = anita1->PHI_EACHLAYER[ilayer][ifold] + anita1->PHI_OFFSET[ilayer];
+	  phi = PHI_EACHLAYER[ilayer][ifold] + PHI_OFFSET[ilayer];
 	}
-	seaveyPayloadPos = TVector3(anita1->RRX[ilayer]*cos(phi) + anita1->LAYER_HPOSITION[ilayer]*cos(anita1->LAYER_PHIPOSITION[ilayer]),
-				    anita1->RRX[ilayer]*sin(phi) + anita1->LAYER_HPOSITION[ilayer]*sin(anita1->LAYER_PHIPOSITION[ilayer]),
-				    anita1->LAYER_VPOSITION[ilayer]);
+	seaveyPayloadPos = TVector3(RRX[ilayer]*cos(phi) + LAYER_HPOSITION[ilayer]*cos(LAYER_PHIPOSITION[ilayer]),
+				    RRX[ilayer]*sin(phi) + LAYER_HPOSITION[ilayer]*sin(LAYER_PHIPOSITION[ilayer]),
+				    LAYER_VPOSITION[ilayer]);
       }
      
     } 
-    fSeaveys.emplace_back(Seavey(positionV, positionH,  n_eplane,  n_hplane, n_normal, settings1));
+    fSeaveys.emplace_back(Seavey(positionV, positionH,  n_eplane,  n_hplane, n_normal, fSettings));
   }
 }
 
@@ -174,37 +177,16 @@ void anitaSim::ANITA::initSeaveys(const Settings *settings1, const Anita *anita1
 
 
 void anitaSim::ANITA::addSignalToRX(const icemc::PropagatingSignal& signal, int rx, int inu){
-
-  int ifold, ilayer;
-  getLayerFoldFromTriggerRX(rx, ilayer, ifold);
   
-  static bool firstTime = true;
-  if(inu == 522 && firstTime){
-    for(int i=0; i < fSeaveys.size(); i++){
-      // if(true || i==34){
-      if(true || i==41){
-  	fSeaveys.at(i).setDebug(true);
-      }
-    }
-    if(rx==fSeaveys.size()-1){
-      firstTime = false;
-    }
+  if(rx >= 0 && rx < fSeaveys.size()){
+    fSeaveys.at(rx).addSignal(signal);
   }
   else{
-    for(int i=0; i < fSeaveys.size(); i++){
-      fSeaveys.at(i).setDebug(false);
-    }
-  }
-
-  if(rx >= 0 && rx < fSeaveys.size()){
-    // actually we add the signal to the new Seavey class
-    fSeaveys.at(rx).addSignal(signal);
+    icemc::report() << icemc::severity::error << "rx " << rx << " is out of range (" << 0 << ", " << fSeaveys.size() << ")." << std::endl;
   }
 }
 
 
-
-// bool anitaSim::ANITA::applyTrigger(const std::vector<TGraph>& pureSignalVoltageTimeGraphs, const TVector& poyntingVector, const TVector& polarizationVector){
 bool anitaSim::ANITA::applyTrigger(int inu){
   
   //////////////////////////////////////
@@ -216,37 +198,34 @@ bool anitaSim::ANITA::applyTrigger(int inu){
 
   auto globalTrigger = std::make_shared<GlobalTrigger>(fSettings, dynamic_cast<Anita*>(this));
 
-  // int discones_passing = 0;  // number of discones that pass
-
-  for(int pol=0;  pol < NPOL; pol++){
-    for(int ant=0; ant < nAnt; ant++){
-      fJustNoiseTrig[pol][ant].resize(Anita::HALFNFOUR, 0);
-      fJustSignalTrig[pol][ant].resize(Anita::HALFNFOUR, 0);
-      fJustNoiseDig[pol][ant].resize(Anita::HALFNFOUR, 0);
-      fJustSignalDig[pol][ant].resize(Anita::HALFNFOUR, 0);
-    }
-  }
-
-  // start looping over antennnas.
-  // ilayer loops through vertical layers
-
-
-  
   for (int antNum=0; antNum < getNumRX(); antNum++) { // loop over layers on the payload
-      
+
     ChanTrigger ct(fSettings, this);
-    int ilayer, ifold;
-    getLayerFoldFromTriggerRX(antNum, ilayer, ifold);
     ct.readInSeavey(&fSeaveys.at(antNum), antNum, this);
 
     ct.TriggerPath(this, antNum);
     ct.DigitizerPath(this, antNum);
     ct.TimeShiftAndSignalFluct(this, antNum,
-			       fVoltsRX.rfcm_lab_e_all.at(antNum).data(),
-			       fVoltsRX.rfcm_lab_h_all.at(antNum).data());
-    ct.saveTriggerWaveforms(&fJustSignalTrig[0][antNum][0], &fJustSignalTrig[1][antNum][0], &fJustNoiseTrig[0][antNum][0], &fJustNoiseTrig[1][antNum][0]);
-    ct.saveDigitizerWaveforms(&fJustSignalDig[0][antNum][0], &fJustSignalDig[1][antNum][0], &fJustNoiseDig[0][antNum][0], &fJustNoiseDig[1][antNum][0]);
+			       fVoltsRX.channelsV.at(antNum).rfcm_lab_all.data(),
+			       fVoltsRX.channelsH.at(antNum).rfcm_lab_all.data());
+    ct.saveTriggerWaveforms(fVoltsRX.channelsV.at(antNum).justSignalTrig.data(),
+			    fVoltsRX.channelsH.at(antNum).justSignalTrig.data(),
+			    fVoltsRX.channelsV.at(antNum).justNoiseTrig.data(),
+			    fVoltsRX.channelsH.at(antNum).justNoiseTrig.data());
 
+    
+    ct.saveDigitizerWaveforms(fVoltsRX.channelsV.at(antNum).justSignalDig.data(),
+			      fVoltsRX.channelsH.at(antNum).justSignalDig.data(),
+			      fVoltsRX.channelsV.at(antNum).justNoiseDig.data(),
+			      fVoltsRX.channelsH.at(antNum).justNoiseDig.data());
+    // ct.saveDigitizerWaveforms(&fJustSignalDig[0][antNum][0],
+    // 			      &fJustSignalDig[1][antNum][0],
+    // 			      &fJustNoiseDig[0][antNum][0],
+    // 			      &fJustNoiseDig[1][antNum][0]);
+
+
+    int ilayer, ifold;
+    getLayerFoldFromTriggerRX(antNum, ilayer, ifold);
     if (fSettings->SCALEDOWNLCPRX1){
       globalTrigger->volts[0][ilayer][0] = globalTrigger->volts[0][ilayer][0]/sqrt(2.);
     }
@@ -267,12 +246,8 @@ bool anitaSim::ANITA::applyTrigger(int inu){
     } //if adding noise
 
     ct.WhichBandsPass(this, globalTrigger.get(), this, ilayer, ifold, fThresholdsAnt[antNum]);
-
-    //   } //loop through the phi-fold antennas
-    // }  //loop through the layers of antennas
   }
 
-  int count_pass = 0;///@todo remove me?
   // globalTrigger->PassesTrigger(fSettings, this, discones_passing, 2, fL3trig, fL2trig, fL1trig, fSettings->antennaclump, loctrig, loctrig_nadironly, inu, thispasses);
   const int triggerMode = 2;
   globalTrigger->PassesTrigger(this, triggerMode, fTriggerState);
@@ -289,7 +264,6 @@ bool anitaSim::ANITA::applyTrigger(int inu){
   bool eventPassesTrigger = false;
   if ( (fTriggerState.passes.at(0) > 0 && this->pol_allowed[0]==1)
        || (fTriggerState.passes.at(1) > 0 && this->pol_allowed[1]==1)
-       || (fSettings->TRIGTYPE==0 && count_pass>=fSettings->NFOLD)
        || (fSettings->MINBIAS==1)){
     eventPassesTrigger = true;
   }
@@ -305,17 +279,3 @@ void anitaSim::ANITA::write(const icemc::Event& event) {
 
 
 
-double anitaSim::ANITA::GetAverageVoltageFromAntennasHit(const Settings *settings1, int *nchannels_perrx_triggered, const double *voltagearray, double& volts_rx_sum) const {
-  double sum=0;
-  int count_hitantennas=0;
-  for (int i=0;i<settings1->NANTENNAS;i++) {
-    if (nchannels_perrx_triggered[i]>=3) {
-      sum+=voltagearray[i];
-      count_hitantennas++;
-    } //if
-  } //for
-  volts_rx_sum = sum;
-  sum = sum/(double)count_hitantennas;
-  return sum;
-}
-//end GetAverageVoltageFromAntennasHit()

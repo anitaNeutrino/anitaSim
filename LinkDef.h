@@ -7,5 +7,6 @@
 #pragma link C++ namespace anitaSim;
 #pragma link C++ class anitaSim::RX+;
 #pragma link C++ class anitaSim::VoltsRX+;
+#pragma link C++ class anitaSim::ChannelVolts+;
 
 #endif

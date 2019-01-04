@@ -118,8 +118,6 @@ anitaSim::GlobalTrigger::GlobalTrigger(const Settings *settings, const Anita* an
 	  // make vchannels_passing the proper length.
 	  vchannels_passing[i][j][k].push_back(0);
 	}
-
-
       }
     }
   }
@@ -271,7 +269,6 @@ void anitaSim::GlobalTrigger::PassesTrigger(Anita* anita1, int mode, TriggerStat
     
     // Don't know the name of this one so I'll call it 5
     PassesTriggerScheme5(anita1, this_threshold, triggerState.passes.data());
-   
   }
 
 
