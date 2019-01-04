@@ -2493,7 +2493,7 @@ void anitaSim::Anita::BoxAverage(double *array, const int n,int navg) {
 }
 
 
-void anitaSim::Anita::labAttn(double *vhz) {
+void anitaSim::Anita::labAttn(double *vhz) const {
   for (int i=0;i<NFREQ;i++) {
     // next find the index of the lab attenuation array
     int ilab=icemc::Tools::findIndex(freqlab,freq[i],NPOINTS_LAB,freqlab[0],freqlab[NPOINTS_LAB-1]);

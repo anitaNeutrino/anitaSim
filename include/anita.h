@@ -56,7 +56,7 @@ namespace anitaSim {
  
     int Match(int ilayer,int ifold,int rx_minarrivaltime);
     int getLabAttn(int NPOINTS_LAB, double *freqlab, double *labattn);
-    void labAttn(double *vhz);
+    void labAttn(double *vhz) const;
     void SetNoise(const Settings *settings1, FlightDataManager *bn1, const icemc::Antarctica *antarctica);
     void calculate_antenna_positions(const Settings *settings1,double pitch, double roll, double phi_spin,TVector3 n_north,TVector3 n_east);
     void saveGainsPlot(const std::string& fileName);
