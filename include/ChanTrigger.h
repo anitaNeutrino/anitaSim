@@ -110,13 +110,10 @@ namespace anitaSim {
      *
      * Apply time delays to each channel and add thermal noise
      *
-     * @param  anita1 :: Anita - anita object
-     * @param  ilayer :: int - payload layer
-     * @param  ifold :: int - payload phi sector
-     * @param  volts_rx_rfcm_lab_e_all :: double [48][512] - time domain waveform for each channel (VPOL)
-     * @param  volts_rx_rfcm_lab_h_all :: double [48][512] - time domain waveform for each channel (HPOL)
+     * @param  volts_rx_rfcm_lab_e_all :: - time domain waveform for each channel (VPOL)
+     * @param  volts_rx_rfcm_lab_h_all :: - time domain waveform for each channel (HPOL)
      */ 
-    void TimeShiftAndSignalFluct(Anita* anita1, int rx, double* volts_rx_rfcm_lab_e_all, double* volts_rx_rfcm_lab_h_all);
+    void SaveLabradorWaveforms(double* volts_rx_rfcm_lab_e_all, double* volts_rx_rfcm_lab_h_all);
   
     //!  Convert E and H to left and right e field
     /**

@@ -986,29 +986,18 @@ void anitaSim::ChanTrigger::DigitizerPath(Anita* anita1, int ant)//}, FlightData
 
 
 
-// void anitaSim::ChanTrigger::TimeShiftAndSignalFluct(Anita* anita1, int ilayer, int ifold, double volts_rx_rfcm_lab_e_all[48][512], double volts_rx_rfcm_lab_h_all[48][512])
-// void anitaSim::ChanTrigger::TimeShiftAndSignalFluct(Anita* anita1, int ilayer, int ifold, double* volts_rx_rfcm_lab_e_all, double* volts_rx_rfcm_lab_h_all)
- void anitaSim::ChanTrigger::TimeShiftAndSignalFluct(Anita* anita1, int rx, double* volts_rx_rfcm_lab_e_all, double* volts_rx_rfcm_lab_h_all) {
-  // int ant = anita1->GetRxTriggerNumbering(ilayer, ifold);
-
-  // now shift right to account for arrival times
-  // this is done inside the impulse response function normally
-  // if we don't use it, we need to do it here
-  // if (!fSettings->APPLYIMPULSERESPONSEDIGITIZER){
-  //   //  for (int i=0;i<48;i++) std::cout << "Arrival times " << anita1->arrival_times[0][anita1->GetRx(ilayer,ifold)] << std::endl;
-  //   icemc::Tools::ShiftRight(volts_rx_rfcm_lab[0],Anita::HALFNFOUR, int(anita1->arrival_times[0][anita1->GetRx(ilayer,ifold)]/anita1->TIMESTEP));
-  //   icemc::Tools::ShiftRight(volts_rx_rfcm_lab[1],Anita::HALFNFOUR, int(anita1->arrival_times[1][anita1->GetRx(ilayer,ifold)]/anita1->TIMESTEP));
-  // }
-  for (int i=0;i<Anita::HALFNFOUR;i++) {
+void anitaSim::ChanTrigger::SaveLabradorWaveforms(double* volts_rx_rfcm_lab_e_all,
+						  double* volts_rx_rfcm_lab_h_all) {
+   for (int i=0;i<Anita::HALFNFOUR;i++) {
     volts_rx_rfcm_lab_e_all[i] = volts_rx_rfcm_lab[0][i];
     volts_rx_rfcm_lab_h_all[i] = volts_rx_rfcm_lab[1][i];
   }
   
-  // now vmmhz_rx_rfcm_lab_e,h_forfft are the time domain waveforms after the antenna and lab attenuation
-  // now find peak voltage
-  // these get written to a tree
-  anita1->peak_rx_rfcm_lab[0] = anitaSim::ChanTrigger::FindPeak(volts_rx_rfcm_lab[0],anita1->HALFNFOUR);
-  anita1->peak_rx_rfcm_lab[1] = anitaSim::ChanTrigger::FindPeak(volts_rx_rfcm_lab[1],anita1->HALFNFOUR);
+  // // now vmmhz_rx_rfcm_lab_e,h_forfft are the time domain waveforms after the antenna and lab attenuation
+  // // now find peak voltage
+  // // these get written to a tree
+  // anita1->peak_rx_rfcm_lab[0] = anitaSim::ChanTrigger::FindPeak(volts_rx_rfcm_lab[0],anita1->HALFNFOUR);
+  // anita1->peak_rx_rfcm_lab[1] = anitaSim::ChanTrigger::FindPeak(volts_rx_rfcm_lab[1],anita1->HALFNFOUR);
 
   // END OF DIGITIZER PATH
   ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1018,7 +1007,10 @@ void anitaSim::ChanTrigger::DigitizerPath(Anita* anita1, int ant)//}, FlightData
 
 
 
-anitaSim::ChanTrigger::ChanTrigger(const Settings* settings, const Anita* anita1) : fSettings(settings) {
+anitaSim::ChanTrigger::ChanTrigger(const Settings* settings,
+				   const Anita* anita1)
+  : fSettings(settings) {
+  
   InitializeEachBand(anita1);
 }
 
@@ -1176,7 +1168,11 @@ double anitaSim::ChanTrigger::rateToThreshold(double rate, int band)
 
 
 
-int anitaSim::ChanTrigger::IsItUnmasked(unsigned short surfTrigBandMask[9][2],int ibw,int ilayer, int ifold, int ipol) {
+int anitaSim::ChanTrigger::IsItUnmasked(unsigned short surfTrigBandMask[9][2],
+					int ibw,
+					int ilayer,
+					int ifold,
+					int ipol) {
     
   if (ibw>3)
     return 1;
@@ -1216,8 +1212,13 @@ int anitaSim::ChanTrigger::IsItUnmasked(unsigned short surfTrigBandMask[9][2],in
 
 
 
-void anitaSim::ChanTrigger::L1Trigger(const Anita* anita1,double timedomain_output_1[5][Anita::NFOUR],double timedomain_output_2[5][Anita::NFOUR],std::array<std::array<double, 5>, 2>& powerthreshold,
-				   int *channels_passing_e_forglob,int *channels_passing_h_forglob,int &npass) {
+void anitaSim::ChanTrigger::L1Trigger(const Anita* anita1,
+				      double timedomain_output_1[5][Anita::NFOUR],
+				      double timedomain_output_2[5][Anita::NFOUR],
+				      std::array<std::array<double, 5>, 2>& powerthreshold,				      
+				      int *channels_passing_e_forglob,
+				      int *channels_passing_h_forglob,
+				      int &npass) {
   
   int maxsample=icemc::Tools::max(anita1->imaxbin);
   int minsample=icemc::Tools::max(anita1->iminbin);

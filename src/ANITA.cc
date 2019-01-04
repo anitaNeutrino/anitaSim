@@ -167,8 +167,7 @@ void anitaSim::ANITA::initSeaveys() {
 				    RRX[ilayer]*sin(phi) + LAYER_HPOSITION[ilayer]*sin(LAYER_PHIPOSITION[ilayer]),
 				    LAYER_VPOSITION[ilayer]);
       }
-     
-    } 
+    }
     fSeaveys.emplace_back(Seavey(positionV, positionH,  n_eplane,  n_hplane, n_normal, fSettings));
   }
 }
@@ -194,7 +193,7 @@ bool anitaSim::ANITA::applyTrigger(int inu){
   //          FOR VPOL AND HPOL       //
   //////////////////////////////////////
 
-  fVoltsRX.reset();
+  fVoltsRX.reset(); /// All waveforms downstream of antennas (e.g. signal/ditizger path) set to zero
 
   auto globalTrigger = std::make_shared<GlobalTrigger>(fSettings, dynamic_cast<Anita*>(this));
 
@@ -205,23 +204,17 @@ bool anitaSim::ANITA::applyTrigger(int inu){
 
     ct.TriggerPath(this, antNum);
     ct.DigitizerPath(this, antNum);
-    ct.TimeShiftAndSignalFluct(this, antNum,
-			       fVoltsRX.channelsV.at(antNum).rfcm_lab_all.data(),
-			       fVoltsRX.channelsH.at(antNum).rfcm_lab_all.data());
+    ct.SaveLabradorWaveforms(fVoltsRX.channelsV.at(antNum).rfcm_lab_all.data(),
+			     fVoltsRX.channelsH.at(antNum).rfcm_lab_all.data());
     ct.saveTriggerWaveforms(fVoltsRX.channelsV.at(antNum).justSignalTrig.data(),
 			    fVoltsRX.channelsH.at(antNum).justSignalTrig.data(),
 			    fVoltsRX.channelsV.at(antNum).justNoiseTrig.data(),
 			    fVoltsRX.channelsH.at(antNum).justNoiseTrig.data());
-
     
     ct.saveDigitizerWaveforms(fVoltsRX.channelsV.at(antNum).justSignalDig.data(),
 			      fVoltsRX.channelsH.at(antNum).justSignalDig.data(),
 			      fVoltsRX.channelsV.at(antNum).justNoiseDig.data(),
 			      fVoltsRX.channelsH.at(antNum).justNoiseDig.data());
-    // ct.saveDigitizerWaveforms(&fJustSignalDig[0][antNum][0],
-    // 			      &fJustSignalDig[1][antNum][0],
-    // 			      &fJustNoiseDig[0][antNum][0],
-    // 			      &fJustNoiseDig[1][antNum][0]);
 
 
     int ilayer, ifold;
