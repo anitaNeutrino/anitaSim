@@ -238,7 +238,6 @@ namespace anitaSim {
     void myconvlv(double *timedomain_forconvl,const int NFOUR,double *fdiode,double &maxdiodeconvl,double &onediodeconvl,double *power_noise,double *diodeconv);
 
     static int SurfChanneltoBand(int isurf);
-    int AntennaWaveformtoSurf(int ilayer,int ifold) const; // find surf that generates this antenna's waveform
     static int AntennaNumbertoSurfNumber(int ilayer,int ifold); // find surf where this antenna is triggered
     static int GetAntennaNumber(int ilayer,int ifold); // given anitaSim indices ilayer, ifold, find antenna number as defined officially on anita
     // static int GetLayer(int rx);
@@ -290,16 +289,11 @@ namespace anitaSim {
     double bwslice_diodemean_fullband_allchan[2][48][6]; // diode rms for noise read from flight
     double freq_noise[5][NPOINTS_NOISE]; // frequency array that goes with vnoise array
 
-
-    double impedence;
-    double phase;
     double powerthreshold[5];
     double powerthreshold_nadir[5];
     int NCH_PASS; // for ANITA 3 trigger - requires some number of channels pass
 
     double l1window; // time window where we require coincidences at L1
-
-    double minsignalstrength; // minimum signal strength (measured as output of the diode) that a signal has to be for it to be worth adding to noise and performing the diode integration (each time we do this is uses up a noise waveform)
 
     double INTEGRATIONTIME; // integration time of the tunnel diode
     static const int nsamp=100; // number of samples that were used to measure the noise data
@@ -337,22 +331,10 @@ namespace anitaSim {
 
 
     static const int NPOINTS_LAB=272; // from note 137
-
     double freqlab[NPOINTS_LAB]; // frequency for each lab attn. bin
-
     double labattn[NPOINTS_LAB]; // lab attenuation
-
-
     double VNOISE[NLAYERS_MAX]; // noise calculated for each antenna layer depending on cant angle- this is only used right now for the chance in hell cuts
-
-
     int trigRequirements[NLAYERS_MAX];//  0th element - L1 - how many channels per antenna should pass
-    // 1st element- L2 - how many antennas on a layer
-    // 2nd element - L3 - how many L2 triggers should be coincident
-
-    int antennatosurf[32];
-
-    double maxthreshold;
     std::array<double, 5> bwslice_thresholds;  // thresholds for each band -- this is just an initialization- this is set in the input file
     std::array<double,5> bwslice_allowed; // these bands are allowed to contribute to the trigger sum -- this is set in the input file
     int bwslice_required[5]; // these bands are required to be among the channels that pass -- this is set in the input file
@@ -363,10 +345,7 @@ namespace anitaSim {
 
     double bwslice_center[5]; // center frequencies
     double bwslice_width[5]; // 3 dB bandwidths, without overlap
-
-
     double bwslice_min[5]; //minimum of each bandwidth slice
-
     double bwslice_max[5]; //minimum of each bandwidth slice
     double bwmin; // minimum width of any allowed bandwidth slice
 

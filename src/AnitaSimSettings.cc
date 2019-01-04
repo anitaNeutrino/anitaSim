@@ -539,7 +539,6 @@ for(unsigned int i=0; i < requiredBands.size(); i++){
     anita1->bwslice_allowed[i] = allowedBands.at(i);
   }
 
-  anita1->maxthreshold=0.;
   anita1->bwmin=1.E10;
   if (anita1->BANDING!=1){
     anita1->bwmin=200.E6;
@@ -547,9 +546,6 @@ for(unsigned int i=0; i < requiredBands.size(); i++){
 
   const int numBands = 5;
   for (int i=0; i<numBands; i++) {
-    if (anita1->bwslice_thresholds.at(i)>anita1->maxthreshold && anita1->bwslice_allowed[i]==1){
-      anita1->maxthreshold = anita1->bwslice_thresholds.at(i);
-    }
     if (anita1->BANDING==1) {
       if ((anita1->bwslice_max[i] - anita1->bwslice_min[i]) < anita1->bwmin && anita1->bwslice_allowed[i] == 1){
 

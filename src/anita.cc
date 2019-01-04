@@ -72,42 +72,7 @@ anitaSim::Anita::Anita(const Settings* settings, const char* outputDir, const Fl
   iminbin.fill(0);
   imaxbin.fill(HALFNFOUR);
 
-  antennatosurf[0]=2;
-  antennatosurf[1]=4;
-  antennatosurf[2]=6;
-  antennatosurf[3]=8;
-  antennatosurf[4]=2;
-  antennatosurf[5]=4;
-  antennatosurf[6]=6;
-  antennatosurf[7]=8;
-  // layer 1
-  antennatosurf[8]=1;
-  antennatosurf[9]=3;
-  antennatosurf[10]=5;
-  antennatosurf[11]=7;
-  antennatosurf[12]=1;
-  antennatosurf[13]=3;
-  antennatosurf[14]=5;
-  antennatosurf[15]=7;
-  // layer 2
-  antennatosurf[16]=1;
-  antennatosurf[17]=2;
-  antennatosurf[18]=3;
-  antennatosurf[19]=4;
-  antennatosurf[20]=5;
-  antennatosurf[21]=6;
-  antennatosurf[22]=7;
-  antennatosurf[23]=8;
-  antennatosurf[24]=1;
-  antennatosurf[25]=2;
-  antennatosurf[26]=3;
-  antennatosurf[27]=4;
-  antennatosurf[28]=5;
-  antennatosurf[29]=6;
-  antennatosurf[30]=7;
-  antennatosurf[31]=8; // layer 3
       
-  maxthreshold=0.;
   bwslice_thresholds.fill(0); // thresholds for each band -- this is just an initialization- this is set in the input file
   bwslice_allowed.fill(1); // these bands are allowed to contribute to the trigger sum -- this is set in the input file
 
@@ -264,11 +229,7 @@ void anitaSim::Anita::Initialize(const Settings *settings1, std::ofstream &foutp
     l1window=11.19E-9; // l1 coincidence window
   }
   
-  minsignalstrength=0.1;
     
-  impedence=50.;
-  phase=90.; // phase for positive frequencies
-  // assuming v(t) is real, then phase(neg)=-phase(pos)
   INTEGRATIONTIME=3.5E-9; // integration time of trigger diode
 
   DEADTIME=10.E-9; // dead time after a trigger
@@ -293,7 +254,9 @@ void anitaSim::Anita::Initialize(const Settings *settings1, std::ofstream &foutp
     freq_forfft[2*i]=(double)i*freqstep;
     freq_forfft[2*i+1]=(double)i*freqstep;
       
-    if (i<HALFNFOUR/2) freq_forplotting[i]=freq_forfft[2*i];
+    if (i<HALFNFOUR/2) {
+      freq_forplotting[i]=freq_forfft[2*i];
+    }
 		
   }
 
@@ -1155,14 +1118,6 @@ int anitaSim::Anita::GetAntennaNumber(int ilayer,int ifold) {
     
 }
 
-int anitaSim::Anita::AntennaWaveformtoSurf(int ilayer,int ifold) const {
-    
-  int antenna=GetAntennaNumber(ilayer,ifold); // antenna number 1-32
-    
-  return antennatosurf[antenna-1]; // returns the surf number
-    
-}
-
 int anitaSim::Anita::AntennaNumbertoSurfNumber(int ilayer,int ifold) {
   int antenna=GetAntennaNumber(ilayer,ifold); // antenna number 1-32
     
@@ -1323,7 +1278,7 @@ void anitaSim::Anita::myconvlv(double *data,const int NFOUR,double *fdiode,doubl
   //double fdiode_real[length];
   double power_noise_copy[length];
     
-
+  const double impedence = 50;
   for (int i=0;i<NFOUR/2;i++) {
     power_noise_copy[i]=(data[i]*data[i])/impedence*TIMESTEP;
   }
