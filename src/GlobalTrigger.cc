@@ -276,16 +276,6 @@ void anitaSim::GlobalTrigger::PassesTrigger(Anita* anita1, int mode, TriggerStat
 
 
 
-// void  anitaSim::GlobalTrigger::PassesTriggerBasic(const Settings *settings1,Anita* anita1,
-// 						  int discones_passing,int mode,
-// 						  int *l3trig,
-// 						  int l2trig[Anita::NPOL][Anita::NTRIGGERLAYERS_MAX],
-// 						  int l1trig[Anita::NPOL][Anita::NTRIGGERLAYERS_MAX],
-// 						  int antennaclump,
-// 						  int loctrig[Anita::NPOL][Anita::NLAYERS_MAX][Anita::NPHI_MAX],
-// 						  int loctrig_nadironly[Anita::NPOL][Anita::NPHI_MAX],
-// 						  int *thispasses, int inu){
-
 void  anitaSim::GlobalTrigger::PassesTriggerBasic(Anita* anita1,
 						  int mode, TriggerState& triggerState){
   
@@ -673,7 +663,6 @@ void  anitaSim::GlobalTrigger::PassesTriggerBasic(Anita* anita1,
 	for (int iphi=0;iphi<anita1->PHITRIG[0];iphi++) {
 	  for (int ipolar=0;ipolar<anita1->NPOL;ipolar++) {
 	    icemc::Tools::reverseTimeOrdering(anita1->HALFNFOUR,anita1->arrayofhits_inanita[ilayer][iphi][ipolar],anita1->arrayofhits_forgaryanderic[ilayer][iphi][ipolar]);
-	      
 	  }
 	}
       }

@@ -67,7 +67,7 @@ void anitaSim::ChanTrigger::ConvertHVtoLRTimedomain(const int nfour, const doubl
     
   //  double *hvolts_f=hvolts;
   //double *vvolts_f=vvolts;
-    
+
   icemc::FTPair::realft(hvolts_f,1,nfour/2);
   icemc::FTPair::realft(vvolts_f,1,nfour/2);
 
@@ -242,9 +242,7 @@ void anitaSim::ChanTrigger::WhichBandsPassTrigger1(const Anita* anita1, GlobalTr
       if (signal_eachband[0][ibw]/noise_eachband[0][ibw]>=threshold_eachband[0][ibw]) {
 	//      if (fabs(volts_thischannel)/anita1->bwslice_vnoise[ilayer][ibw]>=bwslice_thresholds[ibw]) {
 	if (anita1->pol_allowed[0] && anita1->bwslice_allowed[ibw]) { // are this pol and bandwidth allowed to pass
-	  ///@warning 
-	  globaltrig1->nchannels_perrx_triggered[anita1->GetRxTriggerNumbering(ilayer,ifold)]++; //Records number of first level triggers on each antenna for a single neutrino	  
-	  // globaltrig1->nchannels_perrx_triggered[anita1->GetRx(ilayer,ifold)]++; //Records number of first level triggers on each antenna for a single neutrino	  
+	  globaltrig1->nchannels_perrx_triggered[anita1->GetRxTriggerNumbering(ilayer,ifold)]++; //Records number of first level triggers on each antenna for a single neutrino
 	  globaltrig1->channels_passing[ilayer][ifold][0][ibw]=1; // if it does then flag the element of the channels_passing array that corresponds to lcp or v pol for this band
 	  globaltrig1->vchannels_passing[ilayer][ifold][0][ibw]=1; // if it does then flag the element of the channels_passing array that corresponds to lcp or v pol for this band
 	  passes_eachband[0][ibw]=1;
@@ -282,10 +280,6 @@ void anitaSim::ChanTrigger::WhichBandsPassTrigger1(const Anita* anita1, GlobalTr
 	}
 	    
 	energythresh_thischannel=thresholds[1][ibw];
-	//meanp_thischannel=bn1->meanp[isurf][ichan];
-	    
-	//energy_thischannel+=meanp_thischannel*INTEGRATION_TIME;
-	    
 	voltagethresh_thischannel=anita1->bwslice_thresholds.at(ibw);
 	    
 	    
@@ -851,7 +845,7 @@ void anitaSim::ChanTrigger::TriggerPath(const Anita* anita1, int ant){
 
 
 
-void anitaSim::ChanTrigger::DigitizerPath(Anita* anita1, int ant)//}, FlightDataManager *bn1)
+void anitaSim::ChanTrigger::DigitizerPath(Anita* anita1, int ant)
 {
   std::array<double, Anita::NFREQ> vhz_rx_rfcm_e; // V/Hz after rx, rfcm
   std::array<double, Anita::NFREQ> vhz_rx_rfcm_h;
