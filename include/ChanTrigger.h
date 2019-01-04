@@ -148,8 +148,9 @@ namespace anitaSim {
      * @param left :: double * - array of voltage values (LCP)
      * @param right :: double * - array of voltage values (RCP)
      */ 
-    void ConvertHVtoLRTimedomain(const int nfour,double *vvolts,
-				 double *hvolts,
+    void ConvertHVtoLRTimedomain(const int nfour,
+				 const double *vvolts,
+				 const double *hvolts,
 				 double *left,double *right);
 
 
@@ -212,7 +213,7 @@ namespace anitaSim {
      * @param  ifold :: int - phi sector
      * @param  thresholds :: double [2][5] - relative power thresholds for each pol and band
      */
-    void WhichBandsPass(Anita* anita1, GlobalTrigger *globaltrig1, FlightDataManager *bn1, int ilayer, int ifold, std::array<std::array<double, 5>, 2>& thresholds);
+    void WhichBandsPass(Anita* anita1, GlobalTrigger *globaltrig1, const FlightDataManager *bn1, int ilayer, int ifold, std::array<std::array<double, 5>, 2>& thresholds);
 
     //! Which bands passes the trigger (for trigger scheme 0 and 1)
     /**
@@ -224,7 +225,7 @@ namespace anitaSim {
      * @param  ifold :: int - phi sector
      * @param  thresholds :: double [2][5] - relative power thresholds for each pol and band
      */
-    void WhichBandsPassTrigger1(const Anita* anita1, GlobalTrigger *globaltrig1, FlightDataManager *bn1, int ilayer, int ifold, std::array<std::array<double, 5>, 2>& thresholds);
+    void WhichBandsPassTrigger1(const Anita* anita1, GlobalTrigger *globaltrig1, const FlightDataManager *bn1, int ilayer, int ifold, std::array<std::array<double, 5>, 2>& thresholds);
 
     //! Which bands passes the trigger (for trigger scheme larger than 2)
     /**
@@ -236,7 +237,7 @@ namespace anitaSim {
      * @param  ifold :: int - phi sector
      * @param  thresholds :: double [2][5] - relative power thresholds for each pol and band
      */
-    void WhichBandsPassTrigger2(Anita* anita1, GlobalTrigger *globaltrig1, FlightDataManager *bn1, int ilayer, int ifold, std::array<std::array<double, 5>, 2>& thresholds);
+    void WhichBandsPassTrigger2(Anita* anita1, GlobalTrigger *globaltrig1, const FlightDataManager *bn1, int ilayer, int ifold, std::array<std::array<double, 5>, 2>& thresholds);
 
     //! Find peak voltage of a waveform
     /**
@@ -293,7 +294,7 @@ namespace anitaSim {
      * @param  ipol :: int - pol number
      * @return whether the channel and band are masked or not
      */
-    static int IsItUnmasked(unsigned short surfTrigBandMask[9][2],int ibw,int ilayer, int ifold, int ipol);
+    static int IsItUnmasked(const unsigned short surfTrigBandMask[9][2],int ibw,int ilayer, int ifold, int ipol);
 
     //! Apply impulse response to digitizer path
     /**

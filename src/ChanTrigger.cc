@@ -47,9 +47,10 @@ void anitaSim::ChanTrigger::ConvertEHtoLREnergy(double e_component,double h_comp
     
 } //ConvertEHtoLREnergy
 
-void anitaSim::ChanTrigger::ConvertHVtoLRTimedomain(const int nfour,double *vvolts,
-					  double *hvolts,
-					  double *left,double *right) {
+void anitaSim::ChanTrigger::ConvertHVtoLRTimedomain(const int nfour, const double *vvolts,
+						    const double *hvolts,
+						    double *left,
+						    double *right) {
     
   // nfour is the real and complex values from -F to F
     
@@ -94,7 +95,7 @@ void anitaSim::ChanTrigger::ConvertHVtoLRTimedomain(const int nfour,double *vvol
 }
 
 
-void anitaSim::ChanTrigger::WhichBandsPass(Anita* anita1, GlobalTrigger *globaltrig1, FlightDataManager *bn1, int ilayer, int ifold, std::array<std::array<double, 5>, 2>& thresholds){
+void anitaSim::ChanTrigger::WhichBandsPass(Anita* anita1, GlobalTrigger *globaltrig1, const FlightDataManager *bn1, int ilayer, int ifold, std::array<std::array<double, 5>, 2>& thresholds){
 
   if (fSettings->USETIMEDEPENDENTTHRESHOLDS==1 && fSettings->WHICH==anitaSim::Payload::Anita3) {
     for(int i=0;i<4;i++) {
@@ -147,7 +148,7 @@ void anitaSim::ChanTrigger::WhichBandsPass(Anita* anita1, GlobalTrigger *globalt
  *
  *
  */
-void anitaSim::ChanTrigger::WhichBandsPassTrigger1(const Anita* anita1, GlobalTrigger *globaltrig1, FlightDataManager *bn1, int ilayer, int ifold, std::array<std::array<double, 5>, 2>& thresholds){
+void anitaSim::ChanTrigger::WhichBandsPassTrigger1(const Anita* anita1, GlobalTrigger *globaltrig1, const FlightDataManager *bn1, int ilayer, int ifold, std::array<std::array<double, 5>, 2>& thresholds){
 
   double volts_thischannel;
   double energy_thischannel;
@@ -331,7 +332,7 @@ void anitaSim::ChanTrigger::WhichBandsPassTrigger1(const Anita* anita1, GlobalTr
  *
  *
  */
-void anitaSim::ChanTrigger::WhichBandsPassTrigger2(Anita* anita1, GlobalTrigger *globaltrig1, FlightDataManager *bn1, int ilayer, int ifold, std::array<std::array<double, 5>, 2>& thresholds){
+void anitaSim::ChanTrigger::WhichBandsPassTrigger2(Anita* anita1, GlobalTrigger *globaltrig1, const FlightDataManager *bn1, int ilayer, int ifold, std::array<std::array<double, 5>, 2>& thresholds){
 
   double psignal[2][5][Anita::NFOUR];
   
@@ -365,8 +366,8 @@ void anitaSim::ChanTrigger::WhichBandsPassTrigger2(Anita* anita1, GlobalTrigger 
   	// The below line seems to shorten the length of the waveform to less than HALFNFOUR
   	int itimenoisebin=Anita::HALFNFOUR-(int)(anita1->maxt_diode/anita1->TIMESTEP)-itime;
 
-  	// this is just the straight sum of the two
-  	anita1->total_vpol_inanita[iband][itime] = anita1->timedomainnoise_rfcm_banding[0][iband][itime]+anita1->signal_vpol_inanita[iband][itime];
+  	// // this is just the straight sum of the two
+  	// anita1->total_vpol_inanita[iband][itime] = anita1->timedomainnoise_rfcm_banding[0][iband][itime]+anita1->signal_vpol_inanita[iband][itime];
 
   	integrateenergy[iband]+=anita1->timedomainnoise_rfcm_banding[0][iband][itime]*anita1->timedomainnoise_rfcm_banding[0][iband][itime]*anita1->TIMESTEP;
    	if ( fSettings->SIGNAL_FLUCT && (!fSettings->NOISEFROMFLIGHTTRIGGER) ) {
@@ -378,7 +379,7 @@ void anitaSim::ChanTrigger::WhichBandsPassTrigger2(Anita* anita1, GlobalTrigger 
 	}
       }
       for (int itime=Anita::HALFNFOUR-(int)(anita1->maxt_diode/anita1->TIMESTEP);itime<Anita::HALFNFOUR;itime++) {
-  	anita1->total_vpol_inanita[iband][itime]=0.;
+  	// anita1->total_vpol_inanita[iband][itime]=0.;
   	v_banding_rfcm_forfft[0][iband][itime]=0.;
   	v_banding_rfcm_forfft[1][iband][itime]=0.;
       }
@@ -386,7 +387,7 @@ void anitaSim::ChanTrigger::WhichBandsPassTrigger2(Anita* anita1, GlobalTrigger 
     else if ( fSettings->SIGNAL_FLUCT && (!fSettings->NOISEFROMFLIGHTTRIGGER) ) {
       for (unsigned int itime = 0; itime < anita1->HALFNFOUR; ++itime){
   	// this is just a straight sum
-  	anita1->total_vpol_inanita[iband][itime]=anita1->timedomainnoise_rfcm_banding[0][iband][itime]+anita1->signal_vpol_inanita[iband][itime];
+  	// anita1->total_vpol_inanita[iband][itime]=anita1->timedomainnoise_rfcm_banding[0][iband][itime]+anita1->signal_vpol_inanita[iband][itime];
   	integrateenergy[iband]+=anita1->timedomainnoise_rfcm_banding[0][iband][itime]*anita1->timedomainnoise_rfcm_banding[0][iband][itime]*anita1->TIMESTEP;
   	// this one is the one actually used by the diode
   	v_banding_rfcm_forfft[0][iband][itime] += anita1->timedomainnoise_rfcm_banding[0][iband][itime];
@@ -907,10 +908,6 @@ void anitaSim::ChanTrigger::DigitizerPath(Anita* anita1, int ant)//}, FlightData
       }
     } // end if we are just using the pulser spectrum
 
-    for (int ifreq=0;ifreq<Anita::NFREQ;ifreq++) {
-      anita1->avgfreq_rfcm[ifreq]+=vhz_rx_rfcm_e[ifreq];
-    }
-
     // change their length from Anita::NFREQ to HALFNFOUR
     anita1->MakeArrayforFFT(vhz_rx_rfcm_e.data(),volts_rx_rfcm[0], 90., true);
     anita1->MakeArrayforFFT(vhz_rx_rfcm_h.data(),volts_rx_rfcm[1], 90., true);
@@ -924,22 +921,19 @@ void anitaSim::ChanTrigger::DigitizerPath(Anita* anita1, int ant)//}, FlightData
 
     anita1->GetNoiseWaveforms(); // get noise waveforms
 
-    // find the peak right here and it might be the numerator of the horizontal axis of matt's plot
-    anita1->peak_rx_rfcm_signalonly[0]=anitaSim::ChanTrigger::FindPeak(volts_rx_rfcm[0],anita1->HALFNFOUR); // with no noise
-    anita1->peak_rx_rfcm_signalonly[1]=anitaSim::ChanTrigger::FindPeak(volts_rx_rfcm[1],anita1->HALFNFOUR);
+    // // find the peak right here and it might be the numerator of the horizontal axis of matt's plot
+    // anita1->peak_rx_rfcm_signalonly[0]=anitaSim::ChanTrigger::FindPeak(volts_rx_rfcm[0],anita1->HALFNFOUR); // with no noise
+    // anita1->peak_rx_rfcm_signalonly[1]=anitaSim::ChanTrigger::FindPeak(volts_rx_rfcm[1],anita1->HALFNFOUR);
       
     if (fSettings->SIGNAL_FLUCT) {
       for (int i=0;i<Anita::HALFNFOUR;i++) {
-	for (int ipol=0;ipol<2;ipol++){
+	for (int ipol=0;ipol<Anita::NPOL;ipol++){
 	  volts_rx_rfcm[ipol][i]+=anita1->timedomainnoise_rfcm[ipol][i]; // add noise.
 	}
       }
     }
     
     
-    anita1->peak_rx_rfcm[0]=anitaSim::ChanTrigger::FindPeak(volts_rx_rfcm[0],anita1->HALFNFOUR); // with noise 
-    anita1->peak_rx_rfcm[1]=anitaSim::ChanTrigger::FindPeak(volts_rx_rfcm[1],anita1->HALFNFOUR); // with noise
-      
 
     double vhz_rx_rfcm_lab_e[Anita::NFREQ]; // V/Hz after rx, rfcm and lab
     double vhz_rx_rfcm_lab_h[Anita::NFREQ];
@@ -952,10 +946,6 @@ void anitaSim::ChanTrigger::DigitizerPath(Anita* anita1, int ant)//}, FlightData
     // apply surf (lab) attn.
     anita1->labAttn(vhz_rx_rfcm_lab_e);
     anita1->labAttn(vhz_rx_rfcm_lab_h);
-      
-    for (int i=0;i<Anita::NFREQ;i++) {
-      anita1->avgfreq_rfcm_lab[i]+=vhz_rx_rfcm_lab_e[i];
-    }
 
     // change their length from Anita::NFREQ to HALFNFOUR
     anita1->MakeArrayforFFT(vhz_rx_rfcm_lab_e,volts_rx_rfcm_lab[0], 90., true);
@@ -1168,7 +1158,7 @@ double anitaSim::ChanTrigger::rateToThreshold(double rate, int band)
 
 
 
-int anitaSim::ChanTrigger::IsItUnmasked(unsigned short surfTrigBandMask[9][2],
+int anitaSim::ChanTrigger::IsItUnmasked(const unsigned short surfTrigBandMask[9][2],
 					int ibw,
 					int ilayer,
 					int ifold,
