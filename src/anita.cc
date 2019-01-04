@@ -236,7 +236,6 @@ void anitaSim::Anita::SetNoise(const Settings *settings1, FlightDataManager *bn1
 void anitaSim::Anita::Initialize(const Settings *settings1, std::ofstream &foutput, TString outputdir)
 {
   tuffIndex=0; // keith edits
-  count_getnoisewaveforms=0;
   rms_lab[0]=rms_lab[1]=0.;
   rms_rfcm[0]=rms_rfcm[1]=0.;
 
@@ -259,10 +258,6 @@ void anitaSim::Anita::Initialize(const Settings *settings1, std::ofstream &foutp
 
   for (int i=0;i<NFREQ;i++) {
     freq[i] = FREQ_LOW+(FREQ_HIGH-FREQ_LOW)*(double)i/(double)NFREQ; // freq. of each bin.
-    
-    // std::cout << "Anita::freq[" << i << "] = " << freq[i] << std::endl;
-    avgfreq_rfcm[i]=0.;
-    avgfreq_rfcm_lab[i]=0.;
   } //for
   // std::cout << "df = " << freq[1] - freq[0] << ", so the bin for f=0 is at " << freq[0]/(freq[1] - freq[0]) << std::endl;
   
@@ -275,11 +270,13 @@ void anitaSim::Anita::Initialize(const Settings *settings1, std::ofstream &foutp
     powerthreshold[4] /= TMath::Sqrt(2.);
     additionalDt=30.e-9;
   }
-  if (settings1->TRIGGERSCHEME==5)
+  if (settings1->TRIGGERSCHEME==5){
     l1window=3.75E-9;
-  else
+  }
+  else{
     l1window=11.19E-9; // l1 coincidence window
-    
+  }
+  
   minsignalstrength=0.1;
     
   impedence=50.;
@@ -2161,8 +2158,12 @@ void anitaSim::Anita::GetPhases() {
 		
     // now set phases at the lab chip
 		
-    if(iband < 0) corr = 0;
-    else corr=correl_lab[iband];
+    if(iband < 0) {
+      corr = 0;
+    }
+    else {
+      corr=correl_lab[iband];
+    }
     uncorr=1-corr;
     phase_corr=phases_rfcm[0][k];
     phase_uncorr=2*icemc::constants::PI*gRandom->Rndm();
@@ -2182,8 +2183,12 @@ void anitaSim::Anita::GetPhases() {
     // do the same thing for the bands
     for (int j=0;j<5;j++) {
 			
-      if(iband < 0) corr = 0;
-      else corr=correl_banding[j][iband];
+      if(iband < 0){
+	corr = 0;
+      }
+      else {
+	corr=correl_banding[j][iband];
+      }
       uncorr=1-corr;
       phase_corr=phases_rfcm[0][k];
       phase_uncorr=2*icemc::constants::PI*gRandom->Rndm();
@@ -2230,6 +2235,8 @@ void anitaSim::Anita::convert_power_spectrum_to_voltage_spectrum_for_fft(int len
   return;
 }
 
+
+
 void anitaSim::Anita::GetNoiseWaveforms() {
   GetPhases();
   int nsamples = NFOUR / 2;
@@ -2237,14 +2244,10 @@ void anitaSim::Anita::GetNoiseWaveforms() {
   double sumfreqdomain = 0.;
   double sumtimedomain = 0.;
 
-  count_getnoisewaveforms++;
-
-
   // This is done in a stupid way for the moment to provide the same order of gRandom calls
   // So that I have the exact same results as masters
   // This should be done in 1 loop once I merge the trigger branch with master
   // LC, 16/02/17
-
   
   for (int ipol=0;ipol<2;ipol++){
     convert_power_spectrum_to_voltage_spectrum_for_fft(nsamples, timedomainnoise_rfcm[ipol], freqdomain_rfcm,   phases_rfcm[ipol] );
@@ -2285,33 +2288,29 @@ void anitaSim::Anita::GetNoiseWaveforms() {
     for (int k = 0; k < NFOUR / 2; k++) {
       timedomainnoise_lab[ipol][k] *=THERMALNOISE_FACTOR;
       timedomainnoise_rfcm[ipol][k]*=THERMALNOISE_FACTOR;
-      
+
       if (ipol==0){
 	sumtimedomain += timedomainnoise_lab[ipol][k] * timedomainnoise_lab[ipol][k];
 	// rms_rfcm_e_single_event += timedomainnoise_rfcm[ipol][k] * timedomainnoise_rfcm[ipol][k];
       }
       rms_rfcm[ipol] += timedomainnoise_rfcm[ipol][k] * timedomainnoise_rfcm[ipol][k] / ((double) NFOUR / 2);
-      rms_lab[ipol]  += timedomainnoise_lab[ipol][k] * timedomainnoise_lab[ipol][k] / ((double) NFOUR / 2);
-            
+      rms_lab[ipol]  += timedomainnoise_lab[ipol][k] * timedomainnoise_lab[ipol][k] / ((double) NFOUR / 2);            
     }
-    
   }
 
   for (int iband=0; iband<5; iband++) {
-    for (int ipol=0;ipol<2;ipol++)
-      convert_power_spectrum_to_voltage_spectrum_for_fft(NFOUR/2,timedomainnoise_rfcm_banding[ipol][iband], freqdomain_rfcm_banding[iband], phases_rfcm_banding[ipol][iband]);
+    for (int ipol=0;ipol<2;ipol++){
+      convert_power_spectrum_to_voltage_spectrum_for_fft(NFOUR/2,
+							 timedomainnoise_rfcm_banding[ipol][iband],
+							 freqdomain_rfcm_banding[iband],
+							 phases_rfcm_banding[ipol][iband]);
+    }
     for (int ipol=0;ipol<2;ipol++){
       normalize_for_nsamples(timedomainnoise_rfcm_banding[ipol][iband], (double) nsamples, (double) nsamp);
     }
     for (int ipol=0;ipol<2;ipol++){
       icemc::FTPair::realft(timedomainnoise_rfcm_banding[ipol][iband], -1, NFOUR / 2);
     }
-    //      convert_power_spectrum_to_voltage_spectrum_for_fft(NFOUR,timedomainnoise_rfcm_banding_long[ipol][iband], freqdomain_rfcm_banding_long[iband], phases_rfcm_banding_e_long[iband]);
-    //       normalize_for_nsamples(timedomainnoise_rfcm_banding_long[ipol][iband], (double) nsamples_long, (double) nsamp);
-    //       icemc::FTPair::realft(timedomainnoise_rfcm_banding_long[ipol][iband], -1, NFOUR);
-
-    
-    
   }
 }
 

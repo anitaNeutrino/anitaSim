@@ -86,12 +86,12 @@ namespace anitaSim {
     int PERCENTBW;                                                                                     ///< percent bandwidth
 
     // these variables are for filling the tsignals tree
-    double signal_vpol_inanita[5][HALFNFOUR];                                                          ///< this is the signal waveform in the vertical polarization, before converting to LCP, RCP where applicable
+    // double signal_vpol_inanita[5][HALFNFOUR];                                                          ///< this is the signal waveform in the vertical polarization, before converting to LCP, RCP where applicable
     //double noise_vpol_inanita[5][HALFNFOUR];                                                         ///< this is the noise waveform in the vertical polarization, before converting to LCP, RCP where applicable
-    double total_vpol_inanita[5][HALFNFOUR];                                                           ///< this is the sum of the signal and noise in the vertical polarization, before converting to LCP, RCP where applicable
+    // double total_vpol_inanita[5][HALFNFOUR];                                                           ///< this is the sum of the signal and noise in the vertical polarization, before converting to LCP, RCP where applicable
 
-    double timedomainsignal_rfcm[HALFNFOUR];
-    double timedomainsignal_lab[HALFNFOUR];
+    // double timedomainsignal_rfcm[HALFNFOUR];
+    // double timedomainsignal_lab[HALFNFOUR];
 
     TTree *turfratechain;
     TTree *surfchain;
@@ -161,17 +161,10 @@ namespace anitaSim {
     std::array<int, 5> iminbin;                                                                                             ///< this is the minimum bin to start
     std::array<int, 5> imaxbin;
     int maxbin_fortotal[5];                                                                                     ///< when it sums the noise and signal together it shortens the waveform
-    double peak_v_banding_rfcm[2][5];                                                                           ///< peak V in e/h polarization after rfcm's and banding
-    double peak_rx_signalonly[2];                                                                               ///< peak voltage in e/h polarization received by the antenna
-    double peak_rx_rfcm[2];                                                                                     ///< peak voltage in e/h polarization received by the antenna
-    double peak_rx_rfcm_signalonly[2];                                                                          ///< peak voltage in e/h polarization received by the antenna
-    double peak_rx_rfcm_lab[2];                                                                                 ///< peaks of the previous arrays
     int channels_passing[2][5];                                                                                 ///< channels passing.  This is reset for every antenna for every event
     int l1_passing; // l1 passing
     int l1_passing_allantennas[48]; // l1 passing
 
-    double avgfreq_rfcm[NFREQ];
-    double avgfreq_rfcm_lab[NFREQ];
     double vmmhz_banding[NFREQ];                                                                                ///< V/m/MHz after banding
     double vmmhz_banding_rfcm[NFREQ];                                                                           ///< V/m/MHz after banding and rfcms
 
@@ -288,7 +281,6 @@ namespace anitaSim {
     void GetNoiseWaveforms(); // make time domain noise waveform based on avgnoise being the v^2
     //void GetNoiseWaveform(int iband); // make time domain noise waveform based on avgnoise being the v^2
     void GetPhases();
-    int count_getnoisewaveforms; //count how many times we're in GetNoiseWaveforms for calculating rms voltages
 
     // each of the above graphs has 601 bins in it
     static const int NPOINTS_BANDS=601;

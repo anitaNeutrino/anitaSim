@@ -1211,18 +1211,11 @@ maxsample=Anita::HALFNFOUR; //-(int)(anita1->arrival_times[0][anita1->rx_minarri
   }
 
   for (unsigned center_phi_sector_index = 0; center_phi_sector_index < 16; ++center_phi_sector_index) {
-    // for (unsigned center_phi_sector_index = 0; center_phi_sector_index < 16; center_phi_sector_index+=2) {
-      
-
     for (unsigned int index_hyp=0;index_hyp<anita1->vdifferent_offsets.size();index_hyp++) {
-
-
       for (unsigned i_layer = 0; i_layer < anita1->N_SUMMED_LAYERS; ++i_layer) {
 	for (unsigned i_sector = 0; i_sector < anita1->N_SUMMED_PHI_SECTORS; ++i_sector) {
 
 	  int rx=anita1->GetRxTriggerNumbering(i_layer,(center_phi_sector_index+i_sector)%16);
-	  
-	  
 	  double timedomain_output_1_corrected[Anita::HALFNFOUR]; // these are corrected for their delays so that they should line up in time
 	  double timedomain_output_2_corrected[Anita::HALFNFOUR];
 	  // if we're doing an anita 3 trigger, adjust for delays in the diode outputs so that we can do a time coincidence trigger	
@@ -1231,26 +1224,9 @@ maxsample=Anita::HALFNFOUR; //-(int)(anita1->arrival_times[0][anita1->rx_minarri
 	    timedomain_output_1_corrected[i]=anita1->timedomain_output_allantennas[0][rx][i];
 	    timedomain_output_2_corrected[i]=anita1->timedomain_output_allantennas[1][rx][i];
 	  }
-      
-	  //      icemc::Tools::ShiftLeft(timedomain_output_1_corrected,Anita::HALFNFOUR,anita1->arrival_times[rx]);
-	  //icemc::Tools::ShiftLeft(timedomain_output_2_corrected,Anita::HALFNFOUR,anita1->arrival_times[rx]);
-   
 	  icemc::Tools::ShiftLeft(timedomain_output_1_corrected,Anita::HALFNFOUR,anita1->vdifferent_offsets[index_hyp][anita1->N_SUMMED_PHI_SECTORS*i_layer+i_sector]);
 	  icemc::Tools::ShiftLeft(timedomain_output_2_corrected,Anita::HALFNFOUR,anita1->vdifferent_offsets[index_hyp][anita1->N_SUMMED_PHI_SECTORS*i_layer+i_sector]);
 	    
-
-	  //for (int k=0;k<5;k++) {
-	  //anita1->ston[k]=anita1->peak_v_banding_rfcm_e[k]/anita1->bwslice_vrms[k];
-	  //} // end loop over bands
-	  
-	  // if (rx==anita1->rx_minarrivaltime) {
-
-	  //   for (int i=0;i<Anita::HALFNFOUR;i++) {
-	  //     anita1->timedomain_output_corrected_forplotting[0][0][i]=timedomain_output_1_corrected[i];
-	  //     anita1->timedomain_output_corrected_forplotting[1][0][i]=timedomain_output_2_corrected[i];
-	  //   }
-	  // }
-
 	  flag_e_L1[rx].clear();
 	  flag_h_L1[rx].clear();		
       
@@ -1275,43 +1251,25 @@ maxsample=Anita::HALFNFOUR; //-(int)(anita1->arrival_times[0][anita1->rx_minarri
 	
 	  } // end loop over samples in window where we look for single channel trigger firing
 
-	  for (int i=minsample;i<maxsample;i++) {	      
-	    //	for (int i=minsample;i<maxsample;i++) { // loop over samples in window where we looked for a single channel trigger
-	  
-	    if (flag_e_L1[rx][i-minsample]==1) // if the flag is high (remember the second index of flag_e counts from the start of the window)
+	  for (int i=minsample;i<maxsample;i++) {
+	    if (flag_e_L1[rx][i-minsample]==1){ // if the flag is high (remember the second index of flag_e counts from the start of the window)
 	      for(int k=nstayhigh-1; k>0 && i<maxsample-1; k--) { // then for nstayhigh-1 samples after than we keep it high
 		// i<maxsample-1 makes sure that the second index of flag_e is always less than maxsample-minsample-1.
 		i++;
 		flag_e_L1[rx][i-minsample]=1;
-	      
+		
 	      }
-	  
-	    //      if (flag_e[j][i]==1) {
-	    // 	for (int k=i;k<i+nstayhigh;k++) {
-	    // 	  if (k<NSAMPLES)
-	    // 	    flag_e[j][k]=1;
-	    // 	} // end loop over samples where we want it to stay high
-	  
-	    //       } // end if flag is high
+	    }	  
 	  }
 	
 	  for (int i=minsample;i<maxsample;i++) {
-	    if (flag_h_L1[rx][i-minsample]==1)
+	    if (flag_h_L1[rx][i-minsample]==1){
 	      for(int k=nstayhigh-1; k>0 && i<maxsample-1; k--) {
 		i++;
 		flag_h_L1[rx][i-minsample]=1;
-	      }
-	  
-	    //      if (flag_h[j][i]==1) {
-	    // 	for (int k=i;k<i+nstayhigh;k++) {
-	    // 	  if (k<NSAMPLES)
-	    // 	    flag_h[j][k]=1;
-	    // 	} // end loop over samples where we want it to stay high
-	  
-	    //       } // end if flag is high
-	  
+	      }	  
+	    }
 	  } // end loop over samples
-	
 	} // end loop over phi sectors being considered for this L1
       } // end loop over layers being considered for this L1
 
