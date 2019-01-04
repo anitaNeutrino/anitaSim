@@ -42,6 +42,7 @@ namespace anitaSim {
     ///@todo find a way to remove the balloon from this constructor!
     Anita(const Settings* settings, const char* outputdir, const FlightDataManager* bn1); // constructor
     virtual ~Anita();
+
     void Initialize(const Settings *settings1, std::ofstream &foutput, TString outputdir); ///< initialize a bunch of stuff
     void initializeFixedPowerThresholds(std::ofstream &foutput);
     void readVariableThresholds(const Settings *settings1);
@@ -53,6 +54,7 @@ namespace anitaSim {
     void MakeArrayforFFT(double *vsignalarray_e,double *vsignal_e_forfft, double phasedelay, bool useconstantdelay, bool debug=false) const;
     void GetArrayFromFFT(double *tmp_fftvhz, double *vhz_rx) const;
 
+
     int getLabAttn(int NPOINTS_LAB, double *freqlab, double *labattn);
     void labAttn(double *vhz) const;
     void SetNoise(const Settings *settings1, FlightDataManager *bn1, const icemc::Antarctica *antarctica);
@@ -63,8 +65,6 @@ namespace anitaSim {
     static const int NTRIG=5;
     static const int NTRIGGERLAYERS_MAX=3;
 
-    int inu;                                                    ///< Neutrino number
-    // what the payload looks like
     double THERMALNOISE_FACTOR;                                 ///< factor to multiply thermal noise for error analysis
 
     TFile *fnoise;
@@ -237,20 +237,15 @@ namespace anitaSim {
 
     void myconvlv(double *timedomain_forconvl,const int NFOUR,double *fdiode,double &maxdiodeconvl,double &onediodeconvl,double *power_noise,double *diodeconv);
 
-    static int SurfChanneltoBand(int isurf);
     static int AntennaNumbertoSurfNumber(int ilayer,int ifold); // find surf where this antenna is triggered
-    static int GetAntennaNumber(int ilayer,int ifold); // given anitaSim indices ilayer, ifold, find antenna number as defined officially on anita
-    // static int GetLayer(int rx);
-    // static int GetIfold(int rx);
-    static int GetSurfChannel(int antenna, int ibw,int ipol); // which channel on the surf this channel on this antenna corresponds to.
+    static int GetAntennaNumber(int ilayer,int ifold);
     static int WhichBand(int ibw,int ipol); // which band, 1-8, in order as they are on the surf
+
     void Banding(int j, const double *freq_noise,double *powerperfreq,int NPOINTS_NOISE) const;
-    // void Banding(int iband,double *vmmhz);
     void RFCMs(int ilayer,int ifold,double *vmmhz) const;
     void normalize_for_nsamples(double *spectrum, double nsamples, double nsamp);
     void convert_power_spectrum_to_voltage_spectrum_for_fft(int length,double *spectrum, const double domain[], const double phase[]);
     void GetNoiseWaveforms(); // make time domain noise waveform based on avgnoise being the v^2
-    //void GetNoiseWaveform(int iband); // make time domain noise waveform based on avgnoise being the v^2    
     void GetPhases();
     
     // each of the above graphs has 601 bins in it
@@ -273,7 +268,6 @@ namespace anitaSim {
 
 
     static const int NPOINTS_NOISE=2000;
-
 
     //double bwslice_thresholds[4]={2.319,2.308,2.300,2.290}; // this allows you to set different thresholds for each band
     double bwslice_vnoise[NLAYERS_MAX][5]; // expected noise voltage for antenna layer and
@@ -322,7 +316,6 @@ namespace anitaSim {
     int NTRIGGERLAYERS; // number of layers considered by the trigger.  may be different from nlayers, the number of physical layers on the payload.
     // In Anita 1 and Anita 2, the number of physical layers were 3 while the number of trigger layers were 2.
     int REQUIRE_CENTRE; // require centre antenna in clump to be one of those hit
-    static const int NTRIGPHISECTORS=16; // number of phi sectors in the trigger
 
     double diffraction[2][89][NFREQ];
     void SetDiffraction();
@@ -335,7 +328,7 @@ namespace anitaSim {
     double labattn[NPOINTS_LAB]; // lab attenuation
     double VNOISE[NLAYERS_MAX]; // noise calculated for each antenna layer depending on cant angle- this is only used right now for the chance in hell cuts
     int trigRequirements[NLAYERS_MAX];//  0th element - L1 - how many channels per antenna should pass
-    std::array<double, 5> bwslice_thresholds;  // thresholds for each band -- this is just an initialization- this is set in the input file
+    std::array<double,5> bwslice_thresholds;  // thresholds for each band -- this is just an initialization- this is set in the input file
     std::array<double,5> bwslice_allowed; // these bands are allowed to contribute to the trigger sum -- this is set in the input file
     int bwslice_required[5]; // these bands are required to be among the channels that pass -- this is set in the input file
     int pol_allowed[NPOL];// which polarisations are allowed to have channels that fire (V,H)
@@ -380,9 +373,6 @@ namespace anitaSim {
 #endif
     void calculateDelaysForEfficiencyScan();
 
-    void GetPhasesFromFFT(double *tmp_fftvhz, double *phases) const;
-    void FromTimeDomainToIcemcArray(double *vsignalarray, double vhz[NFREQ]);
-  
     Double_t fTimes[HALFNFOUR];
     Double_t fSignalChainResponseA3DigitizerFreqDomain[NPOL][3][16][400];
     Double_t fSignalChainResponseDigitizerFreqDomain[NPOL][3][16][6][400];

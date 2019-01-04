@@ -191,8 +191,8 @@ void anitaSim::Anita::Initialize(const Settings *settings1, std::ofstream &foutp
   rms_lab[0]=rms_lab[1]=0.;
   rms_rfcm[0]=rms_rfcm[1]=0.;
 
+
   NBANDS=4; // subbands (not counting full band)
-  inu=0;
 
   PERCENTBW=10; // subbands (not counting full band)
 
@@ -717,29 +717,14 @@ void anitaSim::Anita::setDiodeRMS(const Settings *settings1, TString outputdir){
 		
     } // end loop over generated events
     
-    
-    // TCanvas *ctest=new TCanvas("ctest","ctest",880,800);
-    // ctest->Divide(1,5);
-    // TGraph *gtest[5];
-    // for (int i=0;i<5;i++) {
-    //   ctest->cd(i+1);
-    //   gtest[i]=new TGraph(NFOUR,time_long,timedomain_output[i]);
-    //   gtest[i]->Draw("al");
-    // }
-    // stemp = string(outputdir.Data())+"/test.eps";
-    // ctest->Print((TString)stemp);
-    
-    for (int j=0;j<5;j++) {
-      
+    for (int j=0;j<5;j++) {      
       bwslice_vrms[j]=sqrt(bwslice_vrms[j]); // this is the rms input voltage
     }
     
     
     for (int j=0;j<5;j++) {
-      bwslice_enoise[j]=hnoise[j]->GetMean()/1.E15; // mean diode output with no correlations
-      
-      bwslice_fwhmnoise[j]= icemc::Tools::GetFWHM(hnoise[j]);
-      
+      bwslice_enoise[j]=hnoise[j]->GetMean()/1.E15; // mean diode output with no correlations      
+      bwslice_fwhmnoise[j]= icemc::Tools::GetFWHM(hnoise[j]);      
     }
     
     
@@ -798,7 +783,8 @@ void anitaSim::Anita::setDiodeRMS(const Settings *settings1, TString outputdir){
       }
     }
     
-  } else { // IF WE HAVE NOISE FROM FLIGHT
+  }
+  else { // WE HAVE NOISE FROM FLIGHT!
 
 
 #ifdef ANITA_UTIL_EXISTS
@@ -1097,20 +1083,6 @@ double anitaSim::Anita::GetDiffraction(int ilayer, double zenith_angle, int ifre
   return factor*diffraction[ilayer][whichbin+1][ifreq] + (1.-factor)*diffraction[ilayer][whichbin][ifreq];
 }
 
-int anitaSim::Anita::SurfChanneltoBand(int ichan) {
-    
-  // takes surf channel (0-31) and finds what band it is
-  if (ichan<0 || ichan>31) {
-    std::cout << "surf channel out of range!\n";
-    exit(1);
-  }
-    
-  int iband= (ichan%8-ichan%2)/2;
-    
-    
-  return iband;
-    
-}
 
 int anitaSim::Anita::GetAntennaNumber(int ilayer,int ifold) {
     
@@ -1124,11 +1096,6 @@ int anitaSim::Anita::AntennaNumbertoSurfNumber(int ilayer,int ifold) {
   return (antenna-1-(antenna-1)%4)/4+1; // returns the surf number 1-9
 }
 
-int anitaSim::Anita::GetSurfChannel(int antenna,int ibw,int ipol) { // 1 to 32
-    
-  return ((antenna-1)%4)*8+WhichBand(ibw,ipol);//which scalar channel, numbered 1 to 32
-    
-}
 
 int anitaSim::Anita::WhichBand(int ibw,int ipol) {
     
@@ -1574,28 +1541,6 @@ void anitaSim::Anita::GetArrayFromFFT(double *tmp_fftvhz, double *vhz_rx) const 
 }
 
 
-void anitaSim::Anita::GetPhasesFromFFT(double *tmp_fftvhz, double *phases) const {
-  
-  for (int ifreq=0; ifreq<HALFNFOUR/2; ifreq++){
-    phases[ifreq]=TMath::ATan2(tmp_fftvhz[ifreq+1], tmp_fftvhz[ifreq])*180./icemc::constants::PI;
-  }
-
-}
-
-
-void anitaSim::Anita::FromTimeDomainToIcemcArray(double *vsignalarray, double vhz[NFREQ]) {
-  
-  // find the frequency domain
-  icemc::FTPair::realft(vsignalarray,1,NFOUR/2);
-
-  GetPhasesFromFFT(vsignalarray, v_phases.data());
-  
-  //convert the V pol time waveform into frequency amplitudes
-  GetArrayFromFFT(vsignalarray, vhz);
-
-
-
-}
 
 
 void anitaSim::Anita::MakeArrayforFFT(double *vsignalarray_e,double *vsignal_e_forfft, double phasedelay, bool useconstantdelay, bool debug) const {

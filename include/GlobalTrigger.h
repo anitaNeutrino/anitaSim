@@ -26,7 +26,7 @@ namespace anitaSim {
   
     double TRIGTIMESTEP;
     int nstepback;  // when a trigger is fired, how many bins you step back to start a coincidence window
-
+    static const int NTRIGPHISECTORS = 16; /// moved from anita.h to where it's actually used...
     // this is used for Anita 3
     //  const double L1_COINCIDENCE[3]={8.E-9,8.E-9,8.E-9}; // L1 coincidence window, in seconds  
     std::array<double, 3> L1_COINCIDENCE_ANITA3; // L1 coincidence window, in seconds  

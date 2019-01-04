@@ -802,7 +802,7 @@ void  anitaSim::GlobalTrigger::PassesTriggerBasic(Anita* anita1,
       // can we simplify it
       if (fSettings->PHIMASKING && fSettings->WHICH!=Payload::Anita3) { // not for Anita3
 	// nadir antennas are aligned with the second physical layer of antennas
-	for (int iphi=0;iphi<anita1->NTRIGPHISECTORS;iphi++) { // loop over phi sectors
+	for (int iphi=0;iphi<NTRIGPHISECTORS;iphi++) { // loop over phi sectors
 	  if ((1<<iphi) & phiTrigMask[0]) { // if this phi sector is masked
 	    for (int ipolar=0;ipolar<Anita::NPOL;ipolar++) {
 	      for (int iloc=0;iloc<anita1->NTRIGGERLAYERS;iloc++) {
@@ -814,7 +814,7 @@ void  anitaSim::GlobalTrigger::PassesTriggerBasic(Anita* anita1,
 	}
       } else if (fSettings->PHIMASKING && fSettings->WHICH==Payload::Anita3) { // only for Anita3
 	// nadir antennas are aligned with the second physical layer of antennas
-	for (int iphi=0;iphi<anita1->NTRIGPHISECTORS;iphi++) { // loop over phi sectors
+	for (int iphi=0;iphi<NTRIGPHISECTORS;iphi++) { // loop over phi sectors
 
 	  for (int ipolar=0;ipolar<Anita::NPOL;ipolar++) {
 	    if ( (1<<iphi) & phiTrigMask[ipolar] )   { // if this phi sector is masked
@@ -831,7 +831,7 @@ void  anitaSim::GlobalTrigger::PassesTriggerBasic(Anita* anita1,
     if (anita1->trigRequirements[2]==0) {
       for (int iloc=0;iloc<anita1->NTRIGGERLAYERS;iloc++) {
 	for (int ipolar=0;ipolar<Anita::NPOL;ipolar++) {
-	  for (int iphi=0;iphi<anita1->NTRIGPHISECTORS;iphi++) {
+	  for (int iphi=0;iphi<NTRIGPHISECTORS;iphi++) {
 	    if (triggerState.L2.at(ipolar).at(iloc) & (1<<iphi)) { // if we are not making a L3 trigger requirement and there was a l2 trigger then call it a pass
 	      triggerState.passes.at(ipolar)=1;
 	      //cout << "This one passes.  inu is " << inu << " " << "iloc is " << iloc << "\n";
@@ -1343,7 +1343,7 @@ void anitaSim::GlobalTrigger::FillInNadir(const Anita* anita1,int ant) { //overl
     
     
   ant=0;
-  for (int iphi=0;iphi<anita1->NTRIGPHISECTORS;iphi++) {
+  for (int iphi=0;iphi<NTRIGPHISECTORS;iphi++) {
     if (antarray[iphi])
       ant+=(1<<iphi);
   }
@@ -1374,14 +1374,14 @@ void anitaSim::GlobalTrigger::FillInNadir(const Anita* anita1,int *ant) {
   //   cout << "before, ant is " << ant[2][i] << "\n";
   //   }
     
-  for (int i=0;i<anita1->NTRIGPHISECTORS/2;i++) {
-    ileft=(2*i+anita1->NTRIGPHISECTORS-1)%anita1->NTRIGPHISECTORS;
-    iright=(2*i+1)%anita1->NTRIGPHISECTORS;
+  for (int i=0;i<NTRIGPHISECTORS/2;i++) {
+    ileft=(2*i+NTRIGPHISECTORS-1)%NTRIGPHISECTORS;
+    iright=(2*i+1)%NTRIGPHISECTORS;
     if (ant[ileft] || ant[iright])
       ant[2*i]=1;
   }
     
-  //    for (int i=0;i<anita1->NTRIGPHISECTORS;i++) {
+  //    for (int i=0;i<NTRIGPHISECTORS;i++) {
   //   cout << "after, ant is " << ant[2][i] << "\n";
   //   }
     
