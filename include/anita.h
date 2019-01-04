@@ -36,7 +36,6 @@ namespace anitaSim {
   class Anita : public PayloadGeometry {
 
   private:
-    double GaintoHeight(double gain,double freq,double nmedium_receiver);
     TGraph *gshort[4];
     void setTrigRequirement(int WHICH);
   public:
@@ -58,9 +57,6 @@ namespace anitaSim {
     int getLabAttn(int NPOINTS_LAB, double *freqlab, double *labattn);
     void labAttn(double *vhz) const;
     void SetNoise(const Settings *settings1, FlightDataManager *bn1, const icemc::Antarctica *antarctica);
-    void calculate_antenna_positions(const Settings *settings1,double pitch, double roll, double phi_spin,TVector3 n_north,TVector3 n_east);
-    void saveGainsPlot(const std::string& fileName);
-    
     int tuffIndex; // keith edits
 
     static const int NBANDS_MAX=100;                            ///< max number of bands
@@ -191,11 +187,8 @@ namespace anitaSim {
 
     // for filling tsignals tree
     double timedomainnoise_rfcm_banding[2][5][HALFNFOUR];
-    double timedomainnoise_rfcm_banding_long[2][5][HALFNFOUR];
     double timedomainnoise_rfcm[2][HALFNFOUR];
     double timedomainnoise_lab[2][HALFNFOUR];
-    double timedomainnoise_rfcm_long[2][HALFNFOUR];
-    double timedomainnoise_lab_long[2][HALFNFOUR];
 
     double phases[5][HALFNFOUR];
 
@@ -221,39 +214,21 @@ namespace anitaSim {
     double freq[NFREQ];  // frequency for each bin
     double freq_forfft[NFOUR]; // frequencies for taking fft of signal
     double freq_forplotting[NFOUR/4]; // just one entry for frequency, unlike the above.
-    double freq_forfft_long[2*NFOUR]; // frequencies for taking fft of signal
-    double freq_forplotting_long[NFOUR/2]; // just one entry for frequency, unlike the above.
-    double time[NFOUR/2];
-    double time_long[NFOUR];
 
-    double time_centered[NFOUR/2];
     double freqdomain_rfcm_banding[5][HALFNFOUR/2]; // average noise in frequency domain
-    double freqdomain_rfcm_banding_long[5][HALFNFOUR]; // average noise in frequency domain
-
     double freqdomain_rfcm[HALFNFOUR/2]; // average noise in frequency domain
-    double freqdomain_rfcm_long[HALFNFOUR]; // average noise in frequency domain
-
-    double freqdomain_rfcm_theory[HALFNFOUR/2]; // average noise in frequency domain
     double avgfreqdomain_lab[HALFNFOUR/2]; // average noise in frequency domain
-    double avgfreqdomain_lab_long[HALFNFOUR]; // average noise in frequency domain
-
+    
     double phases_rfcm_banding[2][5][HALFNFOUR/2];
-    double phases_rfcm_banding_long[2][5][HALFNFOUR];
     double phases_rfcm[2][HALFNFOUR/2];
-    double phases_rfcm_long[2][HALFNFOUR];
-    double phases_lab[2][HALFNFOUR];
-    double phases_lab_long[2][HALFNFOUR];
-
-
-    // this goes from 0 to Fmax, and represents both real and imaginary components
-
+    double phases_lab[2][HALFNFOUR/2];
 
 
 
     void getDiodeModel();
     void setDiodeRMS(const Settings *settings1, TString outputdir);
-    void BoxAverageComplex(double *array,const int n,int navg);
-    void BoxAverage(double *array,const int n,int navg);
+    void BoxAverageComplex(double *array,const int n,int navg) const;
+    void BoxAverage(double *array,const int n,int navg) const;
     int GetRxTriggerNumbering(int ilayer, int ifold) const;                                                           ///< get antenna number based on which layer and position it is
   
     TF1 fdiode;
@@ -277,11 +252,11 @@ namespace anitaSim {
     // void Banding(int iband,double *vmmhz);
     void RFCMs(int ilayer,int ifold,double *vmmhz) const;
     void normalize_for_nsamples(double *spectrum, double nsamples, double nsamp);
-    void convert_power_spectrum_to_voltage_spectrum_for_fft(int length,double *spectrum, double domain[], double phase[]);
+    void convert_power_spectrum_to_voltage_spectrum_for_fft(int length,double *spectrum, const double domain[], const double phase[]);
     void GetNoiseWaveforms(); // make time domain noise waveform based on avgnoise being the v^2
-    //void GetNoiseWaveform(int iband); // make time domain noise waveform based on avgnoise being the v^2
+    //void GetNoiseWaveform(int iband); // make time domain noise waveform based on avgnoise being the v^2    
     void GetPhases();
-
+    
     // each of the above graphs has 601 bins in it
     static const int NPOINTS_BANDS=601;
 
@@ -343,8 +318,8 @@ namespace anitaSim {
     static const unsigned N_SUMMED_PHI_SECTORS = 4;
     static const unsigned N_SUMMED_LAYERS = 3;
 
-
-
+    int GAINS;
+    
     double energythreshold; // relative to expected energy from noise
     double MIN_PHI_HYPOTHESIS;
     double MAX_PHI_HYPOTHESIS;
@@ -357,40 +332,6 @@ namespace anitaSim {
     // In Anita 1 and Anita 2, the number of physical layers were 3 while the number of trigger layers were 2.
     int REQUIRE_CENTRE; // require centre antenna in clump to be one of those hit
     static const int NTRIGPHISECTORS=16; // number of phi sectors in the trigger
-
-    int GAINS;// whether to use constant gains as entered in GetBeamWidths (0) or to use Ped's measurements as entered in ReadGains (1)
-    static const int NPOINTS_GAIN =131; // number of pointqs within bandwidth that gain is measured. from 200 MHz to 1.5 GHz with step size of 10 MHz
-    double gainv_measured[NPOINTS_GAIN]; // may way of making the program use 3994760 fewer bytes than if these five arrays had still had 100000 elements
-    double gainh_measured[NPOINTS_GAIN];
-    double gainhv_measured[NPOINTS_GAIN];
-    double gainvh_measured[NPOINTS_GAIN];
-    double frequency_forgain_measured[NPOINTS_GAIN];
-
-    double gain_angle[4][NPOINTS_GAIN][7]; /* first term: 0 = v polarization channel, a angle
-					      1 = h polarization channel, a angle
-					      2 = h polarization channel, e angle
-					      3 = v polarization channel, e angle
-					      second term: frequency
-					      third term: angle */
-
-    // frequency binning
-    // anita proposal says frequency range is 0.2-1.2 GHz.
-    // specs for the quad ridge antenna Model 0312-810 say 0.3-1.5 GHz
-    double flare[4][NFREQ];  // for coarse antenna models:  beam width: e-plane: vp/hp, h-plane: vp/hp
-    double gain[2][NFREQ];   // for coarse antenna models:  gain vert pol,h pol
-
-    int GetBeamWidths(const Settings *settings1); // for getting beam widths using coarse models (horn specs or simple model for EeVA)
-    double Get_gain_angle(int gain_type, int k, double hitangle) const;
-    void ReadGains();
-    void AntennaGain(const Settings *settings1,double hitangle_e,double hitangle_h,double e_component,double h_component,int k,double &vsignalarray_e,double &vsignalarray_h, bool debug = false) const;
-
-
-    double reference_angle[7]; // reference angles for finding gains of antenna
-
-    double inv_angle_bin_size[6];
-    int whichbin[NFREQ]; // these are for finding gains as a function of frequency
-    double scalef2[NFREQ], scalef1[NFREQ]; // they are set in Set_gain_angle
-    double vvGaintoHeight[NFREQ], hhGaintoHeight[NFREQ], hvGaintoHeight[NFREQ], vhGaintoHeight[NFREQ]; // holds results of the function double GaintoHeight
 
     double diffraction[2][89][NFREQ];
     void SetDiffraction();

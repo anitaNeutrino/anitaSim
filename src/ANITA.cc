@@ -29,8 +29,6 @@ anitaSim::ANITA::ANITA(const Settings* settings)
     SetDiffraction(); // for the upper ring
   }
 
-  saveGainsPlot(std::string(fSettings->getOutputDir())+"/gains.eps");
-
   fThresholdsAnt.resize(getNumRX());
 
   

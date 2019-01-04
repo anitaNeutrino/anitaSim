@@ -331,15 +331,6 @@ void anitaSim::Anita::Initialize(const Settings *settings1, std::ofstream &foutp
     getPulserData();
   }
 
-  // for antenna gains
-  reference_angle[0]=0.;
-  reference_angle[1]=5.;
-  reference_angle[2]=10.;
-  reference_angle[3]=20.;
-  reference_angle[4]=30.;
-  reference_angle[5]=45.;
-  reference_angle[6]=90.; // reference angles for finding gains of antennas
-  
   THERMALNOISE_FACTOR=settings1->THERMALNOISE_FACTOR;
   for (int j=0;j<settings1->NLAYERS;j++) {
     // noise depends on cant angle of antenna
@@ -534,14 +525,6 @@ void anitaSim::Anita::readAmplification(){
 }
 
 
-void anitaSim::Anita::saveGainsPlot(const std::string& fileName){
-  TCanvas* cgains = new TCanvas("cgains", "cgains", 880, 800);
-  TGraph* ggains = new TGraph(this->NPOINTS_GAIN, this->frequency_forgain_measured, this->vvGaintoHeight);
-  ggains->Draw("al");
-  cgains->Print(fileName.c_str());
-  delete ggains;
-  delete cgains;
-}
 
 
 void anitaSim::Anita::getDiodeDataAndAttenuation(const Settings *settings1, TString outputdir){
@@ -582,18 +565,7 @@ void anitaSim::Anita::getDiodeDataAndAttenuation(const Settings *settings1, TStr
   TFile *fbands=new TFile(sbands.c_str());
   TTree *tbands=(TTree*)fbands->Get("bandstree");
     
-    
-  for (int i=0;i<HALFNFOUR;i++) {
-    time[i]=(double)i*TIMESTEP;
-    time_long[i]=time[i];
-    //cout << "time is " << time[i] << "\n";
-    time_centered[i]=time[i]-(double)HALFNFOUR/2*TIMESTEP;
-  }
-  for (int i=HALFNFOUR;i<NFOUR;i++) {
-    time_long[i]=(double)i*TIMESTEP;
-  }
-    
-    
+
   // get diode model
   getDiodeModel();
     
@@ -613,7 +585,10 @@ void anitaSim::Anita::getDiodeDataAndAttenuation(const Settings *settings1, TStr
     
   TCanvas *cdiode=new TCanvas("cdiode","cdiode",880,800);
   cdiode->Divide(1,2);
-  TGraph *gdiode=new TGraph(NFOUR/2,time,diode_real[4]);
+  std::vector<double> time(NFOUR/2);
+  for(int i=0; i < time.size(); i++){time[i] = i*TIMESTEP;}
+  TGraph *gdiode=new TGraph(NFOUR/2,&time[0],diode_real[4]);
+  
   cdiode->cd(1);
   gdiode->Draw("al");
   gdiode=new TGraph(NFOUR/2,freq_forfft,fdiode_real[4]);
@@ -751,12 +726,12 @@ void anitaSim::Anita::setDiodeRMS(const Settings *settings1, TString outputdir){
     
   std::cout << "after getting event, freqdomain_rfcm_banding is " << freqdomain_rfcm_banding[0][NFOUR/8-1] << "\n";
     
-  // TGraph *gfreqdomain_rfcm=new TGraph(NFOUR/4,freq_forplotting,freqdomain_rfcm);
-  // TGraph *gavgfreqdomain_lab=new TGraph(NFOUR/4,freq_forplotting,avgfreqdomain_lab);
+  // TGraph *gfreqdomain_rfcm=new TGraph(HALFNFOUR/2,freq_forplotting,freqdomain_rfcm);
+  // TGraph *gavgfreqdomain_lab=new TGraph(HALFNFOUR/2,freq_forplotting,avgfreqdomain_lab);
   // TGraph *gfreqdomain_rfcm_banding[5];
 
   // for (int i=0;i<5;i++) {
-  //   gfreqdomain_rfcm_banding[i]=new TGraph(NFOUR/4,freq_forplotting,freqdomain_rfcm_banding[i]);
+  //   gfreqdomain_rfcm_banding[i]=new TGraph(HALFNFOUR/2,freq_forplotting,freqdomain_rfcm_banding[i]);
   // }
     
     
@@ -781,7 +756,7 @@ void anitaSim::Anita::setDiodeRMS(const Settings *settings1, TString outputdir){
   if (BANDING==1) {
     for (int j=0;j<5;j++) {
 	
-      for (int k=0;k<NFOUR/4;k++) {
+      for (int k=0;k<HALFNFOUR/2;k++) {
 	  
 	if (bwslice_min[j]>freq_forplotting[k] || bwslice_max[j]<freq_forplotting[k]) {
 	  freqdomain_rfcm_banding[j][k]=0.;
@@ -794,8 +769,8 @@ void anitaSim::Anita::setDiodeRMS(const Settings *settings1, TString outputdir){
   
   double power=0.;
   for (int j=0;j<5;j++) {
-    for (int k=0;k<NFOUR/4;k++) {
-      power+=freqdomain_rfcm_banding[j][k]/((double)NFOUR/4); // in V^2
+    for (int k=0;k<HALFNFOUR/2;k++) {
+      power+=freqdomain_rfcm_banding[j][k]/((double)HALFNFOUR/2); // in V^2
     }
     //  cout << "power is " << power << "\n";
   }
@@ -818,7 +793,7 @@ void anitaSim::Anita::setDiodeRMS(const Settings *settings1, TString outputdir){
 	//       // myconvlv performs a convolution on that time domain waveform
 	//       // based on the function that you define in getDiodeModel
 	    
-	//       cout << "timedomainnoise_rfcm_banding_e is " << timedomainnoise_rfcm_banding_e[j][NFOUR/4-1] << "\n";
+	//       cout << "timedomainnoise_rfcm_banding_e is " << timedomainnoise_rfcm_banding_e[j][HALFNFOUR/2-1] << "\n";
 	myconvlv(timedomainnoise_rfcm_banding[0][j],NFOUR,fdiode_real[j],mindiodeconvl[j],onediodeconvl[j],power_noise_eachband[j],timedomain_output[j]);
 			
 	hnoise[j]->Fill(onediodeconvl[j]*1.E15);
@@ -964,46 +939,6 @@ void anitaSim::Anita::setDiodeRMS(const Settings *settings1, TString outputdir){
       }
 	
     }
-    
-    
-    // double thresh_begin=-1.;
-    // double thresh_end=-11.;
-    // double thresh_step=1.;
-  
-    // double rate[5][100];
-    // for (double testthresh=thresh_begin;testthresh>=thresh_end;testthresh-=thresh_step) {
-    //   for (int j=0;j<5;j++) {
-    // 	passes[j]=0;
-    //   }
-    //   for (int i=0;i<ngeneratedevents;i++) {
-  	
-    // 	for (int j=4;j<5;j++) {
-
-    // 	  getQuickTrigNoiseFromFlight(quickNoise, 0, 0);
-
-    // 	  myconvlv(quickNoise,NFOUR,fdiode_real[j],mindiodeconvl[j],onediodeconvl[j],power_noise_eachband[j],timedomain_output[j]);
-  	
-    // 	  for (int m=(int)(maxt_diode/TIMESTEP);m<NFOUR/2;m++) {
-  	    
-    // 	    if (timedomain_output[j][m+1]<bwslice_rmsdiode[j]*testthresh) {
-    // 	      passes[j]++;
-    // 	      m+=(int)(DEADTIME/TIMESTEP);
-    // 	    }
-  	    	    
-    // 	  } // end loop over samples where diode function is fully contained
-    // 	}
-    //   }
-    //   // brian m.
-    //   for (int j=0;j<5;j++) {
-    // 	int ibin=(int)fabs((testthresh-thresh_begin)/thresh_step);
-    // 	// relthresh[j][ibin]=fabs(testthresh);
-    // 	rate[j][ibin]=passes[j]/((double)ngeneratedevents*((double)NFOUR/2*(TIMESTEP)-maxt_diode));
-    // 	if (rate[j][ibin]!=0)
-    // 	  rate[j][ibin]=log10(rate[j][ibin]);
-    // 	//cout << "Threshold " << testthresh << " For the " << j << "th band, rate is " << rate[j][ibin] << "\n";
-    //   }
-    // }
-   
 #endif 
   }
     
@@ -1062,12 +997,13 @@ void anitaSim::Anita::setDiodeRMS(const Settings *settings1, TString outputdir){
       frice[j]->Draw("same");
       //    cout << "bwslice_enoise is " << bwslice_enoise[j] << "\n";
     }
-	
   }
   std::string stemp = std::string(outputdir.Data())+"/hnoise.eps";
   c4->Print((TString)stemp);
 
-  
+  for(auto fr : frice){
+    delete fr;
+  }
   
 }
 
@@ -1127,18 +1063,18 @@ void anitaSim::Anita::getPulserData(){
   USEPHASES=1;
   
   double *temp1=gpulser->GetX();
-  for (int i=0;i<NFOUR/4;i++) {
+  for (int i=0;i<HALFNFOUR/2;i++) {
     f_pulser[i]=temp1[i];
   }
   double *temp2=gphases->GetX();
-  for (int i=0;i<NFOUR/4;i++) {
+  for (int i=0;i<HALFNFOUR/2;i++) {
     f_phases[i]=temp2[i];
   }
   double *temp3=gpulser->GetY();
   double *temp4=gnoise->GetY();
 	
 	
-  for (int i=0;i<NFOUR/4;i++) {
+  for (int i=0;i<HALFNFOUR/2;i++) {
     v_pulser[i]=sqrt(temp3[i]); // is this right
     v_noise[i]=sqrt(temp4[i]);
     if (f_phases[i]<75.E6)
@@ -1157,7 +1093,7 @@ void anitaSim::Anita::getPulserData(){
     if (i!=3) {
       cpulser->cd(iplot+1);
 				
-      gpulser_eachband=new TGraph(NFOUR/4,f_pulser.data(),v_pulser.data());
+      gpulser_eachband=new TGraph(HALFNFOUR/2,f_pulser.data(),v_pulser.data());
 				
       gpulser_eachband->Draw("al");
     }
@@ -1172,7 +1108,7 @@ void anitaSim::Anita::getPulserData(){
 			
     if (i!=3) {
       cnoise->cd(iplot+1);
-      gnoise_eachband=new TGraph(NFOUR/4,f_pulser.data(),v_noise.data());
+      gnoise_eachband=new TGraph(HALFNFOUR/2,f_pulser.data(),v_noise.data());
 				
       gnoise_eachband->Draw("al");
     }
@@ -1181,7 +1117,7 @@ void anitaSim::Anita::getPulserData(){
   cnoise->Print("noise.eps");
 	       
 		
-  //	gpulser_eachband=new TGraph(NFOUR/4,f_pulser,v_pulser[iplot]);
+  //	gpulser_eachband=new TGraph(HALFNFOUR/2,f_pulser,v_pulser[iplot]);
   //gpulser_eachband->Draw("al");
 		
 		
@@ -1189,13 +1125,13 @@ void anitaSim::Anita::getPulserData(){
   double sumpulserpower=0.;
   double sumnoisepower=0.;
 		
-  for (int i=0;i<NFOUR/4;i++) {
+  for (int i=0;i<HALFNFOUR/2;i++) {
     sumpulserpower+=v_pulser[i]*v_pulser[i];
     sumnoisepower+=v_noise[i]*v_noise[i];
   }
 		
   double *temp5=gphases->GetY();
-  for (int i=0;i<NFOUR/4;i++) {
+  for (int i=0;i<HALFNFOUR/2;i++) {
     v_phases[i]=temp5[i];
   }
 		
@@ -1212,127 +1148,6 @@ void anitaSim::Anita::getPulserData(){
 
 
 
-
-void anitaSim::Anita::ReadGains(void) {
-  // gains from university of hawaii measurements.
-  double sfrequency;
-  int iii;
-  std::ifstream gainsfile;
-  gainsfile.open((ICEMC_DATA_DIR+"/hh_0").c_str()); // gains for horizontal polarization
-  if(gainsfile.fail()) {
-    std::cout << "can't open `$ICEMC_DATA_DIR`/hh_0\n";
-    exit(1);
-  }
-  for(iii = 0; iii < NPOINTS_GAIN; iii++)
-    gainsfile >> frequency_forgain_measured[iii] >> gainh_measured[iii];
-  gainsfile.close();
-    
-  gainsfile.open((ICEMC_DATA_DIR+"/vv_0").c_str()); // gains for vertical polarization
-  if(gainsfile.fail()) {
-    std::cout << "can't open `$ICEMC_DATA_DIR`/vv_0\n";
-    exit(1);
-  }
-  for(iii = 0; iii < NPOINTS_GAIN; iii++) {
-    gainsfile >> sfrequency >> gainv_measured[iii];
-    if(sfrequency != frequency_forgain_measured[iii])
-      std::cout << "warning: sfrequency = " << sfrequency << ", frequency_forgain_measured[iii] = " << frequency_forgain_measured[iii] << std::endl;
-  }
-  gainsfile.close();
-    
-  gainsfile.open((ICEMC_DATA_DIR+"/hv_0").c_str()); // gains for h-->v cross polarization
-  if(gainsfile.fail()) {
-    std::cout << "can't open `$ICEMC_DATA_DIR`/hv_0\n";
-    exit(1);
-  }
-  for(iii = 0; iii < NPOINTS_GAIN; iii++) {
-    gainsfile >> sfrequency >> gainhv_measured[iii];
-    if(sfrequency != frequency_forgain_measured[iii])
-      std::cout << "warning: sfrequency = " << sfrequency << ", frequency_forgain_measured[iii] = " << frequency_forgain_measured[iii] << std::endl;
-  }
-  gainsfile.close();
-    
-  gainsfile.open((ICEMC_DATA_DIR+"/vh_0").c_str()); // gains for v-->h cross polarization
-  if(gainsfile.fail()) {
-    std::cout << "can't open `$ICEMC_DATA_DIR`/vh_0\n";
-    exit(1);
-  }
-  for(iii = 0; iii < NPOINTS_GAIN; iii++) {
-    gainsfile >> sfrequency >> gainvh_measured[iii];
-    if(sfrequency != frequency_forgain_measured[iii])
-      std::cout << "warning: sfrequency = " << sfrequency << ", frequency_forgain_measured[iii] = " << frequency_forgain_measured[iii] << std::endl;
-  }
-  gainsfile.close();
-} //ReadGains
-
-
-
-
-
-void anitaSim::Anita::AntennaGain(const Settings *settings1,
-			       double hitangle_e, double hitangle_h,
-			       double e_component, double h_component,
-			       int k,
-			       double &vsignalarray_e, double &vsignalarray_h,
-			       bool debug) const {
-
-  if (freq[k]>=settings1->FREQ_LOW_SEAVEYS && freq[k]<=settings1->FREQ_HIGH_SEAVEYS) {
-    // fill this for each frequency bin for each antenna.
-    // It's the gain of the antenna given the angle that the signal hits the balloon,
-    // for vv, vh, hv, hh, relative to the gain at boresight
-    double relativegains[4] = {0};
-
-    for (int pols=0;pols<2;pols++) {// loop over vv, hv
-      if (fabs(hitangle_e)<icemc::constants::PI/2){
-	// Change here to be constant if need be (ABBY).
-	// Add a setting to the code for use constant gain or dish or something.
-	// Make this a member function.	
-	relativegains[pols] = Get_gain_angle(pols,k,hitangle_e);
-      }
-      else{
-	relativegains[pols] = 0.;
-      }
-      //if (fabs(hitangle_e)<PI/12)
-      //cout << "relative gains is " << relativegains[pols] << "\n";
-    }
-
-    //      if (fabs(hitangle_e)<PI/12)
-    //cout << "vsignalarray_e before is " << vsignalarray_e << "\n";
-    vsignalarray_e = vsignalarray_e * 0.5 * sqrt(vvGaintoHeight[k] * vvGaintoHeight[k] * e_component * e_component * relativegains[0] + hvGaintoHeight[k] * hvGaintoHeight[k] * h_component * h_component * relativegains[1]); // 0.5 is for voltage dividing
-
-    // if(debug){
-    //   std::cout << "AntennaGain\t" << TMath::Nint(freq[k]) << "\t" << std::fixed << std::setprecision(7)
-    //   		<< vvGaintoHeight[k] << "\t" << hvGaintoHeight[k]  << "\t"
-    //   		<< relativegains[0] << "\t" << relativegains[1] << "\t"
-    //   		<< e_component << "\t" << h_component << "\t"
-    //   		<< hitangle_e << "\t" << "\n";
-    // }
-
-
-    for (int pols = 2;pols < 4;pols++) { // loop over hh, vh
-      if (fabs(hitangle_h)<icemc::constants::PI/2){
-	relativegains[pols] = Get_gain_angle(pols, k, hitangle_h);
-      }
-      else{
-	relativegains[pols] = 0.;
-      }
-    }
-
-    // V/MHz
-
-    //if (fabs(hitangle_h)<PI/12)
-    //cout << "vsignalarray_h before is " << vsignalarray_h << "\n";
-
-    if(debug){
-      std::cout << "AntennaGain\t" << TMath::Nint(freq[k]) << "\t" << std::fixed << std::setprecision(7)
-      		<< vvGaintoHeight[k] << "\t" << hvGaintoHeight[k]  << "\t"
-      		<< relativegains[2] << "\t" << relativegains[3] << "\t"
-      		<< e_component << "\t" << h_component << "\t"
-      		<< hitangle_e << "\t" << "\n";
-    }
-
-    vsignalarray_h=(vsignalarray_h*0.5*sqrt(hhGaintoHeight[k]*hhGaintoHeight[k]*h_component*h_component*relativegains[2] + vhGaintoHeight[k]*vhGaintoHeight[k]*e_component*e_component*relativegains[3]));
-  }
-}
 
 
 // The deck affects signals reaching the upper ring. These equations are for Fresnel diffraction around a half plane. The edge of the half plane passes just over and in front of the lower ring antenna that's facing the radio pulse. This assumption should be okay for the three upper ring antenns in the phi sector facing the pulse and should underestimate the effect of diffraction for the other upper ring antennas.
@@ -1391,39 +1206,11 @@ int anitaSim::Anita::SurfChanneltoBand(int ichan) {
     
 }
 
-//  int anitaSim::Anita::GetScalarNumber(int lr,int ibw, int ilayer,int ifold) {
-
-//   int rx = GetAntennaNumber(ilayer,ifold);
-//   int rx_on_surf = (rx-1)%4 + 1; // surf holds four antennas.  This number is 1-4.
-//   int scalar= (rx_on_surf-1)*8 + ibw*2 + lr;
-
-//   // returns the scalar number
-//   return scalar;
-// }
 int anitaSim::Anita::GetAntennaNumber(int ilayer,int ifold) {
     
   return 8*(ilayer)+ifold+1; // antenna number 1-32
     
 }
-
-// int anitaSim::Anita::GetLayer(int rx) {
-//   if (rx>=0 && rx<8)
-//     return 0;
-//   else if (rx>=8 && rx<16)
-//     return 1;
-//   else if (rx>=16 && rx<32)
-//     return 2;
-    
-//   return -1;
-// }
-// int anitaSim::Anita::GetIfold(int rx) {
-//   if (rx>=0 && rx<16)
-//     return rx%8;
-//   else if (rx<32)
-//     return rx%16;
-    
-//   return -1;
-// }
 
 int anitaSim::Anita::AntennaWaveformtoSurf(int ilayer,int ifold) const {
     
@@ -1491,469 +1278,8 @@ void anitaSim::Anita::RFCMs(int ilayer,int ifold,double *vmmhz) const {
 }
 
 
-// // reads in the effect of a signal not hitting the antenna straight on
-// // also reads in gainxx_measured and sets xxgaintoheight
-// void anitaSim::Anita::Set_gain_angle(const Settings *settings1,double nmedium_receiver) {
-//   std::string gain_null1, gain_null2;
-//   double sfrequency;
-//   int iii, jjj;
-//   std::ifstream anglefile;
-//   for(jjj = 0; jjj < 4; jjj++)
-//     for(iii = 0; iii < 131; iii++)
-//       gain_angle[jjj][iii][0] = 1.;
-    
-//   anglefile.open((ICEMC_DATA_DIR+"/vv_az").c_str()); // v polarization, a angle
-//   if(anglefile.fail()) {
-//     std::cout << "can't open `$ICEMC_DATA_DIR`/vv_az\n";
-//     exit(1);
-//   }
-//   for(jjj = 1; jjj < 7; jjj++){
-//     for(iii = 0; iii < 131; iii++) {
-//       anglefile >> sfrequency >> gain_angle[0][iii][jjj];
-//       if(sfrequency != frequency_forgain_measured[iii]){
-// 	std::cout << "check frequencies for vv_az\n";
-//       }
-//     }
-//   }
-//   anglefile.close();
-    
-    
-    
-//   anglefile.open((ICEMC_DATA_DIR+"/hh_az").c_str()); // h polarization, a angle
-//   if(anglefile.fail()) {
-//     std::cout << "can't open `$ICEMC_DATA_DIR`/hh_az\n";
-//     exit(1);
-//   }
-//   for(jjj = 1; jjj < 7; jjj++){
-//     for(iii = 0; iii < 131; iii++) {
-//       anglefile >> sfrequency >> gain_angle[1][iii][jjj];
-//       if(sfrequency != frequency_forgain_measured[iii]){
-// 	std::cout << "check frequencies for hh_az\n";
-//       }
-//     }
-//   }
-//   anglefile.close();
-    
-//   anglefile.open((ICEMC_DATA_DIR+"/hh_el").c_str()); // h polarization, e angle
-//   if(anglefile.fail()) {
-//     std::cout << "can't open `$ICEMC_DATA_DIR`/hh_el\n";
-//     exit(1);
-//   }
-//   for(jjj = 1; jjj < 7; jjj++){
-//     for(iii = 0; iii < 131; iii++) {
-//       anglefile >> sfrequency >> gain_angle[2][iii][jjj];
-//       if(sfrequency != frequency_forgain_measured[iii]) {
-// 	std::cout << "check frequencies for hh_el\n";
-//       }
-//     }
-//   }
-//   anglefile.close();
-    
-//   anglefile.open((ICEMC_DATA_DIR+"/vv_el").c_str()); // v polarization, e angle
-//   if(anglefile.fail()) {
-//     std::cout << "can't open `$ICEMC_DATA_DIR`/vv_el\n";
-//     exit(1);
-//   }
-//   for(jjj = 1; jjj < 7; jjj++){
-//     for(iii = 0; iii < 131; iii++) {
-//       anglefile >> sfrequency >> gain_angle[3][iii][jjj];
-//       if(sfrequency != frequency_forgain_measured[iii]) {
-// 	std::cout << "check frequencies for vv_el\n";
-//       }
-//     }
-//   }
-//   anglefile.close();
-//   for(jjj = 0; jjj < 6; jjj++) inv_angle_bin_size[jjj] = 1. /
-// 				 (reference_angle[jjj+1] - reference_angle[jjj]); // this is used for interpolating gains at angles between reference angles
-    
-//   double gainhv, gainhh, gainvh, gainvv;
-//   double gain_step = frequency_forgain_measured[1]-frequency_forgain_measured[0]; // how wide are the steps in frequency;
-    
-//   icemc::report() << "GAINS is " << GAINS << "\n";
-//   for (int k = 0; k < NFREQ; ++k) {
-//     whichbin[k] = int((freq[k] - frequency_forgain_measured[0]) / gain_step); // finds the gains that were measured for the frequencies closest to the frequency being considered here
-//     if((whichbin[k] >= NPOINTS_GAIN || whichbin[k] < 0)) {
-//       icemc::report() << "Set_gain_angle out of range, freq = " << freq[k] << "\twhichbin[k] = " << whichbin[k] << std::endl;
-//       // no longer exit, just set antenna gain to 0 outside band
-//       // exit(1);
-//       scalef2[k] = 0;
-//       scalef1[k] = 0;
-//     }
-//     else{
-
-//       //now a linear interpolation for the frequency
-//       scalef2[k] = (freq[k] - frequency_forgain_measured[whichbin[k]]) / gain_step;
-//       // how far from the lower frequency
-//       scalef1[k] = 1. - scalef2[k]; // how far from the higher frequency
-
-//       // convert the gain at 0 degrees to the effective antenna height at 0 degrees for every frequency
-//       if(whichbin[k] == NPOINTS_GAIN - 1) { // if the frequency is 1.5e9 or goes a little over due to rounding
-// 	gainhv = gainhv_measured[whichbin[k]];
-// 	gainhh = gainh_measured[whichbin[k]];
-// 	gainvh = gainvh_measured[whichbin[k]];
-// 	gainvv = gainv_measured[whichbin[k]];
-//       }
-//       else {
-// 	// These gains should be dimensionless numbers, not in dBi
-// 	gainhv = scalef1[k] * gainhv_measured[whichbin[k]] + scalef2[k] * gainhv_measured[whichbin[k] + 1];
-// 	gainhh = scalef1[k] * gainh_measured[whichbin[k]] + scalef2[k] * gainh_measured[whichbin[k] + 1];
-// 	gainvh = scalef1[k] * gainvh_measured[whichbin[k]] + scalef2[k] * gainvh_measured[whichbin[k] + 1];
-// 	gainvv = scalef1[k] * gainv_measured[whichbin[k]] + scalef2[k] * gainv_measured[whichbin[k] + 1];
-//       }
-//     }
-//     if (GAINS==0) {
-
-//       gainhv=0.;
-//       gainhh=gain[1][k];
-//       gainvh=0.;
-//       gainvv=gain[0][k];
-
-//     }
-
-//     hvGaintoHeight[k] = GaintoHeight(gainhv,freq[k],nmedium_receiver);
-//     hhGaintoHeight[k] = GaintoHeight(gainhh,freq[k],nmedium_receiver);
-//     vhGaintoHeight[k] = GaintoHeight(gainvh,freq[k],nmedium_receiver);
-//     vvGaintoHeight[k] = GaintoHeight(gainvv,freq[k],nmedium_receiver);
-
-//   } // loop through frequency bins
-    
-    
-    
-    
-    
-    
-    
-    
-    
-// } // void Set_gain_angle()
 
 
-
-// determines the effect of a signal not hitting the antenna straight on
-// for the gain type, 0 means V polarization and el angle, 1 means H polarization and el angle, 2 means H polarization and az angle, 3 means V polarization and az angle
-// gain_angle[gain_type][][] lists the decrease in gain for different frequencies and angles. This subroutine finds the two angles closest to hitangle and the two frequencies closest to freq. It then returns a linear interpolation in 2 dimensions.
-int anitaSim::Anita::GetBeamWidths(const Settings *settings1) {
-    
-  // first component is frequency
-  // second component is which plane and which polarization
-  // it goes  e-plane: vp/hp, h-plane: vp/hp
-    
-  // these number were read from antenna specs
-    
-  // these are beam widths
-    
-  double freq_specs[5];
-  int NFREQ_FORGAINS; // Number of
-    
-  if (settings1->WHICH==Payload::EeVEX) { // EeVa
-    NFREQ_FORGAINS=4;
-    freq_specs[0]=265.E6; // lower edge of
-    freq_specs[1]=435.E6;
-    freq_specs[2]=650.E6;
-    freq_specs[3]=992.5E6;
-		
-		
-  }
-  else if (settings1->WHICH==Payload::Satellite) { // Satellite
-    NFREQ_FORGAINS=4;
-    freq_specs[0]=265.E6; // lower edge of
-    freq_specs[1]=435.E6;
-    freq_specs[2]=650.E6;
-    freq_specs[3]=992.5E6;
-		
-  }
-    
-  else { // everything else
-    NFREQ_FORGAINS=5;
-    freq_specs[0]=300.E6;
-    freq_specs[1]=600.E6;
-    freq_specs[2]=900.E6;
-    freq_specs[3]=1200.E6;
-    freq_specs[4]=1500.E6;
-		
-  }
-    
-    
-    
-  double specs[5][4];
-    
-  if (settings1->WHICH==Payload::EeVEX) { // EeVA
-
-    // these are all for 200 MHz
-    specs[0][0]=2.5; // eplane, vp
-    specs[0][1]=2.5;// eplane, hp
-    specs[0][2]=1.5;// hplane, vp
-    specs[0][3]=1.5;// hplane, hp
-		
-    // these are for 355 MHz
-    specs[1][0]=2.2;
-    specs[1][1]=2.2;
-    specs[1][2]=1.2;
-    specs[1][3]=1.2;
-		
-    // 515 MHz
-    specs[2][0]=2.2;
-    specs[2][1]=2.2;
-    specs[2][2]=1.0;
-    specs[2][3]=1.0;
-		
-    // 785 MHz
-    specs[3][0]=2.2;
-    specs[3][1]=2.2;
-    specs[3][2]=0.9;
-    specs[3][3]=0.9;
-		
-  }
-  else { // everything but EeVA
-    // for now use this for satellite even
-    // these are beam widths in degrees
-    // these are all for 300 MHz
-    specs[0][0]=57.5; // eplane, vp
-    specs[0][1]=58.5;// eplane, hp
-    specs[0][2]=66;// hplane, vp
-    specs[0][3]=57;// hplane, hp
-		
-    // these are for 600 MHz
-    specs[1][0]=33.5;
-    specs[1][1]=34.5;
-    specs[1][2]=36.5;
-    specs[1][3]=38;
-		
-    // 900 MHz
-    specs[2][0]=50.5;
-    specs[2][1]=53;
-    specs[2][2]=33;
-    specs[2][3]=32;
-		
-    // 1200 MHz
-    specs[3][0]=43.5;
-    specs[3][1]=43;
-    specs[3][2]=39;
-    specs[3][3]=41.5;
-		
-    //1500 MHz
-    specs[4][0]=36.5;
-    specs[4][1]=46.5;
-    specs[4][2]=32;
-    specs[4][3]=31;
-  }
-    
-  // These are gains, which are not used because we use Ped's numbers instead
-  double specs2[5][2];
-    
-  if (settings1->WHICH==Payload::EeVEX) {// EeVA
-    // this is in dBi
-    // 200 MHz
-    specs2[0][0]=26.85; // vp
-    specs2[0][1]=26.85; // hp
-		
-    // 355 MHz
-    specs2[1][0]=35.8;
-    specs2[1][1]=35.8;
-		
-    // 515 MHz
-    specs2[2][0]=25.;
-    specs2[2][1]=25.;
-		
-    // 785 MHz
-    specs2[3][0]=10.5;
-    specs2[3][1]=10.5;
-		
-		
-  }
-  else if (settings1->WHICH==Payload::Satellite) { // satellite
-		
-    // this is in dBi
-    // 40 MHz
-    specs2[0][0]=7.5; // vp
-    specs2[0][1]=7.5; // hp
-    //specs2[0][0]=0.0; // vp
-    //specs2[0][1]=0.0; // hp
-		
-    //  MHz
-    specs2[1][0]=6.5;
-    specs2[1][1]=6.5;
-    //specs2[1][0]=0.0;
-    //specs2[1][1]=0.0;
-		
-    //  MHz
-    specs2[2][0]=6.5;
-    specs2[2][1]=6.5;
-    //specs2[2][0]=0.0;
-    //specs2[2][1]=0.0;
-		
-    //  MHz
-    specs2[3][0]=5.5;
-    specs2[3][1]=5.5;
-    //specs2[3][0]=0.0;
-    //specs2[3][1]=0.0;
-		
-		
-		
-		
-  }
-  else { // everything else
-    // these are dimensionless gains
-    // turn to dBi below
-    // 300 MHz
-    specs2[0][0]=8.5; // vp
-    specs2[0][1]=8.8; // hp
-		
-    // 600 MHz
-    specs2[1][0]=11.0;
-    specs2[1][1]=9.2;
-		
-    // 900 MHz
-    specs2[2][0]=9.3;
-    specs2[2][1]=9.6;
-		
-    // 1200 MHz
-    specs2[3][0]=10.1;
-    specs2[3][1]=11.5;
-		
-    // 1500 MHz
-    specs2[4][0]=8.9;
-    specs2[4][1]=9.0;
-		
-  }
-    
-  // now convert to dimensionless units
-  for (int i=0;i<4;i++) {
-    for (int j=0;j<2;j++) {
-      specs2[i][j]=pow(10.,specs2[i][j]/10.);
-    }
-  }
-    
-    
-    
-    
-    
-  double scale=0;
-  // loop through frequency bins and fill the flare array
-  for (int k=0;k<NFREQ;k++) {
-    // if the frequency is below the lowest from the specs, just use the 300 MHz value
-    if (freq[k]<freq_specs[0]) {
-      for (int j=0;j<4;j++) {
-	flare[j][k]=specs[0][j]*icemc::constants::RADDEG;
-      } //for
-    } //if
-    // if the frequency is higher than the highest frequency from the specs, just use the 1500 MHz value
-    else if (freq[k]>=freq_specs[NFREQ_FORGAINS-1]) {
-      for (int j=0;j<4;j++) {
-	flare[j][k]=specs[NFREQ_FORGAINS-1][j]*icemc::constants::RADDEG;
-				
-      } //for
-    } //else if
-    // if it is in between, interpolate
-    else {
-      for (int i=0;i<NFREQ_FORGAINS;i++) {
-	if (freq[k]>=freq_specs[i] && freq[k]<freq_specs[i+1]) {
-	  scale = (freq[k]-freq_specs[i])/(freq_specs[i+1]-freq_specs[i]);
-					
-	  for (int j=0;j<4;j++) {
-	    flare[j][k]=(specs[i][j]+scale*(specs[i+1][j]-specs[i][j]))*icemc::constants::RADDEG;
-						
-	  } //for
-	  i=NFREQ_FORGAINS;
-	} //if
-      } //for
-    } //else
-  } //for (frequencies)
-    
-    // loop through frequencies to fill the gain array
-  for (int k=0;k<NFREQ;k++) {
-    // if below 300 MHz, use the 300 MHz value
-    if (freq[k]<freq_specs[0]) {
-      for (int j=0;j<2;j++) {
-	gain[j][k]=specs2[0][j];
-      } //for
-    } //if
-    // if higher than 1500 MHz, use the 1500 MHz value
-    else if (freq[k]>=freq_specs[NFREQ_FORGAINS-1]) {
-      for (int j=0;j<2;j++) {
-	gain[j][k]=specs2[NFREQ_FORGAINS-1][j];
-      } //for
-    } //else if
-    // if in between, interpolate
-    else {
-      for (int i=0;i<NFREQ_FORGAINS;i++) {
-	if (freq[k]>=freq_specs[i] && freq[k]<freq_specs[i+1]) {
-	  scale = (freq[k]-freq_specs[i])/(freq_specs[i+1]-freq_specs[i]);
-					
-	  for (int j=0;j<2;j++) {
-	    gain[j][k]=specs2[i][j]+scale*(specs2[i+1][j]-specs2[i][j]);
-						
-	  } //for
-	  i=NFREQ_FORGAINS;
-	} //if
-      } //for
-    } //else
-  } //for (frequencies)
-    
-  return 1;
-} //GetBeamWidths
-
-
-double anitaSim::Anita::Get_gain_angle(int gain_type, int k, double hitangle) const {
-  double scaleh1, scaleh2;
-  if(gain_type < 0 || gain_type > 3) {
-    std::cerr << "gain_type out of range\n";
-    exit(1);
-  }
-    
-  hitangle = fabs(hitangle)*icemc::constants::DEGRAD;
-
-
-  /**
-   * @todo @warning this looks like a bug? you scale the flare down each time you call Get_gain_angle?
-   * flare[gain_type][k] = flare[gain_type][k]*icemc::constants::DEGRAD
-   * It is set inside GetBeamWidths, which is only called once?
-   * Replace it with a local var thisFlareRads, which also allows this function to be const
-   */
-  double thisFlareRads = flare[gain_type][k]*icemc::constants::DEGRAD;
-  if(hitangle > 90.00001) {
-    std::cout << "hitangle out of range\n";
-    exit(1);
-  }
-  if(hitangle >= 90.) hitangle = 89.99999;
-    
-  // int pol;
-  if (GAINS==0) {
-    // for this simple model just treat the cross pols the same with regard to effect of being hit off-axis
-    // the absolute gain will of course be different for these
-    // pol=(int)((double)gain_type/2.);
-
-    //    cout << "gain_type, k, flare, gain are " << gain_type << " " << k << " " << flare[gain_type][k] << " " << gain[pol][k] << "\n";
-    //cout << "hitangle, flare, factor are " << hitangle << " " << flare[gain_type][k] << " " << exp(-1.*(hitangle*hitangle)/(2*flare[gain_type][k]*flare[gain_type][k])) << "\n";
-    return exp(-1.*(hitangle*hitangle)/(2*thisFlareRads*thisFlareRads));
-  }
-  else {
-    for(int iii = 1; iii < 7; iii++) { // linear interpolation for the angle
-      if(hitangle <= reference_angle[iii]) {
-	scaleh2 = (hitangle - reference_angle[iii-1])*inv_angle_bin_size[iii-1]; // how far from the smaller angle
-	scaleh1 = 1. - scaleh2; // how far from the larger angle
-
-	// if(debug){
-	//   std::cout << "Get_gain_angle\t" << scaleh2 <<  "\t" << scaleh1 << "\t" << gain_angle[gain_type][whichbin[k]][iii-1] << "\t" << gain_angle[gain_type][whichbin[k]][iii] << "\n";
-	// }
-	
-	if(whichbin[k] == NPOINTS_GAIN - 1) // if the frequency is 1.5e9 or goes a little over due to rounding
-	  return (scaleh1 * gain_angle[gain_type][whichbin[k]][iii-1] +
-		  scaleh2 * gain_angle[gain_type][whichbin[k]][iii]);
-				
-	return (scaleh1 * scalef1[k] * gain_angle[gain_type][whichbin[k]  ][iii-1] +
-		scaleh1 * scalef2[k] * gain_angle[gain_type][whichbin[k]+1][iii-1] +
-		scaleh2 * scalef1[k] * gain_angle[gain_type][whichbin[k]  ][iii] +
-		scaleh2 * scalef2[k] * gain_angle[gain_type][whichbin[k]+1][iii]);
-				
-      }
-    }
-  }
-    
-    
-  std::cout << "Get_gain_angle should have returned a value\n";
-  exit(1);
-} // double Get_gain_angle(int gain_type, double freq, double hitangle)
 
 
 void anitaSim::Anita::getDiodeModel( ) {
@@ -2000,7 +1326,16 @@ void anitaSim::Anita::getDiodeModel( ) {
   f_up->SetParameter(3,1.E9);
     
   f_up->SetParameter(0,-1.*sqrt(2.*icemc::constants::PI)*(fdiode.GetParameter(0)*fdiode.GetParameter(2)+fdown2->GetParameter(0)*fdown2->GetParameter(2))/(2.*pow(f_up->GetParameter(2),3.)*1.E18));
-    
+
+  std::vector<double> time(NFOUR/2);
+  {
+    double current_time = 0;
+    for(auto& t : time){
+      t = current_time;
+      current_time += TIMESTEP;
+    }
+  }
+  
   double sum=0.;
   for (int j=0;j<5;j++) {
 		
@@ -2142,13 +1477,18 @@ void anitaSim::Anita::myconvlv(double *data,const int NFOUR,double *fdiode,doubl
 // number of bins
 
 void anitaSim::Anita::GetPhases() {
+  //This function fills:
+  // phases_rfcm[2][HALFNFOUR/2];  
+  // phases_lab[2][HALFNFOUR/2];
+  // phases_rfcm_banding[2][5][HALFNFOUR/2];
 
+  
   int iband;
   double corr,uncorr;
   double phase_corr,phase_uncorr;
   double phasor_x,phasor_y;
     
-  for (int k=0;k<NFOUR/4;k++) { // loop through samples
+  for (int k=0;k<HALFNFOUR/2;k++) { // loop through samples
     iband=icemc::Tools::findIndex(freq_bands[0],freq_forfft[2*k],NPOINTS_BANDS,freq_bands[0][0],freq_bands[0][NPOINTS_BANDS-1]);
 		
 		
@@ -2170,7 +1510,7 @@ void anitaSim::Anita::GetPhases() {
     phasor_x=corr*cos(phase_corr)+uncorr*cos(phase_uncorr);
     phasor_y=corr*sin(phase_corr)+uncorr*sin(phase_uncorr);
     phases_lab[0][k]=TMath::ATan2(phasor_y,phasor_x);
-		
+    
 		
 		
     phase_corr=phases_rfcm[1][k];
@@ -2178,8 +1518,7 @@ void anitaSim::Anita::GetPhases() {
     phasor_x=corr*cos(phase_corr)+uncorr*cos(phase_uncorr);
     phasor_y=corr*sin(phase_corr)+uncorr*sin(phase_uncorr);
     phases_lab[1][k]=TMath::ATan2(phasor_y,phasor_x);
-		
-		
+
     // do the same thing for the bands
     for (int j=0;j<5;j++) {
 			
@@ -2203,10 +1542,6 @@ void anitaSim::Anita::GetPhases() {
 
     }
   }
-    
-    
-
-    
 }
 
 void anitaSim::Anita::normalize_for_nsamples(double *spectrum, double nsamples, double nsamp){
@@ -2217,12 +1552,11 @@ void anitaSim::Anita::normalize_for_nsamples(double *spectrum, double nsamples, 
   return;
 }
 
-void anitaSim::Anita::convert_power_spectrum_to_voltage_spectrum_for_fft(int length,double *spectrum, double domain[], double phase[]){
-  double current_amplitude, current_phase;
-  //    for (int k = 0; k < NFOUR / 4; k++){
+
+void anitaSim::Anita::convert_power_spectrum_to_voltage_spectrum_for_fft(int length,double *spectrum, const double domain[], const double phase[]){
   for (int k = 0; k < length/2 ; k++){
-    current_amplitude = domain[k];
-    current_phase = phase[k];
+    double current_amplitude = domain[k];
+    double current_phase = phase[k];
       
     // Uncomment the following line of code to allow the the noise generated to have a Rician/Rayleigh distribution, which should increase the number of weighted neutrinos that pass *slightly*.
     // icemc::Tools::get_random_rician(0., 0., sqrt(2. / M_PI) * domain[k], current_amplitude, current_phase);
@@ -2316,24 +1650,24 @@ void anitaSim::Anita::GetNoiseWaveforms() {
 
 void anitaSim::Anita::GetArrayFromFFT(double *tmp_fftvhz, double *vhz_rx) const {
   
-  int firstNonZero = icemc::Tools::Getifreq(freq[0],freq_forfft[0],freq_forfft[NFOUR/2-1],NFOUR/4);
-  int lastNonZero  = icemc::Tools::Getifreq(freq[NFREQ-1],freq_forfft[0],freq_forfft[NFOUR/2-1],NFOUR/4);
+  int firstNonZero = icemc::Tools::Getifreq(freq[0],freq_forfft[0],freq_forfft[NFOUR/2-1],HALFNFOUR/2);
+  int lastNonZero  = icemc::Tools::Getifreq(freq[NFREQ-1],freq_forfft[0],freq_forfft[NFOUR/2-1],HALFNFOUR/2);
   double norm=TMath::Sqrt(double(lastNonZero-firstNonZero)/double(NFREQ));
   //  cout << firstNonZero << " " << lastNonZero << " " << lastNonZero-firstNonZero << " " << norm << endl;
 
-  for (int ifreq=0;ifreq<NFOUR/4;ifreq++){
+  for (int ifreq=0;ifreq<HALFNFOUR/2;ifreq++){
     tmp_fftvhz[ifreq]=TMath::Sqrt(tmp_fftvhz[2*ifreq]*tmp_fftvhz[2*ifreq] + tmp_fftvhz[2*ifreq+1]*tmp_fftvhz[2*ifreq+1]);
   }
 
   for (int ifreq=0; ifreq<NFREQ; ifreq++){
-    int ifour = icemc::Tools::Getifreq(freq[ifreq],freq_forfft[0],freq_forfft[NFOUR/2-1],NFOUR/4);
+    int ifour = icemc::Tools::Getifreq(freq[ifreq],freq_forfft[0],freq_forfft[NFOUR/2-1],HALFNFOUR/2);
 
     if(ifour >= 0 ){
       vhz_rx[ifreq] = tmp_fftvhz[ifour]*norm;
     }
     else{
       std::cerr << "Error in " << __PRETTY_FUNCTION__ << ", unexpected ifreq!" << std::endl;
-      std::cerr << ifour << "\t" << ifreq << "\t" << freq[ifreq] << "\t" << freq_forfft[0] << "\t" << freq_forfft[NFOUR/2-1] << "\t" << NFOUR/4 << std::endl;
+      std::cerr << ifour << "\t" << ifreq << "\t" << freq[ifreq] << "\t" << freq_forfft[0] << "\t" << freq_forfft[NFOUR/2-1] << "\t" << HALFNFOUR/2 << std::endl;
       vhz_rx[ifreq] = 0;
     }
     //cout << ifour << " " << freq[ifreq] << " " << vhz_rx[ifreq] << " " << endl;
@@ -2344,7 +1678,7 @@ void anitaSim::Anita::GetArrayFromFFT(double *tmp_fftvhz, double *vhz_rx) const 
 
 void anitaSim::Anita::GetPhasesFromFFT(double *tmp_fftvhz, double *phases) const {
   
-  for (int ifreq=0; ifreq<NFOUR/4; ifreq++){
+  for (int ifreq=0; ifreq<HALFNFOUR/2; ifreq++){
     phases[ifreq]=TMath::ATan2(tmp_fftvhz[ifreq+1], tmp_fftvhz[ifreq])*180./icemc::constants::PI;
   }
 
@@ -2381,11 +1715,11 @@ void anitaSim::Anita::MakeArrayforFFT(double *vsignalarray_e,double *vsignal_e_f
   int ilastnonzero=2000;
   for (int i=0;i<NFREQ;i++) {
     // freq_forfft has NFOUR/2 elements because it is meant to cover real and imaginary values
-    // but there are only NFOUR/4 different values
-    // it's the index among the NFOUR/4 that we're interested in
+    // but there are only HALFNFOUR/2 different values
+    // it's the index among the HALFNFOUR/2 that we're interested in
 
     // this translate the actual frequency
-    int ifour = icemc::Tools::Getifreq(freq[i],freq_forfft[0],freq_forfft[NFOUR/2-1],NFOUR/4);
+    int ifour = icemc::Tools::Getifreq(freq[i],freq_forfft[0],freq_forfft[NFOUR/2-1],HALFNFOUR/2);
     // std::cout << "make array..."<< i << "\t" << ifour << std::endl;
 
     if (ifour!=-1 && 2*ifour+1<NFOUR/2) {
@@ -2424,17 +1758,17 @@ void anitaSim::Anita::MakeArrayforFFT(double *vsignalarray_e,double *vsignal_e_f
     // EH check
     // cout << "ifirstnonzero, ilastnonzero are " << ifirstnonzero << " " << ilastnonzero << "\n";
     // cout << "ratio is " << (double)count_nonzero/(double)(ilastnonzero-ifirstnonzero) << "\n";
-  for (int j=0;j<NFOUR/4;j++) {
+  for (int j=0;j<HALFNFOUR/2;j++) {
     vsignal_e_forfft[2*j]*=sqrt((double)count_nonzero/(double)(ilastnonzero-ifirstnonzero));
     vsignal_e_forfft[2*j+1]*=sqrt((double)count_nonzero/(double)(ilastnonzero-ifirstnonzero));
   }
 
-  //  icemc::Tools::InterpolateComplex(vsignal_e_forfft,NFOUR/4);
+  //  icemc::Tools::InterpolateComplex(vsignal_e_forfft,HALFNFOUR/2);
 
   if (useconstantdelay){
     double cosphase=cos(phasedelay*icemc::constants::PI/180.);
     double sinphase=sin(phasedelay*icemc::constants::PI/180.);
-    for (int ifour=0;ifour<NFOUR/4;ifour++) {
+    for (int ifour=0;ifour<HALFNFOUR/2;ifour++) {
       if (USEPHASES) {
 	cosphase = cos(v_phases[ifour]*icemc::constants::PI/180.);
 	sinphase = sin(v_phases[ifour]*icemc::constants::PI/180.);
@@ -2446,7 +1780,7 @@ void anitaSim::Anita::MakeArrayforFFT(double *vsignalarray_e,double *vsignal_e_f
 }
 
 
-void anitaSim::Anita::BoxAverageComplex(double *array, const int n,int navg) {
+void anitaSim::Anita::BoxAverageComplex(double *array, const int n,int navg) const  {
   // to get rid of the zero bins
   double array_temp[2*n];
   for (int i=0;i<n;i++) {
@@ -2470,7 +1804,8 @@ void anitaSim::Anita::BoxAverageComplex(double *array, const int n,int navg) {
 		
   }
 }
-void anitaSim::Anita::BoxAverage(double *array, const int n,int navg) {
+
+void anitaSim::Anita::BoxAverage(double *array, const int n,int navg) const {
   // to get rid of the zero bins
   double array_temp[n];
   for (int i=0;i<n;i++) {
@@ -2541,18 +1876,6 @@ int anitaSim::Anita::getLabAttn(int NPOINTS_LAB,double *freqlab,double *labattn)
   return 1;
     
 }
-
-
-double anitaSim::Anita::GaintoHeight(double gain,double freq,double nmedium_receiver) {
-
-  // from gain=4*pi*A_eff/lambda^2
-  // and h_eff=2*sqrt(A_eff*Z_rx/Z_air)
-  // gain is in dB
-  return 2*sqrt(gain/4/icemc::constants::PI*icemc::constants::CLIGHT*icemc::constants::CLIGHT/(freq*freq)*icemc::constants::Zr/(icemc::constants::Z0*nmedium_receiver));
-} //GaintoHeight
-
-
-
 
 
 
