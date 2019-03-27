@@ -194,8 +194,6 @@ void anitaSim::Anita::Initialize(const Settings *settings1, std::ofstream &foutp
 
   NBANDS=4; // subbands (not counting full band)
 
-  PERCENTBW=10; // subbands (not counting full band)
-
   TIMESTEP=(1./2.6)*1.E-9; // time step between samples
 
   USEPHASES=0;

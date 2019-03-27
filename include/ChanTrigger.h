@@ -41,15 +41,13 @@ namespace anitaSim {
      */
     double ADCCountstoPowerThreshold(const Anita* anita1, int ipol, int iant);
 
-    const static int NSURF=9;                           ///< Number of surfs
-    const static int NSURFPLUSONE=10;                   ///< Number of surfs plus one
-    const static int NSURFMINUSONE=8;                   ///< Number of surfs minus on1
-    const static int NCHANNELS=32;                      ///< Number of channells on each surf
-    const static int NPOINTS=4073;                      ///< Max number of points from surf measurements
+    static const int NSURF=9;                           ///< Number of surfs
+    static const int NSURFPLUSONE=10;                   ///< Number of surfs plus one
+    static const int NSURFMINUSONE=8;                   ///< Number of surfs minus on1
+    static const int NCHANNELS=32;                      ///< Number of channells on each surf
+    static const int NPOINTS=4073;                      ///< Max number of points from surf measurements
     static const unsigned NFOUR = Anita::NFOUR;         ///< Number of points in Fourier space
     static const unsigned HALFNFOUR = Anita::HALFNFOUR; ///< Half of the number of points in the Fourier space
-    // static const unsigned NFOUR = 1024;              ///< Number of points in Fourier space
-    // static const unsigned HALFNFOUR = 512;           ///< Half of the number of points in the Fourier space
 
     // TRandom3 Rand3;                                     ///< Random number generator instance
     double thisrate;                                    ///< Rate in MHz
@@ -447,11 +445,6 @@ namespace anitaSim {
     PolBandHalfNFourArray vm_banding_rfcm_forfft;             ///< Starts out as V/s vs. freq after banding, rfcm, after fft it is V vs. t
     PolBandHalfNFourArray v_banding_rfcm_forfft_temp;         ///< Use for the averaging over 10 neighboring bins
 
-    // double v_banding_rfcm[2][5][Anita::NFREQ];                  ///< This is Volts/m as a function of frequency after rfcm's and banding
-    // double v_banding_rfcm_forfft[2][5][HALFNFOUR];              ///< Starts out as V/s vs. freq after banding, rfcm, after fft it is V vs. t
-    // double vm_banding_rfcm_forfft[2][5][HALFNFOUR];             ///< Starts out as V/s vs. freq after banding, rfcm, after fft it is V vs. t
-    // double v_banding_rfcm_forfft_temp[2][5][HALFNFOUR];         ///< Use for the averaging over 10 neighboring bins
-    
     double integral_vmmhz;                                      ///< Electric field integral    
     int unwarned;                                               ///< Whether we have warned the user about resetting thresholds when they are beyond the measured bounds
   }; //class ChanTrigger

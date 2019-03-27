@@ -63,25 +63,19 @@ std::array<double, numGainPoints> heightVH_m; ///< converted from gain_dBi_vh_me
 double refractiveIndexUsedForHeightArrays = 0; ///< Required to find height from gains
 
 constexpr int numAnglePoints = 7;
-const std::array<double, numAnglePoints> referenceAnglesDeg {0, 5, 10, 20, 30, 45, 90}; // the off axis measurements are have these step sizes (Degrees)
+constexpr std::array<double, numAnglePoints> referenceAnglesDeg {0, 5, 10, 20, 30, 45, 90}; // the off axis measurements are have these step sizes (Degrees)
 const std::array<double, numAnglePoints> referenceAnglesRad {referenceAnglesDeg[0]*icemc::constants::RADDEG,
-                                                             referenceAnglesDeg[1]*icemc::constants::RADDEG,
-                                                             referenceAnglesDeg[2]*icemc::constants::RADDEG,
-                                                             referenceAnglesDeg[3]*icemc::constants::RADDEG,
-                                                             referenceAnglesDeg[4]*icemc::constants::RADDEG,
-                                                             referenceAnglesDeg[5]*icemc::constants::RADDEG,
-                                                             referenceAnglesDeg[6]*icemc::constants::RADDEG};
-// const std::array<double,  numAnglePoints-1> invAngleBinSize {referenceAnglesDeg[1] - referenceAnglesDeg[0],
-//                                                              referenceAnglesDeg[2] - referenceAnglesDeg[1],
-//                                                              referenceAnglesDeg[3] - referenceAnglesDeg[2],
-//                                                              referenceAnglesDeg[4] - referenceAnglesDeg[3],
-//                                                              referenceAnglesDeg[5] - referenceAnglesDeg[4],
-//                                                              referenceAnglesDeg[6] - referenceAnglesDeg[5]};
+							     referenceAnglesDeg[1]*icemc::constants::RADDEG,
+							     referenceAnglesDeg[2]*icemc::constants::RADDEG,
+							     referenceAnglesDeg[3]*icemc::constants::RADDEG,
+							     referenceAnglesDeg[4]*icemc::constants::RADDEG,
+							     referenceAnglesDeg[5]*icemc::constants::RADDEG,
+							     referenceAnglesDeg[6]*icemc::constants::RADDEG};
 
-std::array<std::array<double, numGainPoints>, numAnglePoints> gain_v_angle_az; //[numAnglePoints][numGainPoints]
-std::array<std::array<double, numGainPoints>, numAnglePoints> gain_h_angle_az; //[numAnglePoints][numGainPoints]
-std::array<std::array<double, numGainPoints>, numAnglePoints> gain_v_angle_el; //[numAnglePoints][numGainPoints]
-std::array<std::array<double, numGainPoints>, numAnglePoints> gain_h_angle_el; //[numAnglePoints][numGainPoints]
+std::array<std::array<double, numGainPoints>, numAnglePoints> gain_v_angle_az;
+std::array<std::array<double, numGainPoints>, numAnglePoints> gain_h_angle_az;
+std::array<std::array<double, numGainPoints>, numAnglePoints> gain_v_angle_el;
+std::array<std::array<double, numGainPoints>, numAnglePoints> gain_h_angle_el;
 
 bool doneLoadGains = false; ///< So we only read the Seavey gains and calculate derived quantities once.
 
@@ -120,7 +114,7 @@ std::ifstream openCarefully(const char* fileName, bool failHard = true){
 
 /** 
  * Read the gains into the arrays.
- * @todo This is NOT THREAD SAFE, some locking functions would be required to make it so.
+ * @todo This is NOT THREAD SAFE, but icemc won't be threaded for the forseeable future
  */
 void loadGains(){
   if(!doneLoadGains){
@@ -165,7 +159,7 @@ void loadGains(){
       std::ifstream angle_file = openCarefully(filePath.c_str());
 
       for(auto& g0 : gainVsAngle.at(0)){
-	g0 = 1; // 0th bin is on boresight, so no off-axis effects... so set to 1.
+	g0 = 1; // 0th bin is on boresight, so no off-axis effects... so multiplier is 1.
       }
 
       for(int j = 1; j < numAnglePoints; j++){
@@ -198,11 +192,16 @@ void loadGains(){
  * 
  * @return 
  */
-inline double getAntennaHeightFromGain_dB(double gain_dB, double freq, double nmedium_receiver) {
+inline double getAntennaHeightFromGain_dB(double gain_dB, double freqHz, double nmedium_receiver) {
   // from gain=4*pi*A_eff/lambda^2
   // and h_eff=2*sqrt(A_eff*Z_rx/Z_air)
   // gain_dB is in dB
-  return 2*sqrt(gain_dB/4/icemc::constants::PI*icemc::constants::CLIGHT*icemc::constants::CLIGHT/(freq*freq)*icemc::constants::Zr/(icemc::constants::Z0*nmedium_receiver));      
+  using namespace icemc::constants;
+  const double c = icemc::constants::CLIGHT;
+  const double term1 = (gain_dB*c*c)/(4*icemc::constants::PI*freqHz*freqHz);
+  const double Z_air = nmedium_receiver*icemc::constants::Z0;
+  const double term2 = icemc::constants::Zr/Z_air;
+  return 2*sqrt(term1*term2);
 }
 
 
@@ -218,7 +217,6 @@ inline double getAntennaHeightFromGain_dB(double gain_dB, double freq, double nm
 void fillHeightArrays(double refractiveIndex){
   
   loadGains();
-
   
   // then we recalculate everything
   if(refractiveIndex != refractiveIndexUsedForHeightArrays){
@@ -556,7 +554,7 @@ anitaSim::Seavey::Seavey(const TVector3& positionV, const TVector3& positionH,
 
 
 
-double anitaSim::Seavey::getOffAxisResponse(Pol pol,  AngleDir dir, double freqHz, double angleRad) const {
+double anitaSim::Seavey::getOffAxisResponse(Pol pol, AngleDir dir, double freqHz, double angleRad) const {
   loadGains();
 
   const int j1 = getLowerAngleBin(angleRad); // calls fabs()
@@ -613,7 +611,7 @@ void anitaSim::Seavey::addSignal(const icemc::PropagatingSignal& s) {
   double h_component_kvector = 0;
   double n_component_kvector = 0;
   anitaSim::Seavey::GetEcompHcompkvector(fEPlane.global,  fHPlane.global,  fNormal.global, s.poynting,
-				      e_component_kvector, h_component_kvector, n_component_kvector);
+					 e_component_kvector, h_component_kvector, n_component_kvector);
 
   double e_component = 0;
   double h_component = 0;
@@ -623,7 +621,7 @@ void anitaSim::Seavey::addSignal(const icemc::PropagatingSignal& s) {
   double hitangle_e = 0;
   double hitangle_h = 0;
   anitaSim::Seavey::GetHitAngles(e_component_kvector, h_component_kvector, n_component_kvector,
-			      hitangle_e, hitangle_h);
+				 hitangle_e, hitangle_h);
 
   const double df_Hz = s.waveform.getDeltaF();
 
@@ -651,7 +649,7 @@ void anitaSim::Seavey::addSignal(const icemc::PropagatingSignal& s) {
   }
 
   std::vector<std::complex<double> >& vPolFreqs = thisVPol.changeFreqDomain();
-  std::vector<std::complex<double> >& hPolFreqs = thisHPol.changeFreqDomain();
+  std::vector<std::complex<double> >& hPolFreqs = thisHPol.changeFreqDomain();  
 
   /**
    * In anita.cc, they loop over 0,1 for get_gain_angle(hitangle_e)
@@ -661,35 +659,36 @@ void anitaSim::Seavey::addSignal(const icemc::PropagatingSignal& s) {
    */
 
   /**
-   * @todo So this is what I think anita.cc was doing			
+   * @todo So this is what I think anita.cc was doing
    * I'm not sure it's right, but if it's wrong, it's the wrong off-axis
    * response of the cross-pol, so probably a small effect
    */
 
   bool temp = fDebug;
-  fDebug = false;
+  // fDebug = false;
   double freqHz = 0;
   for(auto& c : vPolFreqs){
 
     if(freqAllowedByPassBands(freqHz)){
-    
+
       const double heightVV = getHeight(Pol::V, freqHz); // VPol component of signal to VPol feed
       const double heightHV = getHeight(XPol::HtoV, freqHz); // HPol component of signal to VPol feed via cross-pol antenna response
 
       const double offAxisResponseV  = getOffAxisResponse(Pol::V, AngleDir::Azimuth, freqHz, hitangle_e);
-      const double offAxisResponseHV = getOffAxisResponse(Pol::H, AngleDir::Azimuth, freqHz, hitangle_e);
+      // const double offAxisResponseHV = getOffAxisResponse(Pol::H, AngleDir::Azimuth, freqHz, hitangle_e);
+      const double offAxisResponseHV = getOffAxisResponse(Pol::H, AngleDir::Elevation, freqHz, hitangle_h);
 
-      // if(fDebug){
-      //   std::cout << "Seavey     \t" << TMath::Nint(freqHz) << "\t" << std::fixed << std::setprecision(7)
-      // 		<< heightVV << "\t" << heightHV << "\t"
-      // 		<< offAxisResponseV << "\t" << offAxisResponseHV << "\t"
-      // 		<< e_component << "\t" << h_component << "\t"
-      // 		<< hitangle_e << "\t" << "\n";
-      // }
+      if(fDebug){
+        std::cout << "Seavey V: " << freqHz/1e9 << ", heights=("
+      		<< heightVV << ", " << heightHV << "), oars=("
+      		<< offAxisResponseV << ", " << offAxisResponseHV << "), e_comp = "
+      		<< e_component << ", h_comp" << h_component << ", hitangle_e = "
+      		<< hitangle_e << "\n";
+      }
 
       // 0.5 is for voltage dividing apparently, it doesn't happen in the Seavey... but it does happen downstream... maybe
       const double totalGainFactorV = 0.5*sqrt(  heightVV*heightVV*e_component*e_component*offAxisResponseV
-						 + heightHV*heightHV*h_component*h_component*offAxisResponseHV );
+					       + heightHV*heightHV*h_component*h_component*offAxisResponseHV );
 
       c *= totalGainFactorV;
     }
@@ -714,18 +713,18 @@ void anitaSim::Seavey::addSignal(const icemc::PropagatingSignal& s) {
       // then you need to take acconut of how far off boresight you are... i.e. the off-axis reponse of the antennas.
       const double offAxisResponseH  = getOffAxisResponse(Pol::H, AngleDir::Elevation, freqHz, hitangle_h);
       const double offAxisResponseVH = getOffAxisResponse(Pol::V, AngleDir::Elevation, freqHz, hitangle_h);
-      
+
       // 0.5 is for voltage dividing apparently, it doesn't happen in the Seavey... but it does happen downstream... maybe
       double totalGainFactorH = 0.5*sqrt(  heightHH*heightHH*h_component*h_component*offAxisResponseH
-					   + heightVH*heightVH*e_component*e_component*offAxisResponseVH);
+					 + heightVH*heightVH*e_component*e_component*offAxisResponseVH);
 
-      // if(fDebug){
-      //   std::cout << "Seavey     \t" << TMath::Nint(freqHz) << "\t" << std::fixed << std::setprecision(7)
-      // 		<< heightHH << "\t" << heightVH << "\t"
-      // 		<< offAxisResponseH << "\t" << offAxisResponseVH << "\t"
-      // 		<< e_component << "\t" << h_component << "\t"
-      // 		<< hitangle_e << "\t" << "\n";
-      // }
+      if(fDebug){
+        std::cout << "Seavey V: " << freqHz/1e9 << ", heights=("
+      		<< heightHH << ", " << heightVH << "), oars=("
+      		<< offAxisResponseH << ", " << offAxisResponseVH << "), e_comp = "
+      		<< e_component << ", h_comp" << h_component << ", hitangle_h = "
+      		<< hitangle_h << "\n";
+      }
 
       c *= totalGainFactorH;
     }

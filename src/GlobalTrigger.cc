@@ -34,10 +34,8 @@ anitaSim::GlobalTrigger::GlobalTrigger(const Settings *settings, const Anita* an
   WHICHLAYERSLCPRCP[1]=1;
   WHICHLAYERSLCPRCP[2]=0;
 
-
   // time step between sampling tunnel diode output for the trigger
-  TRIGTIMESTEP=2.E-9; 
-      
+  TRIGTIMESTEP=2.E-9;
    
   L3_COINCIDENCE=22.5e-9;
 

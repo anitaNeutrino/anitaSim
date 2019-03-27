@@ -167,6 +167,10 @@ void anitaSim::ANITA::initSeaveys() {
       }
     }
     fSeaveys.emplace_back(Seavey(positionV, positionH,  n_eplane,  n_hplane, n_normal, fSettings));
+
+    if(fSeaveys.size()==37){
+      fSeaveys.back().setDebug(true);
+    }
   }
 }
 

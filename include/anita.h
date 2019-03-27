@@ -71,14 +71,10 @@ namespace anitaSim {
     TTree *tdiode;
 
     static constexpr int NFOUR=1024; // Number of fourier point
-    // static constexpr int NFOUR=2048; // Number of fourier points
-    // static constexpr int NFOUR=4096; // Number of fourier points    
     static constexpr int HALFNFOUR=NFOUR/2; // Half of the number of fourier points
 
     // these are used for the satellite thing
     int NBANDS;                                                                                        ///< number of frequency sub-bands (not counting full band)
-
-    int PERCENTBW;                                                                                     ///< percent bandwidth
 
     // these variables are for filling the tsignals tree
     // double signal_vpol_inanita[5][HALFNFOUR];                                                          ///< this is the signal waveform in the vertical polarization, before converting to LCP, RCP where applicable

@@ -514,7 +514,7 @@ void anitaSim::Settings::ApplyInputs(Anita* anita1) const {
   anita1->GAINS   = GAINS;
   anita1->BANDING = BANDING;
   anita1->NBANDS  = NBANDS;
-  anita1->PERCENTBW = PERCENTBW;
+  // anita1->PERCENTBW = PERCENTBW;
   anita1->SIGMA_THETA = SIGMA_THETA;
   anita1->FREQ_LOW    = FREQ_LOW;
   anita1->FREQ_HIGH   = FREQ_HIGH;
