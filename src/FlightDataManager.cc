@@ -3,7 +3,7 @@
 #include "Constants.h"
 #include "TRandom3.h"
 #include "AnitaSimSettings.h"
-#include "Crust2.h"
+#include "Crust.h"
 #include "Antarctica.h"
 #include "TVector3.h"
 #include "TF1.h"
