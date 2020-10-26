@@ -1,4 +1,4 @@
-#include "ANITA.h"
+#include "AnitaPayload.h"
 #include "AnitaSimSettings.h"
 #include "GlobalTrigger.h"
 #include "ChanTrigger.h"
@@ -13,7 +13,7 @@
 #include <memory>
 #include "TFile.h" ///@todo remove after done debugging
 
-anitaSim::ANITA::ANITA(const Settings* settings)
+anitaSim::AnitaPayload::AnitaPayload(const Settings* settings)
 // anitaSim::ANITA::ANITA(const Settings* settings, const RootOutput* ro ) 
   : FlightDataManager(settings), Anita(settings, settings->getOutputDir(), this),
     fSettings(settings),
@@ -38,13 +38,13 @@ anitaSim::ANITA::ANITA(const Settings* settings)
 }
 
 
-anitaSim::ANITA::~ANITA(){
+anitaSim::AnitaPayload::~AnitaPayload(){
 
   
 }
 
 
-bool anitaSim::ANITA::chanceInHell(const icemc::PropagatingSignal& signal){
+bool anitaSim::AnitaPayload::chanceInHell(const icemc::PropagatingSignal& signal){
   ///@todo do something much, much cleverer here...
   /// it's not even clear this is anywhere near the correct value
   if(signal.maxEField() > 1e-5){
@@ -57,7 +57,7 @@ bool anitaSim::ANITA::chanceInHell(const icemc::PropagatingSignal& signal){
 }
 
 
-const Geoid::Position& anitaSim::ANITA::getPosition(double time){
+const Geoid::Position& anitaSim::AnitaPayload::getPosition(double time){
   /**
    * Here I'm using TMath's QuietNaN() as a default argument.
    * That might be a bad idea, but for now...
@@ -84,14 +84,14 @@ const Geoid::Position& anitaSim::ANITA::getPosition(double time){
 }
 
 
-TVector3 anitaSim::ANITA::getPositionRX(Int_t rx) const {
+TVector3 anitaSim::AnitaPayload::getPositionRX(Int_t rx) const {
   return fSeaveys.at(rx).getPosition(Seavey::Pol::V);
 }
 
 
 
 
-void anitaSim::ANITA::initSeaveys() {
+void anitaSim::AnitaPayload::initSeaveys() {
 
   for(int rx = 0; rx < getNumRX(); rx++){
     int ilayer = -1;
@@ -177,7 +177,7 @@ void anitaSim::ANITA::initSeaveys() {
 
 
 
-void anitaSim::ANITA::addSignalToRX(const icemc::PropagatingSignal& signal, int rx, int inu){
+void anitaSim::AnitaPayload::addSignalToRX(const icemc::PropagatingSignal& signal, int rx, int inu){
   
   if(rx >= 0 && rx < fSeaveys.size()){
     fSeaveys.at(rx).addSignal(signal);
@@ -188,7 +188,7 @@ void anitaSim::ANITA::addSignalToRX(const icemc::PropagatingSignal& signal, int 
 }
 
 
-bool anitaSim::ANITA::applyTrigger(int inu){
+bool anitaSim::AnitaPayload::applyTrigger(int inu){
   
   //////////////////////////////////////
   //       EVALUATE GLOBAL TRIGGER    //
@@ -267,7 +267,7 @@ bool anitaSim::ANITA::applyTrigger(int inu){
 }
 
 
-void anitaSim::ANITA::write(const icemc::Event& event) {
+void anitaSim::AnitaPayload::write(const icemc::Event& event) {
   fAnitaOutput.fillRootifiedAnitaDataTrees(event);
 }
 

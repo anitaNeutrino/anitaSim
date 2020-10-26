@@ -1,7 +1,7 @@
 #include "AnitaSimSettings.h"
 #include "CommandLineOptions.h"
 #include "EventGenerator.h"
-#include "ANITA.h"
+#include "AnitaPayload.h"
 
 int main(int argc,  char **argv) {
 
@@ -15,7 +15,7 @@ int main(int argc,  char **argv) {
   icemc::CommandLineOptions clOpts(argc, argv, settings);
 
   if(clOpts.are_good){
-    auto anita = std::make_shared<anitaSim::ANITA>(&settings);    
+    auto anita = std::make_shared<anitaSim::AnitaPayload>(&settings);    
     icemc::EventGenerator uhen(&settings);
     uhen.generate(*anita.get());
   }

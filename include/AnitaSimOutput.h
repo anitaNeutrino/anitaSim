@@ -12,7 +12,7 @@ class RawAnitaHeader;
 class TruthAnitaEvent;
 
 namespace anitaSim {
-  class ANITA;
+  class AnitaPayload;
   class Settings;
   class RayTracer;
   class Screen;
@@ -24,13 +24,13 @@ namespace anitaSim {
 
   class AnitaSimOutput {
   public:
-    AnitaSimOutput(const ANITA* detector, const Settings* settings, const char* outputDir, int run);
+    AnitaSimOutput(const AnitaPayload* detector, const Settings* settings, const char* outputDir, int run);
     virtual ~AnitaSimOutput();
 
     void fillRootifiedAnitaDataTrees(const icemc::Event& event);
 
   private:
-    const ANITA* fDetector; ///< The ANITA detector, parent and owner of this object
+    const AnitaPayload* fDetector; ///< The ANITA detector, parent and owner of this object
     const Settings* fSettings; ///< The simulation settings
     const int fRun; ///< The simulated run number (used to uniquely name output files)
     const TString fOutputDir; ///< The output directory

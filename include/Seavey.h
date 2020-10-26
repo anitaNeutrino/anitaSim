@@ -12,7 +12,7 @@ class TCanvas;
 namespace anitaSim {
 
   class Settings;
-  class ANITA;
+  //class ANITA;
 
   /**
    * @class Seavey

@@ -4,7 +4,7 @@
 #include "RootOutput.h"
 #include "Report.h"
 #include "EnvironmentVariable.h"
-#include "ANITA.h"
+#include "AnitaPayload.h"
 #include "RayTracer.h"
 #include "SurfaceScreen.h"
 #include "Tools.h"
@@ -26,7 +26,7 @@
 #endif
 
 
-anitaSim::AnitaSimOutput::AnitaSimOutput(const ANITA* detector, const Settings* settings, const char* outputDir, int run)
+anitaSim::AnitaSimOutput::AnitaSimOutput(const AnitaPayload* detector, const Settings* settings, const char* outputDir, int run)
   : fDetector(detector), fSettings(settings),
     fRun(run), fOutputDir(TString::Format("%s/run%d/", outputDir, run)), 
     fEvent(nullptr), fHeader(nullptr), fGps(nullptr)
@@ -112,7 +112,7 @@ void anitaSim::AnitaSimOutput::initRootifiedAnitaDataFiles(){
 
   icemc::RootOutput::initTree(&triggerSettingsTree, "triggerSettingsTree", "Trigger settings", fTruthFile);
   // Anita* anita2 = const_cast<Anita*>(uhen->anita1);
-  ANITA* anita2 = const_cast<ANITA*>(fDetector);
+  AnitaPayload* anita2 = const_cast<AnitaPayload*>(fDetector);
   
   triggerSettingsTree.Branch("dioderms",  anita2->bwslice_dioderms_fullband_allchan,  "dioderms[2][48][6]/D" );
   triggerSettingsTree.Branch("diodemean", anita2->bwslice_diodemean_fullband_allchan, "diodemean[2][48][6]/D");
@@ -141,8 +141,8 @@ void anitaSim::AnitaSimOutput::fillRootifiedAnitaDataTrees(const icemc::Event& i
 #ifdef ANITA_UTIL_EXISTS
   AnitaGeomTool* geom = AnitaGeomTool::Instance();
 
-  const ANITA* bn1 = fDetector;
-  const ANITA* anita1 = fDetector;
+  const AnitaPayload* bn1 = fDetector;
+  const AnitaPayload* anita1 = fDetector;
 
   fEvent  = new UsefulAnitaEvent();
   fHeader = new RawAnitaHeader();
