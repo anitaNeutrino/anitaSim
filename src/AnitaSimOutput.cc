@@ -256,7 +256,8 @@ void anitaSim::AnitaSimOutput::fillRootifiedAnitaDataTrees(const icemc::Event& i
   fTruth->sourceLon        = icemcEvent.interaction.position.Longitude();
   fTruth->sourceLat        = icemcEvent.interaction.position.Latitude();
   fTruth->sourceAlt        = icemcEvent.interaction.position.Altitude();
-  fTruth->weight           = icemcEvent.neutrino.weight(); ///@todo does this make sense, the events have weights, not the neutrinos?
+  //fTruth->weight           = icemcEvent.neutrino.weight(); ///@todo does this make sense, the events have weights, not the neutrinos?
+  fTruth->weight           = icemcEvent.weight();
   TVector3 n_bn = bn1->position().Unit();
   TVector3 n_int_pos = icemcEvent.interaction.position.Unit();
   for (int i=0;i<3;i++){

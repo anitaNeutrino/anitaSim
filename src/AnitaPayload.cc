@@ -39,8 +39,7 @@ anitaSim::AnitaPayload::AnitaPayload(const Settings* settings)
 
 
 anitaSim::AnitaPayload::~AnitaPayload(){
-
-  
+    
 }
 
 
@@ -56,6 +55,17 @@ bool anitaSim::AnitaPayload::chanceInHell(const icemc::PropagatingSignal& signal
   return true;
 }
 
+double anitaSim::AnitaPayload::signalThreshold() const {
+  //@todo replace rough values with actual implementation
+  double vnoise = 1.52889E-5; //VNOISE[0]
+  double maxthreshold = 2.3; //Need to implement
+  double heff_max = 0.62639; // max effective height = 0.62639, need to implement
+  double bwmin = 2E8; // Minimum width of bandwidth slice
+
+  double thresh = (vnoise/10)*maxthreshold/(heff_max*(bwmin/1.E6));
+  
+  return thresh;
+}
 
 const Geoid::Position& anitaSim::AnitaPayload::getPosition(double time){
   /**

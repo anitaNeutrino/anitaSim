@@ -665,7 +665,7 @@ void anitaSim::Seavey::addSignal(const icemc::PropagatingSignal& s) {
    */
 
   bool temp = fDebug;
-  // fDebug = false;
+  fDebug = false;
   double freqHz = 0;
   for(auto& c : vPolFreqs){
 
@@ -699,7 +699,7 @@ void anitaSim::Seavey::addSignal(const icemc::PropagatingSignal& s) {
     freqHz += df_Hz;
   }
 
-  fDebug = temp;
+  //fDebug = temp;
   
   freqHz = 0; // freqHz is incremented in the loop, so reset
   for(auto& c : hPolFreqs){
