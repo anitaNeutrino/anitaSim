@@ -244,6 +244,8 @@ void anitaSim::GlobalTrigger::PassesTrigger(Anita* anita1, int mode, TriggerStat
 
   //bool ishpol should only be used for anita3, by default do only vpol
 
+  triggerState.passes.fill(0);
+  
   if (fSettings->TRIGGERSCHEME < 3) {
 
     // Basic trigger refers to  frequency domain voltage (0) frequency domain energy (1) timedomain diode integration (2) 
