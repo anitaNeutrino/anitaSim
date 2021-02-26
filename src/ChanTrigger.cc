@@ -676,8 +676,8 @@ void anitaSim::ChanTrigger::readInSeavey(const Seavey* s, int ant, const Anita* 
     bool message = false;
     if(ant==6 && pol == Seavey::Pol::H){
       static int n=0;
-      const char* th = (n%10) == 1 ? "st" : (n%10) == 2 ? "nd" : (n%10)==3 ? "rd" : "th";
-      std::cout  <<  n << th << "  time" << std::endl;
+      //const char* th = (n%10) == 1 ? "st" : (n%10) == 2 ? "nd" : (n%10)==3 ? "rd" : "th";
+      //std::cout  <<  n << th << "  time" << std::endl;
 
       if(n==22){
 	signal.dump("testReadInSeavey.root");
@@ -1453,7 +1453,8 @@ void anitaSim::ChanTrigger::applyImpulseResponseDigitizer(const Anita* anita1, i
   //Downsample again
   // TGraph *surfSignalDown = FFTtools::getInterpolatedGraph(surfTrans, 1/2.6);
   TGraph *surfSignalDown = FFTtools::getInterpolatedGraph(surfSignal, 1/2.6);  
-  
+  surfSignalDown->SetBit(TGraph::kIsSortedX);
+    
   // add thermal noise for anita-3 flight
   if (fSettings->SIGNAL_FLUCT && fSettings->NOISEFROMFLIGHTDIGITIZER) { 
     for (int i=0;i<nPoints;i++){
@@ -1547,6 +1548,7 @@ void anitaSim::ChanTrigger::applyImpulseResponseTrigger(const Anita* anita1, int
   //Downsample again
   // TGraph *surfSignalDown = FFTtools::getInterpolatedGraph(surfTrans, 1/2.6);
   TGraph *surfSignalDown = FFTtools::getInterpolatedGraph(surfSignal, 1/2.6);
+  surfSignalDown->SetBit(TGraph::kIsSortedX);
 
   // add thermal noise for anita-3 flight
   if (fSettings->SIGNAL_FLUCT && fSettings->NOISEFROMFLIGHTTRIGGER) { 

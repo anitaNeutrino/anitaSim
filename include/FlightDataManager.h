@@ -125,7 +125,7 @@ namespace anitaSim {
     const FlightPath WHICHPATH;
     int igps;                                                   ///< which balloon position do we use out of the 25000 anitalite GPS positions.
     int ibnposition;
-    unsigned int realTime;                           ///< realtime from the flight data file
+    int realTime;                           ///< realtime from the flight data file
 
     double latitude,longitude,altitude,heading,roll,pitch;
     

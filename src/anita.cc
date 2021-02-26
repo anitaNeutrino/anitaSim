@@ -1967,10 +1967,12 @@ void anitaSim::Anita::readTuffResponseTrigger(const Settings *settings1){
 void anitaSim::Anita::readNoiseFromFlight(const Settings *settings1){
   
   TFile *fRayleighAnita3 = new TFile((ICEMC_DATA_DIR+"/RayleighAmplitudesAnita3_noSun_Interp.root").c_str(), "read");
-  
+
   for (int iant=0;iant<48;iant++){
     RayleighFits[0][iant] = (TGraph*)fRayleighAnita3->Get(Form("grSigma%dV_interp", iant+1));
+    RayleighFits[0][iant]->Sort();
     RayleighFits[1][iant] = (TGraph*)fRayleighAnita3->Get(Form("grSigma%dH_interp", iant+1));
+    RayleighFits[1][iant]->Sort();
   }
   
   Double_t *timeVals = new Double_t [780];
