@@ -84,7 +84,6 @@ void anitaSim::AnitaSimOutput::initRootifiedAnitaDataFiles(){
   // adu5PatTree.Branch("weight",       &uhen->fNeutrinoPath->weight,       "weight/D"     ); ///@todo restore weight here
   
 #ifdef ANITA3_EVENTREADER
-
   // Set AnitaVersion so that the right payload geometry is used
   AnitaVersion::set(fSettings->ANITAVERSION);
   
@@ -256,7 +255,6 @@ void anitaSim::AnitaSimOutput::fillRootifiedAnitaDataTrees(const icemc::Event& i
   fTruth->sourceLon        = icemcEvent.interaction.position.Longitude();
   fTruth->sourceLat        = icemcEvent.interaction.position.Latitude();
   fTruth->sourceAlt        = icemcEvent.interaction.position.Altitude();
-  //fTruth->weight           = icemcEvent.neutrino.weight(); ///@todo does this make sense, the events have weights, not the neutrinos?
   fTruth->weight           = icemcEvent.loop.weight();
   TVector3 n_bn = bn1->position().Unit();
   TVector3 n_int_pos = icemcEvent.interaction.position.Unit();

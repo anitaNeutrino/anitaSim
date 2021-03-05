@@ -71,7 +71,8 @@ void anitaSim::SimulatedSignal::updateSimSignalFromVmmhz(int nfreqs0, double *fr
   //  cout << norm << endl;
   // Graph to interpolate between points properly
   TGraph *gfreq0 = new TGraph(nfreqs0, freqs0, freqAmp0);
-
+  gfreq0->Sort();
+  
   for (int ifreq=1;ifreq<nfreqs;ifreq++){
     tempFreqVals[ifreq]=newdf*ifreq;
     if (tempFreqVals[ifreq]<freqs0[0]) {

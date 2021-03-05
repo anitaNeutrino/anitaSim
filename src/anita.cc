@@ -1818,6 +1818,7 @@ void anitaSim::Anita::readImpulseResponseDigitizer(const Settings *settings1){
 	  delete grTemp;
 
 	  TGraph *gDig  = fSignalChainResponseDigitizer[ipol][iring][iphi]->getFreqMagGraph();
+	  gDig->Sort();
 	  // Smooth out the high frequency 
 	  double temparray[512];
 	  for(int i=0;i<numFreqs;i++) {
@@ -1942,6 +1943,7 @@ void anitaSim::Anita::readTuffResponseTrigger(const Settings *settings1){
 
 	  
 	  TGraph *gTrig  = fSignalChainResponseTriggerTuffs[ipol][iring][iphi][ituff]->getFreqMagGraph();
+	  gTrig->Sort();
 	  // Smooth out the high frequency 
 	  double temparray[512];
 	  for(int i=0;i<numFreqs;i++) {
@@ -2199,6 +2201,7 @@ void anitaSim::Anita::readTriggerEfficiencyScanPulser(const Settings *settings1)
     TGraph *gtemp = new TGraph (newn, xnew, ynew);
     
     TGraph *gPulseAtAmpaInt = FFTtools::getInterpolatedGraph(gtemp, 1/2.6);
+    gPulseAtAmpaInt->Sort();
     
     for (int i=0;i<HALFNFOUR;i++){
       trigEffScanPulseAtAmpa[i] = gPulseAtAmpaInt->Eval(fTimes[i]);
