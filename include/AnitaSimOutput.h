@@ -53,7 +53,7 @@ namespace anitaSim {
     TTree triggerSettingsTree;
     TTree configTree;
     TTree truthTree;
-
+    TTree summaryTree;
 
     void initRootifiedAnitaDataFiles();
     

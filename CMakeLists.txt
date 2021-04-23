@@ -39,6 +39,7 @@ if(DEFINED ENV{ANITA_UTIL_INSTALL_DIR})
     set(ANITA_UTIL_ETC_DIR $ENV{ANITA_UTIL_INSTALL_DIR}/etc)
     link_directories(${ANITA_UTIL_LIB_DIR})
     include_directories(${ANITA_UTIL_LIB_DIR})
+    include_directories(${ANITA_UTIL_INC_DIR})	
  endif()
 
 set(CMAKE_CXX_FLAGS_DEFAULT 

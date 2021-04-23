@@ -682,7 +682,7 @@ void anitaSim::ChanTrigger::readInSeavey(const Seavey* s, int ant, const Anita* 
       if(n==22){
 	signal.dump("testReadInSeavey.root");
 	firstTime = false;
-	message = true;
+	//message = true;
       }
       n++;
     }

@@ -120,6 +120,9 @@ void anitaSim::AnitaSimOutput::initRootifiedAnitaDataFiles(){
   icemc::RootOutput::initTree(&truthTree, "truthAnitaTree", "Truth Anita Tree", fTruthFile);
   truthTree.Branch("truth", &fTruth);
 
+  //icemc::RootOutput::initTree(&summaryTree, "summaryAnitaTree", "Summary Anita Tree", fTruthFile);
+  //summaryTree.Branch("summary", &fSummary);
+
 #else
   Log() << severity::warning << "Need ANITA EventReader version at least 3 to produce Truth output." << std::endl;    
 #endif
@@ -255,7 +258,7 @@ void anitaSim::AnitaSimOutput::fillRootifiedAnitaDataTrees(const icemc::Event& i
   fTruth->sourceLon        = icemcEvent.interaction.position.Longitude();
   fTruth->sourceLat        = icemcEvent.interaction.position.Latitude();
   fTruth->sourceAlt        = icemcEvent.interaction.position.Altitude();
-  fTruth->weight           = icemcEvent.loop.weight();
+  fTruth->weight           = icemcEvent.loop.phaseWeight();
   TVector3 n_bn = bn1->position().Unit();
   TVector3 n_int_pos = icemcEvent.interaction.position.Unit();
   for (int i=0;i<3;i++){

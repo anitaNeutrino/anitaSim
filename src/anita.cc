@@ -49,6 +49,9 @@
 const std::string ICEMC_SRC_DIR=icemc::EnvironmentVariable::ICEMC_SRC_DIR();
 const std::string ICEMC_DATA_DIR=ICEMC_SRC_DIR+"/data/";
 
+constexpr int anitaSim::Anita::NFOUR;
+constexpr int anitaSim::Anita::HALFNFOUR;
+
 anitaSim::Anita::~Anita(){
 }
 

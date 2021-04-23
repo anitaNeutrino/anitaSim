@@ -629,7 +629,8 @@ void anitaSim::Seavey::addSignal(const icemc::PropagatingSignal& s) {
   icemc::FTPair thisHPol = s.waveform;
   icemc::FTPair thisVPol = s.waveform;
 
-  if(fDebug){
+  if(false){
+  //if(fDebug){
     static int ant = -1;
     ant++;
     const char* opt = ant == 0 ? "recreate" : "update";
@@ -700,7 +701,7 @@ void anitaSim::Seavey::addSignal(const icemc::PropagatingSignal& s) {
   }
 
   //fDebug = temp;
-  
+  fDebug=false;
   freqHz = 0; // freqHz is incremented in the loop, so reset
   for(auto& c : hPolFreqs){
 
@@ -762,8 +763,8 @@ void anitaSim::Seavey::addSignal(const icemc::PropagatingSignal& s) {
   //   std::cout << integral << std::endl;
   // }  
   
-
-  fDebug = temp;
+  fDebug=false;
+  //fDebug = temp;
   if(fDebug){
     static int ant = -1;
     ant++;
