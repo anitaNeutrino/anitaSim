@@ -20,6 +20,7 @@ anitaSim::AnitaPayload::AnitaPayload(const Settings* settings)
     fNumRX(settings ? settings->NANTENNAS : 48),
     fVoltsRX(settings ? settings->NANTENNAS : 0),
     fTriggerState(settings),
+    fTriggerStateNoise(settings),
     fAnitaOutput(this, settings, settings->getOutputDir(), settings->getRun())
 {
   initSeaveys();
@@ -46,13 +47,8 @@ anitaSim::AnitaPayload::~AnitaPayload(){
 bool anitaSim::AnitaPayload::chanceInHell(const icemc::PropagatingSignal& signal){
   ///@todo do something much, much cleverer here...
   /// it's not even clear this is anywhere near the correct value
-  if(signal.maxEField() > 1e-5){
-    return true;
-  }
-  else {
-    return false;
-  }
-  return true;
+  //return (signal.maxEField() > signalThreshold());
+  return (signal.maxEField() > 1e-18); // This value seemed good? Needs further verification
 }
 
 double anitaSim::AnitaPayload::signalThreshold() const {
@@ -188,7 +184,6 @@ void anitaSim::AnitaPayload::initSeaveys() {
 
 
 void anitaSim::AnitaPayload::addSignalToRX(const icemc::PropagatingSignal& signal, int rx, int inu){
-  
   if(rx >= 0 && rx < fSeaveys.size()){
     fSeaveys.at(rx).addSignal(signal);
   }
@@ -255,8 +250,9 @@ bool anitaSim::AnitaPayload::applyTrigger(int inu){
 
   // globalTrigger->PassesTrigger(fSettings, this, discones_passing, 2, fL3trig, fL2trig, fL1trig, fSettings->antennaclump, loctrig, loctrig_nadironly, inu, thispasses);
   const int triggerMode = 2;
+  globalTrigger->PassesTrigger(this, triggerMode, fTriggerStateNoise, true);
   globalTrigger->PassesTrigger(this, triggerMode, fTriggerState);
-
+  
   ///////////////////////////////////////
   //       Require that it passes      //
   //            global trigger         //
@@ -267,12 +263,14 @@ bool anitaSim::AnitaPayload::applyTrigger(int inu){
   // Independentely from the fact that they generated an RF trigger
 
   bool eventPassesTrigger = false;
-  if ( (fTriggerState.passes.at(0) > 0 && this->pol_allowed[0]==1)
-       || (fTriggerState.passes.at(1) > 0 && this->pol_allowed[1]==1)
+  if ( (fTriggerState.passes.at(0) > 0 && fTriggerStateNoise.passes.at(0) == 0 && this->pol_allowed[0]==1)
+       || (fTriggerState.passes.at(1) > 0 && fTriggerStateNoise.passes.at(1) == 0 && this->pol_allowed[1]==1)
        || (fSettings->MINBIAS==1)){
     eventPassesTrigger = true;
   }
-
+  else if (fTriggerStateNoise.passes.at(0) > 0 || fTriggerStateNoise.passes.at(1) > 0)
+    std::cout << "~~~ Event " << inu << " triggered on noise!\n";
+  
   return eventPassesTrigger;
 }
 

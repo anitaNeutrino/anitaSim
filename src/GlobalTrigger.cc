@@ -113,6 +113,7 @@ anitaSim::GlobalTrigger::GlobalTrigger(const Settings *settings, const Anita* an
       for (int k=0;k<2;k++) {
 	for (int p=0;p<anita1->NBANDS+1;p++) {
 	  channels_passing[i][j][k][p]=0;
+	  channels_passing_justNoise[i][j][k][p]=0;
 	  // make vchannels_passing the proper length.
 	  vchannels_passing[i][j][k].push_back(0);
 	}
@@ -228,11 +229,11 @@ anitaSim::GlobalTrigger::GlobalTrigger(const Settings *settings, const Anita* an
 // }
 
 
-void anitaSim::GlobalTrigger::PassesTrigger(Anita* anita1,int mode, TriggerState& triggerState) {
+void anitaSim::GlobalTrigger::PassesTrigger(Anita* anita1,int mode, TriggerState& triggerState, bool noiseOnly) {
 
   double this_threshold= anita1->powerthreshold[4]; 
   // return PassesTrigger(settings,anita1,discones_passing,mode,l3trig,l2trig,l1trig,antennaclump,loctrig,loctrig_nadironly,inu,this_threshold, thispasses);
-  return PassesTrigger(anita1, mode, triggerState, this_threshold);
+  return PassesTrigger(anita1, mode, triggerState, this_threshold, noiseOnly);
 }
 
 
@@ -240,7 +241,7 @@ void anitaSim::GlobalTrigger::PassesTrigger(Anita* anita1,int mode, TriggerState
 
 // void anitaSim::GlobalTrigger::PassesTrigger(const Settings *settings,Anita* anita1,int discones_passing,int mode,int *l3trig,int l2trig[Anita::NPOL][Anita::NTRIGGERLAYERS_MAX],int l1trig[Anita::NPOL][Anita::NTRIGGERLAYERS_MAX],int antennaclump,int loctrig[Anita::NPOL][Anita::NLAYERS_MAX][Anita::NPHI_MAX],int loctrig_nadironly[Anita::NPOL][Anita::NPHI_MAX],int inu,double this_threshold, int *thispasses) {
 
-void anitaSim::GlobalTrigger::PassesTrigger(Anita* anita1, int mode, TriggerState& triggerState, double this_threshold) {  
+void anitaSim::GlobalTrigger::PassesTrigger(Anita* anita1, int mode, TriggerState& triggerState, double this_threshold, bool noiseOnly) {  
 
   //bool ishpol should only be used for anita3, by default do only vpol
 
@@ -250,7 +251,7 @@ void anitaSim::GlobalTrigger::PassesTrigger(Anita* anita1, int mode, TriggerStat
 
     // Basic trigger refers to  frequency domain voltage (0) frequency domain energy (1) timedomain diode integration (2) 
     // PassesTriggerBasic(anita1, discones_passing, mode, l3trig, l2trig, l1trig, antennaclump, loctrig, loctrig_nadironly, thispasses, inu);
-    PassesTriggerBasic(anita1, mode, triggerState);
+      PassesTriggerBasic(anita1, mode, triggerState, noiseOnly);
 
   }
 
@@ -277,13 +278,19 @@ void anitaSim::GlobalTrigger::PassesTrigger(Anita* anita1, int mode, TriggerStat
 
 
 void  anitaSim::GlobalTrigger::PassesTriggerBasic(Anita* anita1,
-						  int mode, TriggerState& triggerState){
+						  int mode, TriggerState& triggerState,
+						  bool noiseOnly){
   
   int ltsum=0;
   int channsum=0;
   int ihit=0;
   //  int thispasses[2]={0,0};
   int required_bands_failed[2]={0,0}; // keep track of whether bands that were required to pass did not, for each polarization
+
+  // For checking noise triggers
+  // if (noiseOnly)
+  //   std::cout << "Checking if noise passes trigger\n";
+  arrayofhits = noiseOnly ? arrayofhitsnoise : arrayofhitsall;
 
   // this is an array with 1=pass and 0=fail for each channel
   // the first two layers on the payload are "compacted"
@@ -342,8 +349,10 @@ void  anitaSim::GlobalTrigger::PassesTriggerBasic(Anita* anita1,
 	  // physically higher than the 1st antenna in the first trigger layer
 	  // which means that the nadirs are aligned with the antennas with indices 1,3,5 etc.
 	  // we will still use indices 0-7 for them though
+	  if (noiseOnly)
+	    channels_compacted_passing[whichlayer][whichphisector][ipolar][iband]+=channels_passing_justNoise[ilayer][iphi][ipolar][iband];
 	  channels_compacted_passing[whichlayer][whichphisector][ipolar][iband]+=channels_passing[ilayer][iphi][ipolar][iband];
-	  // if (channels_compacted_passing[whichlayer][whichphisector][ipolar][iband]>0 && ipolar==0) cout << whichlayer << " " << whichphisector << endl;
+	  // if (channels_compacted_passing[whichlayer][whichphisector][ipolar][iband]>0 && ipolar==0) std::cout << whichlayer << " " << whichphisector << std::endl;
 	}
       }
     }
@@ -450,7 +459,6 @@ void  anitaSim::GlobalTrigger::PassesTriggerBasic(Anita* anita1,
     }
    
   } else if (mode == 2) { // TRIGTYPE=1 ->
-
     // ANITA-3
     if (fSettings->WHICH==Payload::Anita3) {
       // for each of these, need to set 
@@ -490,10 +498,10 @@ void  anitaSim::GlobalTrigger::PassesTriggerBasic(Anita* anita1,
 	  }
 	}
       }
-	
+
       int vl3trig[2][16];
       L3Anita3and4(anita1,vl2trig,vl3trig,triggerState.passes.data());
-
+      
       for (int ipol=0;ipol<2;ipol++) {
 	for (int iphi=0;iphi<16;iphi++) {
 	  if (vl3trig[ipol][iphi]>0){
@@ -501,7 +509,7 @@ void  anitaSim::GlobalTrigger::PassesTriggerBasic(Anita* anita1,
 	  }
 	}
       }
-	
+
     }
     // ANITA-4
     else if (fSettings->WHICH==Payload::Anita4 && !(fSettings->LCPRCP)) {
@@ -726,15 +734,6 @@ void  anitaSim::GlobalTrigger::PassesTriggerBasic(Anita* anita1,
 	  }
 	}
       }
-
-
-
-
-
-
-
-
-
     }
     else {
 
@@ -834,7 +833,6 @@ void  anitaSim::GlobalTrigger::PassesTriggerBasic(Anita* anita1,
 	  for (int iphi=0;iphi<NTRIGPHISECTORS;iphi++) {
 	    if (triggerState.L2.at(ipolar).at(iloc) & (1<<iphi)) { // if we are not making a L3 trigger requirement and there was a l2 trigger then call it a pass
 	      triggerState.passes.at(ipolar)=1;
-	      //cout << "This one passes.  inu is " << inu << " " << "iloc is " << iloc << "\n";
 	    }
 	  }
 	} // end loop over polarizations
@@ -1517,7 +1515,8 @@ void anitaSim::GlobalTrigger::GetAnitaLayerPhiSector(int i,int j,int &whichlayer
  */
 // void anitaSim::GlobalTrigger::L3Trigger(const Settings *settings1,Anita* anita1,int loctrig[Anita::NPOL][Anita::NLAYERS_MAX][Anita::NPHI_MAX],int loctrig_nadironly[Anita::NPOL][Anita::NPHI_MAX],int discones_passing,int *l3trig,int *thispasses) {
 void anitaSim::GlobalTrigger::L3Trigger(const Anita* anita1,TriggerState& triggerState){
-  
+
+  //std::cout << "In L3 Trigger, triggerState.passes.at(1)=" << triggerState.passes.at(1) << std::endl;
   int whichphipass[Anita::NPOL][Anita::NPHI_MAX]={{0}};
   triggerbits.fill(0);
     
@@ -1859,8 +1858,8 @@ void anitaSim::GlobalTrigger::L3Anita3and4(const Anita* anita1,std::array<std::a
 	    if (ibin+(int)(L3_COINCIDENCE/TRIGTIMESTEP)<vl2trig[ipolar][iphimod16_neighbor].size()) {
 	      if (vl2trig[ipolar][iphi][ibin] && 
 		  findahit(vl2trig[ipolar][iphimod16_neighbor],ibin,ibin+(int)(L3_COINCIDENCE/TRIGTIMESTEP))) {
-		//cout << "passes: " << ipolar << "\t" << iphi << "\t" << ibin << "\n";
-		//cout << "neighbor: " << ipolar << "\t" << iphimod16_neighbor << "\n";
+		//std::cout << "passes: " << ipolar << "\t" << iphi << "\t" << ibin << "\n";
+		//std::cout << "neighbor: " << ipolar << "\t" << iphimod16_neighbor << "\n";
 		vl3trig[ipolar][iphi]=1;
 		thispasses[ipolar]=1;
 		ibin = vl2trig[ipolar][iphi].size(); // ends this loop
@@ -2007,6 +2006,7 @@ void anitaSim::GlobalTrigger::L1Anita3_AllPhiSectors(const Anita* anita1,std::ar
   }
   //  cout << "inside, vl1trig is " << vl1trig[0][0].size() << "\n";
 }
+
 void anitaSim::GlobalTrigger::L1Anita4_AllPhiSectors(const Anita* anita1,std::array<std::array<std::vector<int>,16>,2> &vl1trig) {
   std::vector<int> vl1_realtime_vbottom;
   std::vector<int> vl1_realtime_vmiddle; 

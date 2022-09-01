@@ -46,6 +46,8 @@ namespace anitaSim {
     }
     virtual void addSignalToRX(const icemc::PropagatingSignal& signal, int rx, int inu); // just for debugging
 
+    bool fDebug = false;
+
   private:
 
     const Settings* fSettings;
@@ -55,6 +57,8 @@ namespace anitaSim {
 
     VoltsRX fVoltsRX;
     TriggerState fTriggerState;
+    TriggerState fTriggerStateNoise; // does it pass on a noise trigger?
+    // @todo re-write TriggerState to include noise check 
     std::vector<std::array<std::array<double, 5>, Anita::NPOL> > fThresholdsAnt;
     // double fThresholdsAnt[nAnt][Anita::NPOL][5] = {{{0}}};
     

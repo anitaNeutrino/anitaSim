@@ -89,7 +89,7 @@ namespace anitaSim {
      * @param  anita1 :: Anita - anita object
      * @param  ant :: int - antenna number
      */ 
-    void TriggerPath(const Anita* anita1, int );
+    void TriggerPath(const Anita* anita1, int ant);
 
     //! Apply digitizer path
     /**
@@ -269,7 +269,7 @@ namespace anitaSim {
      * @param  ipol :: int - which polarization
      * @param  thresholds :: double[2][5] - relative power thresholds for each pol and band
      */
-    void DiodeConvolution(Anita* anita1, GlobalTrigger *globaltrig1, int ilayer, int ifold, double mindiodeconvl[5], double onediodeconvl[5], double psignal[5][Anita::NFOUR],  double timedomain_output[5][Anita::NFOUR], int ibinshift, int ipol, std::array<std::array<double, 5>, 2>& thresholds);
+    void DiodeConvolution(Anita* anita1, GlobalTrigger *globaltrig1, int ilayer, int ifold, double mindiodeconvl[5], double onediodeconvl[5], double psignal[5][Anita::NFOUR], double timedomain_output[5][Anita::NFOUR], double timedomain_output_justNoise[5][Anita::NFOUR], int ibinshift, int ipol, std::array<std::array<double, 5>, 2>& thresholds);
 
 
     //! Increment the volts in each band 
@@ -443,6 +443,7 @@ namespace anitaSim {
     typedef std::array<std::array<std::array<double, Anita::HALFNFOUR>, 5>, 2> PolBandHalfNFourArray ;
     PolBandHalfNFourArray v_banding_rfcm_forfft;              ///< Starts out as V/s vs. freq after banding, rfcm, after fft it is V vs. t
     PolBandHalfNFourArray vm_banding_rfcm_forfft;             ///< Starts out as V/s vs. freq after banding, rfcm, after fft it is V vs. t
+    PolBandHalfNFourArray vm_banding_rfcm_forfft_justNoise;   
     PolBandHalfNFourArray v_banding_rfcm_forfft_temp;         ///< Use for the averaging over 10 neighboring bins
 
     double integral_vmmhz;                                      ///< Electric field integral    

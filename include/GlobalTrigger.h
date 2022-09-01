@@ -91,9 +91,12 @@ namespace anitaSim {
     // 4th component:  slices of bandwidth
     //  int channels_passing[4][16][2][5]; // keeps track of which channels pass
     int channels_passing[Anita::NLAYERS_MAX][Anita::NPHI_MAX][2][Anita::NBANDS_MAX]; // keeps track of which channels pass
+    int channels_passing_justNoise[Anita::NLAYERS_MAX][Anita::NPHI_MAX][2][Anita::NBANDS_MAX]; // keeps track of which channels pass from noise triggers
     // make this an array of vectors instead so that we can have an arbitrary number of bands for satellite
     std::vector<int> vchannels_passing[Anita::NLAYERS_MAX][Anita::NPHI_MAX][2];
-    std::array< std::array< std::array< std::array<std::vector<int>,5>, 2>, 16>, 3>  arrayofhits; 
+    std::array< std::array< std::array< std::array<std::vector<int>,5>, 2>, 16>, 3>  arrayofhits;
+    std::array< std::array< std::array< std::array<std::vector<int>,5>, 2>, 16>, 3>  arrayofhitsall;
+    std::array< std::array< std::array< std::array<std::vector<int>,5>, 2>, 16>, 3>  arrayofhitsnoise; 
 
 
     std::array<int, Anita::NTRIG> triggerbits;
@@ -109,12 +112,13 @@ namespace anitaSim {
     // 		       int loctrig_nadironly[Anita::NPOL][Anita::NPHI_MAX],
     // 		       int inu, int *thispasses);
 
-    void PassesTrigger(Anita* anita1, int mode, TriggerState& triggerState);
+    void PassesTrigger(Anita* anita1, int mode, TriggerState& triggerState, bool noiseOnly=false);
     
     
     void PassesTrigger(Anita* anita1,int mode,
 		       TriggerState& triggerState,
-		       double this_threshold);
+		       double this_threshold,
+		       bool noiseOnly=false);
 
     // void PassesTrigger(const Settings *settings1,Anita* anita1,int discones_passing,int mode,
     // 		       int *l3trig,
@@ -134,7 +138,7 @@ namespace anitaSim {
     // 			    int loctrig_nadironly[Anita::NPOL][Anita::NPHI_MAX],
     // 			    int *thispasses, int inu);
 
-    void PassesTriggerBasic(Anita* anita1,int mode, TriggerState& triggerState);
+    void PassesTriggerBasic(Anita* anita1,int mode, TriggerState& triggerState, bool noiseOnly=false);
     
     void PassesTriggerCoherentSum(const Anita* anita1, int inu, int *thispasses);
 

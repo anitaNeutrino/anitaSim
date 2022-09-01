@@ -153,6 +153,7 @@ namespace anitaSim {
     std::array<int, 5> imaxbin;
     int maxbin_fortotal[5];                                                                                     ///< when it sums the noise and signal together it shortens the waveform
     int channels_passing[2][5];                                                                                 ///< channels passing.  This is reset for every antenna for every event
+    int channels_passing_justNoise[2][5];
     int l1_passing; // l1 passing
     int l1_passing_allantennas[48]; // l1 passing
 
