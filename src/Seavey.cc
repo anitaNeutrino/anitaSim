@@ -545,7 +545,7 @@ anitaSim::Seavey::Seavey(const TVector3& positionV, const TVector3& positionH,
 {
   if(settings){
     fPassBandsHz.emplace_back(std::make_pair(settings->FREQ_LOW_SEAVEYS, settings->FREQ_HIGH_SEAVEYS));
-    // std::cout << "The pass band (Hz) is " << fPassBandsHz.back().first << "\t" << fPassBandsHz.back().second << std::endl;
+    //std::cout << "The pass band (Hz) is " << fPassBandsHz.back().first << "\t" << fPassBandsHz.back().second << std::endl;
   }
 }
 
@@ -602,9 +602,10 @@ double anitaSim::Seavey::getOffAxisResponse(Pol pol, AngleDir dir, double freqHz
 
 void anitaSim::Seavey::addSignal(const icemc::PropagatingSignal& s) {
 
-  // const double startEnergy = s.energy();
-  // std::cout << "Seavey::addSignal energy = " << s.energy() << std::endl;
+  // if (fDebug == true)
+  //   std::cout << "Debugging!" << std::endl;
 
+  
   ///@todo Put the factor of 0.5 for "voltage dividing" elsewhere, like in an actual splitter class downstream of the Seavey...
 
   double e_component_kvector = 0;
@@ -624,13 +625,13 @@ void anitaSim::Seavey::addSignal(const icemc::PropagatingSignal& s) {
 				 hitangle_e, hitangle_h);
 
   const double df_Hz = s.waveform.getDeltaF();
+  const double dt = s.waveform.getDeltaT();
 
   // Make copies for the VPol and HPol feeds
   icemc::FTPair thisHPol = s.waveform;
   icemc::FTPair thisVPol = s.waveform;
 
-  if(false){
-  //if(fDebug){
+  if(fDebug){
     static int ant = -1;
     ant++;
     const char* opt = ant == 0 ? "recreate" : "update";
@@ -638,11 +639,11 @@ void anitaSim::Seavey::addSignal(const icemc::PropagatingSignal& s) {
     f->cd();
 
     TGraph grV = thisVPol.getTimeDomain();
-    grV.SetName(TString::Format("grV_before_%d", ant));
+    grV.SetName(TString::Format("%d_grV_before", ant));
     grV.Write();
 
     TGraph grH = thisHPol.getTimeDomain();
-    grH.SetName(TString::Format("grH_before_%d", ant));
+    grH.SetName(TString::Format("%d_grH_before", ant));
     grH.Write();
     
     f->Write();
@@ -679,19 +680,28 @@ void anitaSim::Seavey::addSignal(const icemc::PropagatingSignal& s) {
       // const double offAxisResponseHV = getOffAxisResponse(Pol::H, AngleDir::Azimuth, freqHz, hitangle_e);
       const double offAxisResponseHV = getOffAxisResponse(Pol::H, AngleDir::Elevation, freqHz, hitangle_h);
 
+      
       if(fDebug){
-        std::cout << "Seavey V: " << freqHz/1e9 << ", heights=("
-      		<< heightVV << ", " << heightHV << "), oars=("
-      		<< offAxisResponseV << ", " << offAxisResponseHV << "), e_comp = "
-      		<< e_component << ", h_comp" << h_component << ", hitangle_e = "
-      		<< hitangle_e << "\n";
+        std::cout << "Seavey V: " << freqHz/1e6 << "MHz" 
+		  << " heightVV=" << heightVV
+		  << " oarV=" << offAxisResponseV
+		  << " e_comp=" << e_component
+		  << " hitangle_e=" << hitangle_e
+		  << " totalGainFactor=" << 0.5*sqrt(heightVV*heightVV*e_component*e_component*offAxisResponseV)
+		  << " dt=" << dt << "\n";
+	
+        // std::cout << "Seavey V: " << freqHz/1e9 << ", heights=("
+	// 	<< heightVV << ", " << heightHV << "), oars=("
+	// 	<< offAxisResponseV << ", " << offAxisResponseHV << "), e_comp = "
+	// 	<< e_component << ", h_comp" << h_component << ", hitangle_e = "
+	// 	<< hitangle_e << "\n";
       }
-
+ 
       // 0.5 is for voltage dividing apparently, it doesn't happen in the Seavey... but it does happen downstream... maybe
-      const double totalGainFactorV = 0.5*sqrt(  heightVV*heightVV*e_component*e_component*offAxisResponseV
-					       + heightHV*heightHV*h_component*h_component*offAxisResponseHV );
-
-      c *= totalGainFactorV;
+      //const double totalGainFactorV = 0.5*sqrt(  heightVV*heightVV*e_component*e_component*offAxisResponseV
+      //					       + heightHV*heightHV*h_component*h_component*offAxisResponseHV );
+      double totalGainFactorV = 0.5*sqrt(heightVV*heightVV*e_component*e_component*offAxisResponseV);
+      c *= totalGainFactorV/(sqrt(2)*dt*1.E6); // factor from icemc::ChanTrigger right before AntennaGain is applied
     }
     else{
       c = 0;
@@ -701,7 +711,7 @@ void anitaSim::Seavey::addSignal(const icemc::PropagatingSignal& s) {
   }
 
   //fDebug = temp;
-  fDebug=false;
+  //fDebug=false;
   freqHz = 0; // freqHz is incremented in the loop, so reset
   for(auto& c : hPolFreqs){
 
@@ -716,18 +726,23 @@ void anitaSim::Seavey::addSignal(const icemc::PropagatingSignal& s) {
       const double offAxisResponseVH = getOffAxisResponse(Pol::V, AngleDir::Elevation, freqHz, hitangle_h);
 
       // 0.5 is for voltage dividing apparently, it doesn't happen in the Seavey... but it does happen downstream... maybe
-      double totalGainFactorH = 0.5*sqrt(  heightHH*heightHH*h_component*h_component*offAxisResponseH
-					 + heightVH*heightVH*e_component*e_component*offAxisResponseVH);
+      // double totalGainFactorH = 0.5*sqrt(  heightHH*heightHH*h_component*h_component*offAxisResponseH
+      // 					 + heightVH*heightVH*e_component*e_component*offAxisResponseVH);
 
+      double totalGainFactorH = 0.5*sqrt(heightHH*heightHH*h_component*h_component*offAxisResponseH);
+					   
+      
       if(fDebug){
-        std::cout << "Seavey V: " << freqHz/1e9 << ", heights=("
-      		<< heightHH << ", " << heightVH << "), oars=("
-      		<< offAxisResponseH << ", " << offAxisResponseVH << "), e_comp = "
-      		<< e_component << ", h_comp" << h_component << ", hitangle_h = "
-      		<< hitangle_h << "\n";
-      }
+           std::cout << "Seavey H: " << freqHz/1e6 << "MHz" 
+		     << " heightHH=" << heightHH
+		     << " oarH=" << offAxisResponseH
+		     << " e_comp=" << e_component
+		     << " hitangle_e=" << hitangle_e
+		     << " totalGainFactor=" << 0.5*sqrt(heightHH*heightHH*h_component*h_component*offAxisResponseH)
+		     << " dt=" << dt << "\n";
 
-      c *= totalGainFactorH;
+      }
+      c *= totalGainFactorH/(sqrt(2)*dt*1.E6);
     }
     else{
       c = 0;
@@ -762,8 +777,7 @@ void anitaSim::Seavey::addSignal(const icemc::PropagatingSignal& s) {
   //   }
   //   std::cout << integral << std::endl;
   // }  
-  
-  fDebug=false;
+
   //fDebug = temp;
   if(fDebug){
     static int ant = -1;
@@ -773,16 +787,17 @@ void anitaSim::Seavey::addSignal(const icemc::PropagatingSignal& s) {
     f->cd();
 
     TGraph grV = fVPol.getTimeDomain();
-    grV.SetName(TString::Format("grV_after_%d", ant));
+    grV.SetName(TString::Format("%d_grV_after", ant));
     grV.Write();
 
     TGraph grH = fHPol.getTimeDomain();
-    grH.SetName(TString::Format("grH_after_%d", ant));
+    grH.SetName(TString::Format("%d_grH_after", ant));
     grH.Write();
-
+    
     f->Write();
     f->Close();
-  }  
+  }
+
 }
 
 
